@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+{% load i18n wagtailadmin_tags static wagtailimages_tags %}
+{% block title %}{% trans "Forecasts" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .featured-item-block {
+        display: flex;
+        justify-content: center;
+        background-color: #fff;
+        padding: 60px 0;
+        margin: 0;
+        border-radius: var(--border-radius);
+        align-items: center;
+    }
+    
+    .featured-item-image figure {
+        height: 400px;
+        width: 100%;
+    }
+    
+    .featured-item-image figure img {
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+        border-radius: var(--border-radius);
+    }
+    
+    .featured-item-detail {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding-left: 40px;
+    }
+    .featured-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .featured-item-header-tag {
+        font-size: 14px;
+        font-weight: bold;
+        color: grey;
+    
+    }
+    
+    .featured-item-readmore a {
+        font-weight: bold;
+    }
+
+
+.share-buttons {
+    display: flex;
+    overflow: hidden;
+}
+
+.share-buttons > a {
+    margin-right: 20px;
+    display: flex;
+    justify-content: center;
+    background-color: #eff4f8;
+    color: #006799;
+    border: none;
+    font-weight: bold;
+}
+
+.share-buttons > a:hover {
+    background-color: #e5eeee;
+    color: var(--primary-hover-color);
+}
+
+.section-title {
+    color: #262c38;
+    font-weight: 700;
+    padding: 0 0 50px 0;
+}
+
+.section-title.has-subtitle {
+    padding-bottom: 30px
+}
+
+/* 1605px and lower*/
+@media screen and (max-width: 1605px) {
+h2,
+h2.section-title {
+    font-size: 36px;
+}
+
+}
+
+/*1440px and lower*/
+@media screen and (max-width: 1440px) {
+
+    h2,
+    h2.section-title {
+        font-size: 32px
+    }
+}
+</style>
+
+{% endblock extra_css %}
+
+{% block content %}
+
+<main class="is-index">
+    <section>
+        <div class="container">
+        <h2 class="section-title center pb-2">7 Day City Weather Forecast</h2>
+        <div class="share-buttons center  pb-6">
+        <a class="button is-small is-rounded"
+        target="_blank" rel="noopener"
+        id="forecast_img"
+        >
+            
+            <span class="share-button-title">Download Image</span>
+            <span class="icon">
+            <i class="fa fa-image" aria-hidden="true"></i>
+        </span>
+        </a>
+
+        <a class="button is-small is-rounded"
+        target="_blank" rel="noopener"
+        id="forecast_pdf"
+
+        >
+            
+            <span class="share-button-title">Download PDF</span>
+            <span class="icon">
+                <i class="fa fa-file-pdf" aria-hidden="true"></i>
+            </span>
+        </a>
+        
+        </div>
+
+        <div class="featured-item-block" style="padding:60px 30px; border-radius:2em;    flex-direction: column;"  id="forecast-table">
+            {% image settings.base.OrganisationSetting.logo width-1000 as logo%}
+
+            {% if logo %} 
+            
+                <img src="{{logo.url}}" style="height:50px; margin-bottom:2em;display:none" id="organization-logo">
+    
+                {% else %}
+                
+                N.M.H.S
+    
+            {% endif %}
+        <table class="table is-striped">
+            <thead>
+              <tr>
+                <th>City</th>
+                {% for date in dates %}
+                  <th style="text-align:center">{{ date }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for city, vals in forecasts.items %}
+                <tr>
+                    <td>{{ city }}</td>
+                    {% for item in vals %}
+                    <td>
+                       
+                        <div class="columns is-gapless pb-1 mb-0 is-align-items-center is-mobile is-jsutify-content-center">
+                            <div class="column mr-1" style="align-self:end; text-align: end;">
+                                {% if item.condition__icon_image__file %}
+                                <figure class="forecast-icon" style="width:40px;display: inline-flex;">
+                                    <img 
+                                        src="{{ MEDIA_URL }}{{ item.condition__icon_image__file }}" 
+                                        alt="{{ item.condition__icon_image }}"
+                                    />
+                                </figure>
+                                {% endif %}
+
+                            </div>
+                            <div class="column ml-1" style="text-align: start;">
+                                <h2 style="font-size:14px; font-weight:600">{{item.max_temp}} {{settings.forecastmanager.Setting.get_temp_units_display}}</h2>
+                                <h3 style="font-size:10px; font-weight:600">{{item.min_temp}} {{settings.forecastmanager.Setting.get_temp_units_display}}</h3>
+
+                            </div>
+
+                        </div>
+
+                        <span class="title"
+                            style="font-size: 13px; font-weight: 600;margin-bottom: 0.5rem;display: flex;
+                            justify-content: center; ">
+                            <img src="{% static 'img/wind_icon.png'%}" alt="" width="15"
+                                style="transform:rotate(calc({{item.wind_direction}}deg + 90deg));opacity: 0.7;">
+                                {{item.wind_direction}} °
+                            </h2>
+                        </span>
+
+
+                        <h2 class="title"
+                            style="font-size: 13px; font-weight: 600;margin-bottom: 0.5rem;display: flex;
+                            justify-content: center;">
+                            {{item.wind_speed}} {{settings.base.MeasurementSettings.get_wind_units_display}}
+                        </h2>
+                   
+                    </td>
+
+                    {% endfor %}
+                </tr>
+
+                
+              {% endfor %}
+            </tbody>
+        </table>
+    
+        </div>
+    </div>
+        </section>
+</main>
+{% endblock content %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/dompurify@2.3.2/dist/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+<script>
+    var currentdate = new Date()
+
+    const { jsPDF } = window.jspdf
+
+    document.getElementById('forecast_img').addEventListener('click', function(){
+
+        const forecast_table = document.getElementById("forecast-table");
+        
+        $('#organization-logo').show()
+        var canvas = document.createElement('canvas');
+        // Set the canvas dimensions to the table dimensions
+        canvas.width = forecast_table.offsetWidth;
+        canvas.height = forecast_table.offsetHeight;
+
+        // Get the canvas context
+        var context = canvas.getContext('2d');
+
+        // Render the table to the canvas
+        html2canvas(forecast_table).then(function(canvas) {
+
+            // Get the data URL of the canvas
+            var dataURL = canvas.toDataURL('image/png');
+
+            // Create a link element with the data URL as the href attribute
+            var link = document.createElement('a');
+            link.href = dataURL;
+            link.download = `7day_forecast_${currentdate.getFullYear() + "_" 
+            + (currentdate.getMonth()+1)  + "_"      
+            + currentdate.getDate() + "__"
+            + currentdate.getHours() + "_"  
+            + currentdate.getMinutes() + "_" 
+            + currentdate.getSeconds()}.png`; // Set the filename of the downloaded file
+
+            // Trigger a click event on the link to download the image
+            link.click();
+            $('#organization-logo').hide()
+
+        });
+    })
+
+
+    document.getElementById('forecast_pdf').addEventListener('click', function(){
+        const padding = 20; // add 20px padding
+
+        const table = document.getElementById("forecast-table");
+        $('#organization-logo').show()
+
+        html2canvas(table, {
+            useCORS: true,
+            scrollX: 0,
+            scrollY: -window.scrollY,
+            }).then(canvas => {
+            const pdf = new jsPDF({
+                orientation: 'potrait',
+                unit: 'px',
+                format: [canvas.width, canvas.height],
+            });
+            const imgData = canvas.toDataURL('image/png');
+            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+            pdf.save(`7day_forecast_${currentdate.getFullYear() + "_" 
+            + (currentdate.getMonth()+1)  + "_"      
+            + currentdate.getDate() + "__"
+            + currentdate.getHours() + "_"  
+            + currentdate.getMinutes() + "_" 
+            + currentdate.getSeconds()}.pdf`);
+            $('#organization-logo').hide()
+
+        });
+    })
+
+</script>
+
+{% endblock extra_js %}

@@ -1,0 +1,5 @@
+include README.md
+include LICENSE
+recursive-include forecastmanager *.py
+recursive-include forecastmanager/templates *
+recursive-include forecastmanager *.html

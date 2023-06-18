@@ -1,0 +1,201 @@
+{% load static wagtailadmin_tags %}
+{% load wagtailsettings_tags %}
+
+{% get_settings use_default_site=True %}
+
+<script src="{% versioned_static 'wagtailadmin/js/date-time-chooser.js' %}"></script>
+
+<h2 style="padding-top: 2em">Query Forecasts</h2>
+
+<form  id="queryForm" method="get">
+    <div class="row row-flush">
+        <div class="col9" style="display:inline-flex">
+    <div class="w-field__wrapper" data-field-wrapper="">
+        <label class="w-field__label" for="id_start_date" id="id_start_date-label">
+            Start Date
+            <span class="w-required-mark">*</span>
+        </label>
+        <div class="w-field w-field--date_field w-field--admin_date_input" data-field="" data-contentpath="date">
+            <div class="w-field__errors" data-field-errors=""></div>
+            <div class="w-field__input" data-field-input="">
+                <input type="text" name="start_date" autocomplete="off" required="" id="id_start_date" />
+                <script>initDateChooser("id_start_date", { "dayOfWeekStart": 0, "format": "Y-m-d" });</script>
+            </div>
+
+            <div data-field-help=""></div>
+        </div>
+    </div>
+    <div class="w-field__wrapper" data-field-wrapper="">
+        <label class="w-field__label" for="id_end_date" id="id_end_date-label">
+            End Date
+            <span class="w-required-mark">*</span>
+        </label>
+        <div class="w-field w-field--date_field w-field--admin_date_input" data-field="" data-contentpath="date">
+            <div class="w-field__errors" data-field-errors=""></div>
+            <div class="w-field__input" data-field-input="">
+                <input type="text" name="end_date" autocomplete="off" required="" id="id_end_date" />
+                <script>initDateChooser("id_end_date", { "dayOfWeekStart": 0, "format": "Y-m-d" });</script>
+            </div>
+
+            <div data-field-help=""></div>
+        </div>
+    </div>
+    <div class="w-field__wrapper" data-field-wrapper="">
+        <label class="w-field__label" for="id_select" id="id_select-label">
+            Select
+            <span class="w-required-mark">*</span>
+        </label>
+
+        <div class="w-field w-field--choice_field w-field--select" data-field="" data-contentpath="select">
+            <div class="w-field__errors" data-field-errors=""></div>
+
+            <div class="w-field__input" data-field-input="">
+                <select name="city_id" id="id_select">
+                    {% comment %} {% for city in city_ls %}
+                    <option value="{{city.fields.name}}">{{city}}</option>
+                    {% endfor %} {% endcomment %}
+                </select>
+            </div>
+            <div data-field-help=""></div>
+        </div>
+    </div>
+</div>
+
+    <div class="col3" style="text-align:end">
+        <div>
+            <label class="w-field__label" for="id_select" id="id_select-label" style="visibility: hidden;">
+                Load
+            </label>
+
+            <button type="submit" class="button actionbutton queryForecast" id="loadForecast"
+                style="display:none">Load</button>
+        </div>
+    </div>
+
+</div>
+
+</form>
+
+<div id="queryTable" style="z-index: 1"></div>
+
+<div class="row row-flush" style="padding-top:1rem">
+    <div class="col12" style="text-align:end">
+      <button type="button" class="button actionbutton" id="exportQueryTable">Download Table as CSV</button>
+    </div>
+  </div>
+  
+<script>
+    var city_ls = JSON.parse('{{city_ls|escapejs}}')
+    city_ls.map(city => {
+        return $('#id_select').append(`<option value="${city.pk}">${city.fields.name}</option>`)
+    })
+
+    var today = new Date();
+    var dd = String(today.getDate()).padStart(2, '0');
+    var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+    var yyyy = today.getFullYear();
+
+    today = yyyy + '-' + mm + '-' + dd;
+
+    $('#id_date').val(today)
+
+    const queryContainer = document.querySelector("#queryTable");
+
+    const hotQuery = new Handsontable(queryContainer, {
+        width: "100%",
+        readOnly: true,
+        rowHeaders: true,
+        colHeaders: [
+            "City",
+            "Date",
+            "Min Temperature ({{settings.forecastmanager.Setting.get_temp_units_display}})",
+            "Max Temperature ({{settings.forecastmanager.Setting.get_temp_units_display}})",
+            "Wind Speed ({{settings.forecastmanager.Setting.get_wind_units_display}})",
+            "Wind Direction (°)",
+            "General Condition",
+        ],
+        columns: [
+            {
+                data: 'city__name',
+
+            },
+            {
+                type: 'date',
+                data: 'forecast_date',
+                dateFormat: 'YYYY-MM-DD',
+
+            },
+            {
+                data: 'min_temp',
+
+            },
+            {
+                data: 'max_temp',
+
+            },
+            {
+                data: 'wind_speed',
+
+            },
+            {
+                data: 'wind_direction',
+
+            },
+            {
+                data: 'condition__title',
+
+            },
+        ],
+        // dropdownMenu: true,
+        multiColumnSorting: true,
+        // filters: true,
+        manualColumnResize: true,
+        manualColumnResize: [100, 100],
+        minSpareRows: 1,
+        height: "auto",
+        stretchH: "all",
+        licenseKey: "non-commercial-and-evaluation", // for non-commercial use only
+    });
+
+    // Define a function to fetch the data by parent name
+    function fetchData(param_str) {
+        // Send a GET request to a Django view that returns the data as JSON
+        $.ajax({
+            url: "{% url 'get_data' %}" + `?${param_str}`,
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                // Populate the Handsontable table with the data
+                hotQuery.loadData(data)
+
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log(textStatus, errorThrown);
+            }
+        });
+    }
+
+    $("#queryForm").submit(function (e) {
+        e.preventDefault();
+        var values = $(this).serialize();
+        fetchData(values)
+
+    })
+
+    const exportQueryPlugin = hotQuery.getPlugin('exportFile');
+
+    document.getElementById('exportQueryTable').addEventListener('click', function(){
+        exportQueryPlugin.downloadFile('csv', {
+            bom: false,
+            columnDelimiter: ',',
+            columnHeaders: true,
+            exportHiddenColumns: true,
+            exportHiddenRows: true,
+            fileExtension: 'csv',
+            filename: 'city_forecasts_[YYYY]-[MM]-[DD]',
+            mimeType: 'text/csv',
+            rowDelimiter: '\r\n',
+            rowHeaders: true
+        });
+    })
+</script>

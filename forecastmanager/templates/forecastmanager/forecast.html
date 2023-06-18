@@ -1,0 +1,119 @@
+{% extends "wagtailadmin/base.html" %} {% load wagtailadmin_tags i18n static %}
+{% block extra_css %} {{ block.super }}
+
+{% comment %} <link rel="stylesheet" href="{% versioned_static 'wagtailstyleguide/css/styleguide.css' %}" type="text/css" /> {% endcomment %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
+
+{{ form.media.css }} {% endblock %}
+{% block titletag %}
+{% trans 'Forecast Manager' %}
+{% endblock %}
+
+
+{% block extra_js %}
+{{block.super}}
+{% include "wagtailadmin/pages/_editor_js.html" %} {{ form.media.js}}
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+
+{% endblock extra_js %}
+
+
+{% block content %}
+
+<div class="messages" role="status">
+    <ul>
+        {% if settings.base.IntegrationSettings.enable_auto_forecast %}
+        <li class="warning">                            
+            <svg class="icon icon-warning messages-icon" aria-hidden="true"><use href="#icon-warning"></use></svg>
+            Autoforecasting has been enabled and manually added forecasts here will be overidden.
+            <span class="buttons">
+                <a href="/admin/settings/forecastmanager/setting" class="button button-small button-secondary">Change autoforecasting setting</a>
+            </span>
+        </li>
+        {% endif %}
+        
+        <li class="success" id="creatSuccess" style="display:none">
+            <svg class="icon icon-success messages-icon" aria-hidden="true">
+                <use href="#icon-success"></use>
+            </svg>
+            Data Saved Successfuly
+        </li>
+        <li class="error" id="creatError" style="display:none">
+            <svg class="icon icon-warning messages-icon" aria-hidden="true">
+                <use href="#icon-warning"></use>
+            </svg>
+        </li>
+    </ul>
+</div>
+{% trans 'Forecast Manager' as title_str %} 
+{% include "wagtailadmin/shared/header.html" with title=title_str icon='form' %} {% include "wagtailadmin/pages/_editor_js.html" %}
+
+<div class="nice-padding">
+
+    <div class="row row-flush">
+        <div class="col6">
+            <select name="select" id="forecastMode" onchange="setForecastMode(this)">
+                <option value="create">Create Forecasts</option>
+
+                <option value="query">Query Forecasts</option>
+
+            </select>
+        </div>
+
+        <div class="col6" style="text-align:end">
+            <form method="POST" onsubmit="event.preventDefault()">
+                {% csrf_token %}
+                <button type="submit" class="button actionbutton createForecast" id="submitForecast">Submit</button>
+
+            </form>
+            
+        </div>
+    </div>
+
+    <div class="createForecast">
+
+        {% include 'forecastmanager/create_forecast.html' %}
+    </div>
+
+
+    <div class="queryForecast" style="display:none">
+
+        {% include 'forecastmanager/query_forecast.html' %}
+
+    </div>
+
+</div>
+
+<script>
+
+    function setForecastMode(e) {
+
+        var createForecast = document.getElementsByClassName('createForecast')
+        var queryForecast = document.getElementsByClassName('queryForecast')
+        if (e.value === 'create') {
+            for (i = 0; i < createForecast.length; i++) {
+                createForecast[i].style.display = '';
+            }
+            for (i = 0; i < queryForecast.length; i++) {
+                queryForecast[i].style.display = 'None';
+            }
+
+        } else {
+            for (i = 0; i < createForecast.length; i++) {
+                createForecast[i].style.display = 'None';
+            }
+            for (i = 0; i < queryForecast.length; i++) {
+                queryForecast[i].style.display = '';
+            }
+        }
+    }
+
+
+
+
+
+</script>
+{% endblock %}
+{% comment %}
+<script type="text/javascript" src="{% static 'js/editor.js' %}"></script> {% endcomment %}
