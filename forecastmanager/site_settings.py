@@ -8,7 +8,7 @@ from wagtail.admin.panels import (
     TabbedInterface,
     ObjectList,
 )
-# @register_setting
+@register_setting
 class Setting(BaseSiteSetting):
     enable_auto_forecast = models.BooleanField(
         default=True,
