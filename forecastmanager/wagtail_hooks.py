@@ -9,7 +9,7 @@ from forecastmanager.site_settings import Setting
 from django.utils.translation import gettext_lazy as _
 from django.urls import path
 from django.urls import re_path
-from forecastmanager.views import add_forecast, save_data, get_data
+from forecastmanager.views import add_forecast, save_data, get_data,get_forecast_by_daterange
 from wagtail.contrib.modeladmin.options import (
     ModelAdmin, 
     modeladmin_register,
@@ -27,6 +27,7 @@ def register_admin_urls():
         #     "forecast/",
         #     include((urls, "forecast"), namespace="forecast_admin"),
         # ),
+        path("load_forecast/", get_forecast_by_daterange, name="load_forecast"),
         path("add_forecast/", add_forecast, name="add_forecast"),
         path('save-data/', save_data, name='save_data'),
         re_path(r'^get-data/$', get_data, name='get_data'),
@@ -34,13 +35,6 @@ def register_admin_urls():
         
     ]
 
-
-@hooks.register("insert_global_admin_css")
-def insert_global_admin_css():
-    return format_html(
-        '<link rel="stylesheet" type="text/css" href="{}">',
-        static("css/admin.css"),
-    )
 
 class SettingsAdmin(ModelAdmin):
     model = Setting
@@ -77,7 +71,7 @@ class CityForecastGroup(ModelAdminGroup):
             item_order += 1
 
             # append raster upload link
-        upload_menu_item = MenuItem(label="Forecasts", url=reverse("add_forecast"), icon_name="cog")
+        upload_menu_item = MenuItem(label="Forecasts", url=reverse("load_forecast"), icon_name="cog")
 
         menu_items.append(upload_menu_item)
 
