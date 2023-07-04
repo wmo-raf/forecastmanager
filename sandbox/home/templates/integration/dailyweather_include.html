@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load i18n wagtailadmin_tags static wagtailimages_tags wagtailcore_tags %}
+{% block title %}{% trans "Daily Weather" %}{% endblock %}
+
+{% block extra_css %}
+
+<style>
+    .section-title {
+        color: #262c38;
+        font-weight: 700;
+        padding: 0 0 50px 0;
+    }
+    
+    .section-title.has-subtitle {
+        padding-bottom: 30px
+    }
+    
+    /* 1605px and lower*/
+    @media screen and (max-width: 1605px) {
+    h2,
+    h2.section-title {
+        font-size: 36px;
+    }
+    
+    }
+    
+    /*1440px and lower*/
+    @media screen and (max-width: 1440px) {
+    
+        h2,
+        h2.section-title {
+            font-size: 32px
+        }
+    }
+</style>
+
+{% endblock extra_css %}
+
+{% block content %}
+
+<main class="is-index">
+    <section class="pt-4 mt-4">
+        <div class="container">
+            <h2 class="section-title center pb-2" style="text-align:center">Daily Weather Report</h2>
+
+            <h3 class="section-title" style="text-align:center">Issued on {{report.issued_on}}</h3>
+
+            <p><b>Forecast Date:</b> {{report.forecast_date}}</p>
+            <p><b>Forecast Description:</b> {{report.forecast_desc|richtext}}</p>
+
+            <hr>
+            <p><b>Weather Date:</b> {{report.summary_date}}</p>
+            <p><b>Weather Summary Description:</b> {{report.summary_desc|richtext}}</p>
+
+            <hr>
+
+            <h3 class="section-title" style="text-align:center">Stations with Extreme Measurements ({{report.extreme_date}})</h3>
+
+            {% for extreme in report.extremes %}
+
+                {% include_block extreme %}
+
+            {% endfor %}
+        </div>
+    </section>
+{% endblock %}

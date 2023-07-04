@@ -3,7 +3,7 @@ from itertools import groupby
 from datetime import datetime, timedelta
 from django.shortcuts import render
 
-from forecastmanager.models import Forecast
+from forecastmanager.models import Forecast, DailyWeather
 
 def list_forecasts(request):
 
@@ -11,12 +11,7 @@ def list_forecasts(request):
     end_date_param = start_date_param + timedelta(days=6)
     forecast_data = Forecast.objects.filter(forecast_date__gte=start_date_param.date(),  forecast_date__lte=end_date_param.date())\
             .order_by('forecast_date')\
-            .values('id','city__name','forecast_date', 'max_temp', 'min_temp', 'wind_speed', 'wind_direction', 'condition__title','condition__icon_image', 'condition__icon_image__file')
-            # .annotate(
-            #     forecast_date_str = Cast(
-            #         TruncDate('forecast_date', DateField()), CharField(),
-            #     ),
-            # )
+            .values('id','city__name','forecast_date', 'max_temp', 'min_temp', 'condition')
 
     # sort the data by city
     data_sorted = sorted(forecast_data, key=lambda x: x['city__name'])
@@ -34,8 +29,18 @@ def list_forecasts(request):
     cities = list(set([d['city__name'] for d in data_sorted]))
     dates = list(set([d['forecast_date'] for d in data_sorted]))    
     
-    return render(request, "integration/forecasts_index.html", {
+    return render(request, "integration/forecasts_include.html", {
         "forecasts":grouped_forecast,
         "cities":cities,
         "dates":sorted(dates)
+    })
+
+def daily_weather(request):
+     
+    report = DailyWeather.objects.all().order_by('issued_on').first()
+    print(report)
+
+     
+    return render(request, "integration/dailyweather_include.html", {
+        "report":report
     })
