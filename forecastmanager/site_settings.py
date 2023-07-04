@@ -9,7 +9,7 @@ from wagtail.admin.panels import (
     ObjectList,
 )
 @register_setting
-class Setting(BaseSiteSetting):
+class ForecastSetting(BaseSiteSetting):
     enable_auto_forecast = models.BooleanField(
         default=True,
         verbose_name=_('Enable automated forecasts')

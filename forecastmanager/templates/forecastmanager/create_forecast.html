@@ -22,7 +22,8 @@
 <div class="row row-flush" style="padding-top:1rem">
 
   <div class="col5">
-    <form enctype="multipart/form-data" id="forecast_form">
+    <form enctype="multipart/form-data" id="forecast_form" method='post'>
+      {% csrf_token %}
       <div class="help-block help-info">
         <svg class="icon icon-warning icon" aria-hidden="true">
           <use href="#icon-info-circle"></use>
@@ -42,7 +43,7 @@
           <div class="w-field__wrapper" data-field-wrapper="">
 
             <label class="w-field__label" for="id_csv" id="id_csv-label">
-              Forecast Upload<span class="w-required-mark">*</span>
+              Forecast Upload
             </label>
             <div class="w-field w-field--file_field w-field--file_input" data-field="" data-contentpath="csv">
 
@@ -56,7 +57,7 @@
               </div>
 
               <div class="w-field__input" data-field-input="">
-                <input type="file" name="csv" accept=".csv" required="" id="id_csv">
+                <input type="file" name="csv" accept=".csv" id="id_csv">
               </div>
             </div>
           </div>
@@ -107,7 +108,7 @@
           <div class="w-field w-field--file_field w-field--file_input">
             <div class="w-field__input" data-field-input="">
 
-              <select id="city" required="true">
+              <select id="city">
               </select>
             </div>
           </div>
@@ -164,6 +165,8 @@
   </div>
   <div class="col7">
     <div id="createTable" style=z-index:1></div>
+    <div id="exportTemplate" style="display: none;"></div>
+
   </div>
 
 
@@ -175,62 +178,26 @@
 {% block extra_js %}
 {{block.super}}
 <script src="{% versioned_static 'wagtailadmin/js/date-time-chooser.js' %}"></script>
+<script src="{% static 'forecastmanager/js/helpers.js' %}"></script>
 
 {% include "wagtailadmin/pages/_editor_js.html" %} {{ form.media.js}}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
 
-    
-
-    function generateSelectInput(selectId, options, position) {
-      var select = document.getElementById(selectId);
-      options.forEach(function (option, i) {
-        var optionElement = document.createElement('option');
-        optionElement.value = i;
-        optionElement.text = option.replace(/"/g, '');
-        select.appendChild(optionElement);
-
-        if(i === position){
-          console.log(i)
-          console.log(option.replace(/"/g, ''))
-          select.selectedIndex = position
-
-        }
-
-      });
-    }
-
-    // CSV parsing function
-    function parseCSV(csv) {
-
-      var lines = csv.split('\n');
-      var data = [];
-
-      for (var i = 1; i < lines.length; i++) { // Start from index 1 to skip header row
-        var row = lines[i].split(',');
-
-        // Exclude rows with null or empty values
-        if (row.some(cell => cell.trim() !== '')) {
-          data.push(row);
-        }
-      }
-
-      return data;
-    }
-
-    
-
     var weather_condition_ls = JSON.parse('{{weather_condition_ls|escapejs}}')
+
     var city_ls = JSON.parse('{{city_ls|escapejs}}')
 
     const container = document.querySelector('#createTable');
+
+    
     const hot = new Handsontable(container, {
       width: '100%',
       rowHeaders: true,
       colHeaders: [
         'City',
-        'Min Temp ({{settings.forecastmanager.Setting.get_temp_units_display}})',
-        'Max Temp ({{settings.forecastmanager.Setting.get_temp_units_display}})',
+        'Min Temp',
+        'Max Temp',
         'Condition'],
       columns: [
         {
@@ -248,9 +215,8 @@
         },
         {
           type: 'dropdown',
-          source: weather_condition_ls.map(condition => condition.fields.title),
+          source: weather_condition_ls,
           allowEmpty: false,
-
         },
       ],
       data: [],
@@ -258,12 +224,18 @@
       multiColumnSorting: true,
       // filters: true,
       allowInvalid: true,
-      manualColumnResize: true,
-      minSpareRows: 10,
+      minSpareRows: 1,
       height: 'auto',
       stretchH: "all",
       licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
     });
+
+    const column_selectors = [
+      {dom_id:'city', index:0},
+      {dom_id:'minTemp', index:1},
+      {dom_id:'maxTemp', index:2},
+      {dom_id:'condition', index:3},
+    ]
 
     document.getElementById('id_csv').addEventListener('change', function (e) {
       var file = e.target.files[0];
@@ -273,21 +245,44 @@
         var csvData = event.target.result;
         var lines = csvData.split('\n');
         var columnHeaders = lines[0].split(',');
-
-        generateSelectInput('city', columnHeaders, 0);
-        generateSelectInput('minTemp', columnHeaders, 1);
-        generateSelectInput('maxTemp', columnHeaders, 2);
-        generateSelectInput('condition', columnHeaders, 3);
-
         $('#header_section').show()
 
         var contents = event.target.result;
-        console.log(contents)
         var data = parseCSV(contents);
-        console.log(data)
+
         hot.updateData(data)
 
-        reorder_columns(data, 'city', 0)
+        column_selectors.map(column => {
+
+          // prepopulate select with options by order 
+          generateSelectInput(column.dom_id, columnHeaders, column.index)
+          document.getElementById(column.dom_id).addEventListener('change', function(e){
+
+            var table_data = hot.getData()
+  
+            var column_arr = []
+            const rearrangedArr = data.map(arr => {
+              column_arr.push(arr[e.target.value])
+            })
+  
+            table_data.replace_data(column.index,column_arr )
+  
+            hot.updateData(table_data)
+    
+          })
+
+          return column
+          
+          
+        } )
+
+       
+
+        
+        
+       
+
+        // reorder_columns(data, 'city', 0)
         
       };
 
@@ -295,83 +290,9 @@
 
     });
 
-    function reorder_columns(table_data,column_id, column_index){
-      document.getElementById(column_id).addEventListener('change', function(e){
-        console.log(e.target.value)
-        const arrOfArrays = table_data
-  
-        const rearrangedArr = arrOfArrays.map(arr => {
-          const secondItem = arr[e.target.value];
-          arr.splice(e.target.value, e.target.value); // Remove the second item from the current position
-          arr.unshift(secondItem); // Insert the second item at the first position
-          return arr;
-        });
-  
-        hot.updateData(rearrangedArr)
-      })
-    }
-    
-
-    function validateData() {
-      var instance = hot.getInstance();
-      var hasError = false; // Assume no errors initially
-
-      for (var i = 0; i < instance.countRows(); i++) {
-        var rowHasValue = false; // Assume the row is empty initially
-
-        for (var j = 0; j < instance.countCols(); j++) {
-          var cellData = instance.getDataAtCell(i, j);
-
-          // Check if the cell is not null or empty string
-          if (cellData !== null && cellData !== '') {
-            rowHasValue = true; // Mark the row as non-empty
-
-            instance.setCellMeta(i, j, 'valid', true);
-            instance.setCellMeta(i, j, 'comment', '');
-          } else {
-            instance.setCellMeta(i, j, 'valid', true);
-            instance.setCellMeta(i, j, 'comment', '');
-          }
-        }
-
-        // Only validate the row if it has at least one non-empty cell
-        if (rowHasValue) {
-          instance.validateRows([i]);
-          if (instance.getCellMeta(i, 0).valid === false) {
-            hasError = true; // Mark that there is an error
-          }
-        }
-      }
-
-      // Re-render the table to display the validation feedback
-      instance.render();
-
-      // Show the overall error message if there is an error
-      return hasError
-    }
-
-    const exportPlugin = hot.getPlugin('exportFile');
-
-    document.getElementById('exportTable').addEventListener('click', function () {
-      exportPlugin.downloadFile('csv', {
-        bom: false,
-        columnDelimiter: ',',
-        columnHeaders: true,
-        exportHiddenColumns: true,
-        exportHiddenRows: true,
-        fileExtension: 'csv',
-        filename: 'city_forecasts_template',
-        mimeType: 'text/csv',
-        rowDelimiter: '\r\n',
-        rowHeaders: false
-      });
-    })
-
 
     document.getElementById('forecast_form').addEventListener('submit', function (event) {
       event.preventDefault();
-
-      console.log("hello")
 
       var data = hot.getData();
 
@@ -385,7 +306,6 @@
       // Validate the data
       var isValid = validateData();
 
-
       // Create an array of objects with the column names as keys
       var postData = [];
       // Retrieve the specific input value
@@ -395,25 +315,25 @@
 
         for (var i = 0; i < nonNullRows.length; i++) {
           var row = {
-            'city': nonNullRows[i][0],
+            'city': city_ls.find(city => city.fields.name === nonNullRows[i][0]).pk,
             'min_temp': nonNullRows[i][1],
             'max_temp': nonNullRows[i][2],
             'condition': nonNullRows[i][3],
             'forecast_date': forecast_date,
-
           };
           postData.push(row);
 
         }
 
-
         // Send the JSON data to a Django view via AJAX
         $.ajax({
-          url: '{% url "save_data"%}',
+          url: '/api/forecasts/',
           type: 'POST',
-          data: {
-            'data': JSON.stringify(postData)
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}',  // Replace with the actual CSRF token value
           },
+          data: JSON.stringify(postData),
+          contentType: 'application/json',
           success: function (response) {
             // Clear the Handsontable table
             $('#creatSuccess').show('slow')
@@ -427,10 +347,10 @@
             hot.updateData([])
           },
           error: function (jqXHR, textStatus, errorThrown) {
-
+ 
             if (errorThrown) {
               $('#creatError').show('slow')
-              $('#creatError').html(JSON.parse(jqXHR.responseText).error)
+              $('#creatError').html( JSON.parse(jqXHR.responseText).error)
 
               setTimeout(function () {
                 $('#creatError').hide('slow')
@@ -454,10 +374,98 @@
 
     })
 
-    document.getElementById('addRows').addEventListener('click', function () {
-      hot.alter('insert_row_below', hot.countRows(), 10);
+    function validateData() {
+      var instance = hot.getInstance();
+      var hasError = false; // Assume no errors initially
+  
+      for (var i = 0; i < instance.countRows(); i++) {
+        var rowHasValue = false; // Assume the row is empty initially
+  
+        for (var j = 0; j < instance.countCols(); j++) {
+          var cellData = instance.getDataAtCell(i, j);
+  
+          // Check if the cell is not null or empty string
+          if (cellData !== null && cellData !== '') {
+            rowHasValue = true; // Mark the row as non-empty
+  
+            instance.setCellMeta(i, j, 'valid', true);
+            instance.setCellMeta(i, j, 'comment', '');
+          } else {
+            instance.setCellMeta(i, j, 'valid', true);
+            instance.setCellMeta(i, j, 'comment', '');
+          }
+        }
+  
+        // Only validate the row if it has at least one non-empty cell
+        if (rowHasValue) {
+          instance.validateRows([i]);
+          if (instance.getCellMeta(i, 0).valid === false) {
+            hasError = true; // Mark that there is an error
+          }
+        }
+      }
+  
+      // Re-render the table to display the validation feedback
+      instance.render();
+  
+      // Show the overall error message if there is an error
+      return hasError
+    }
+    
 
+const exportTemplate = new Handsontable(document.getElementById('exportTemplate'), {
+      colHeaders: [
+        'City',
+        'Min Temp',
+        'Max Temp',
+        'Condition'],
+      columns: [
+        {
+          type: 'dropdown',
+        },
+        {
+          type: 'numeric',
+        },
+        {
+          type: 'numeric',
+        },
+        {
+          type: 'dropdown',
+
+        },
+      ],
+      data: [
+
+      ],
+      // dropdownMenu: true,
+      // filters: true,
+      minSpareRows: 10,
+      licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
+    });
+
+    const exportPlugin = exportTemplate.getPlugin('exportFile');
+
+    document.getElementById('exportTable').addEventListener('click', function () {
+      var export_cities = []
+
+      city_ls.map(city => export_cities.push([city.fields.name]))
+
+      exportTemplate.loadData(export_cities)
+      exportPlugin.downloadFile('csv', {
+        bom: false,
+        columnDelimiter: ',',
+        columnHeaders: true,
+        exportHiddenColumns: true,
+        exportHiddenRows: true,
+        fileExtension: 'csv',
+        filename: 'city_forecasts_template',
+        mimeType: 'text/csv',
+        rowDelimiter: '\n',
+        rowHeaders: false
+      });
     })
+
+
 
   })
 </script>

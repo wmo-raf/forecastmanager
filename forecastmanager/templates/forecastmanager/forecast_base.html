@@ -2,14 +2,13 @@
 {% load wagtailadmin_tags i18n static %}
 {% load wagtailsettings_tags %}
 {% get_settings use_default_site=True %}
-{% block extra_css %} {{ block.super }}
+{% block extra_css %} 
+{{ block.super }}
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
 <link href="https://unpkg.com/maplibre-gl@3.1.0/dist/maplibre-gl.css" rel="stylesheet" />
 
-<style>
-    #forecast_map { height:60vh; width: 100%; }
-</style>
+
 {{ form.media.css }} {% endblock %}
 {% block titletag %}
 {% trans 'Forecast Manager' %}
@@ -19,23 +18,20 @@
     <script src="https://unpkg.com/maplibre-gl@3.1.0/dist/maplibre-gl.js"></script>        
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
     <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
-
-
+    <script type="text/javascript" src="{% static 'forecastmanager/js/forecast_basemap.js' %}"></script>
 {% endblock extra_js %}
-
-
 
 {% block content %}
 
 
 <div class="messages" role="status">
     <ul>
-        {% if settings.forecastmanager.Setting.enable_auto_forecast %}
+        {% if settings.forecastmanager.ForecastSetting.enable_auto_forecast %}
         <li class="warning">                            
             <svg class="icon icon-warning messages-icon" aria-hidden="true"><use href="#icon-warning"></use></svg>
             Autoforecasting has been enabled and manually added forecasts here will be overidden.
             <span class="buttons">
-                <a href="/admin/settings/forecastmanager/setting" class="button button-small button-secondary">Change autoforecasting setting</a>
+                <a href="/admin/settings/forecastmanager/forecastsetting" class="button button-small button-secondary">Change autoforecasting setting</a>
             </span>
         </li>
         {% endif %}
