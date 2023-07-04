@@ -120,7 +120,7 @@ class Forecast(models.Model):
     min_temp = models.IntegerField(verbose_name=_("Minimum Temperaure"), blank=True)
     wind_direction = models.IntegerField(verbose_name=_("Wind Direction"), blank=True, null=True)
     wind_speed = models.IntegerField(verbose_name=_("Wind Speed"), blank=True, null=True)
-    condition = models.CharField(choices=CONDITION_CHOICES, verbose_name=_("General Weather Condition"), help_text=_("E.g Light Showers"), null=True)
+    condition = models.CharField(choices=CONDITION_CHOICES, verbose_name=_("General Weather Condition"), help_text=_("E.g Light Showers"), null=True, max_length=255)
 
     class Meta:
         verbose_name = _("Forecast")
