@@ -1,228 +1,473 @@
+{% extends 'forecastmanager/forecast_base.html' %}
+
 {% load wagtailsettings_tags %}
 {% get_settings use_default_site=True %}
+{% load wagtailadmin_tags i18n static %}
 
-<h2 style="padding-top:2em">Create new forecast</h2>
+{% block extra_css %}
+{{block.super}}
+<style>
+  .forecast,
+  select {
+    font-size: 14px
+  }
+</style>
 
-<div id="createTable" style=z-index:1></div>
+{% endblock extra_css %}
+
+{% block forecast %}
+
+<h2 class="w-panel__heading">Add forecast</h2>
+
 <div class="row row-flush" style="padding-top:1rem">
-  <div class="col6" style="text-align:start">
 
-    <button type="button" class="button button-secondary actionbutton" id="addRows">Add 10+ Rows</button>
-    <button type="button" class="button button-secondary actionbutton" id="clearRows">Clear Table</button>
+  <div class="col5">
+    <form enctype="multipart/form-data" id="forecast_form" method='post'>
+      {% csrf_token %}
+      <div class="help-block help-info">
+        <svg class="icon icon-warning icon" aria-hidden="true">
+          <use href="#icon-info-circle"></use>
+        </svg>
+        <div>
+          You can <a style="cursor:pointer"><b id="exportTable">download a template</b></a> of the CSV for offline
+          editing and upload it here. The template comes prepopulated
+          with all pre-exisiting cities.
+
+        </div>
+      </div>
+
+      <ul class="fields forecast">
+        <li>
+          
+
+          <div class="w-field__wrapper" data-field-wrapper="">
+
+            <label class="w-field__label" for="id_csv" id="id_csv-label">
+              Forecast Upload
+            </label>
+            <div class="w-field w-field--file_field w-field--file_input" data-field="" data-contentpath="csv">
+
+              <div class="w-field__errors" data-field-errors="">
+              </div>
+
+              <div class="w-field__help" data-field-help="">
+
+                <div class="help">The uploaded file should be a CSV, similar to the table on the right</div>
+
+              </div>
+
+              <div class="w-field__input" data-field-input="">
+                <input type="file" name="csv" accept=".csv" id="id_csv">
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li>
+          <div class="w-field__wrapper" data-field-wrapper="">
+            <label class="w-field__label" for="id_start_date" id="id_start_date-label">
+                Forecast Date
+                <span class="w-required-mark">*</span>
+            </label>
+
+            <div class="w-field__help" data-field-help="">
+
+              <div class="help">Date of forecast</div>
+
+            </div>
+            <div class="w-field w-field--date_field w-field--admin_date_input" data-field="" data-contentpath="date">
+                <div class="w-field__errors" data-field-errors=""></div>
+                <div class="w-field__input" data-field-input="">
+                    <input type="text" name="start_date" autocomplete="off" required="" id="id_date" />
+                    <script>initDateChooser("id_date", { "dayOfWeekStart": 0, "format": "Y-m-d" });</script>
+                </div>
+    
+                <div data-field-help=""></div>
+            </div>
+          </div>
+        </li>
+
+        <div style="display:none" id="header_section">
+
+        <hr>
+
+        <div class="help-block help-info">
+          <svg class="icon icon-warning icon" aria-hidden="true">
+            <use href="#icon-info-circle"></use>
+          </svg>
+          <div>
+            Verify that all columns match correctly
+          </div>
+        </div>
+
+        <li>
+          <div class="row row-flush" style="padding-top:1rem">
+
+            <div class="col6">
+          <label for="city" class="w-field__label">City: <span class="w-required-mark">*</span></label>
+          <div class="w-field w-field--file_field w-field--file_input">
+            <div class="w-field__input" data-field-input="">
+
+              <select id="city">
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="col6">
+          <label for="minTemp" class="w-field__label">Min Temp: <span class="w-required-mark">*</span></label>
+
+          <div class="w-field w-field--file_field w-field--file_input">
+            <div class="w-field__input" data-field-input="">
+
+              <select id="minTemp">
+              </select>
+            </div>
+          </div>
+        </div>
+        </div>
+        </li>
+
+        <li>
+          <div class="row row-flush" style="padding-top:1rem">
+
+            <div class="col6">
+              <label for="maxTemp" class="w-field__label">Max Temp: <span class="w-required-mark">*</span></label>
+
+              <div class="w-field w-field--file_field w-field--file_input">
+                <div class="w-field__input" data-field-input="">
+    
+                  <select id="maxTemp">
+                  </select>
+                </div>
+              </div>
+        </div>
+
+        <div class="col6">
+          <label for="condition" class="w-field__label">Condition: <span class="w-required-mark">*</span></label>
+          <div class="w-field w-field--file_field w-field--file_input">
+            <div class="w-field__input" data-field-input="">
+
+              <select id="condition">
+              </select>
+            </div>
+          </div>
+
+        </div>
+        </li>
+      </div>
+
+        <li  style="padding-top:1em">
+          <button type="submit" id="submitForecast" class="button"> Publish</button>
+        </li>
+      </ul>
+    </form>
+  </div>
+  <div class="col7">
+    <div id="createTable" style=z-index:1></div>
+    <div id="exportTemplate" style="display: none;"></div>
 
   </div>
-  <div class="col6" style="text-align:end">
-    <button type="button" class="button actionbutton" id="exportTable">Download Table as CSV</button>
-  </div>
+
+
 </div>
 
 
+{% endblock %}
+
+{% block extra_js %}
+{{block.super}}
+<script src="{% versioned_static 'wagtailadmin/js/date-time-chooser.js' %}"></script>
+<script src="{% static 'forecastmanager/js/helpers.js' %}"></script>
+
+{% include "wagtailadmin/pages/_editor_js.html" %} {{ form.media.js}}
 <script>
-  var weather_condition_ls = JSON.parse('{{weather_condition_ls|escapejs}}')
-  var city_ls = JSON.parse('{{city_ls|escapejs}}')
+  document.addEventListener("DOMContentLoaded", function () {
 
-  const container = document.querySelector('#createTable');
-  const hot = new Handsontable(container, {
-    width: '100%',
-    rowHeaders: true,
-    colHeaders: [
-      'City', 
-      'Date', 
-      'Min Temperature ({{settings.forecastmanager.Setting.get_temp_units_display}})',
-      'Max Temperature ({{settings.forecastmanager.Setting.get_temp_units_display}})',
-      'Wind Speed ({{settings.forecastmanager.Setting.get_wind_units_display}})',
-      'Wind Direction (°)', 
-      'General Condition'],
-    columns: [
-      {
-        type: 'dropdown',
-        source: city_ls.map(city => city.fields.name),
-        allowEmpty: false,
-      },
-      {
-        type: 'date',
-        allowEmpty: false,
-        dateFormat: 'YYYY-MM-DD',
-      },
-      {
-        type: 'numeric',
-        allowEmpty: false,
-      },
-      {
-        type: 'numeric',
-        allowEmpty: false,
-      },
-      {
-        type: 'numeric',
-      },
-      {
-        type: 'numeric',
-      },
-      {
-        type: 'dropdown',
-        source: weather_condition_ls.map(condition => condition.fields.title),
-        allowEmpty: false,
+    var weather_condition_ls = JSON.parse('{{weather_condition_ls|escapejs}}')
 
-      },
-    ],
-    // dropdownMenu: true,
-    multiColumnSorting: true,
-    // filters: true,
-    allowInvalid: true,
-    manualColumnResize: true,
-    manualColumnResize: [100, 100],
-    minSpareRows: 10,
-    height: 'auto',
-    stretchH: "all",
-    licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
-  });
+    var city_ls = JSON.parse('{{city_ls|escapejs}}')
 
+    const container = document.querySelector('#createTable');
 
-  function validateData() {
-    var instance = hot.getInstance();
-    var hasError = false; // Assume no errors initially
-
-    for (var i = 0; i < instance.countRows(); i++) {
-      var rowHasValue = false; // Assume the row is empty initially
-
-      for (var j = 0; j < instance.countCols(); j++) {
-        var cellData = instance.getDataAtCell(i, j);
-
-        // Check if the cell is not null or empty string
-        if (cellData !== null && cellData !== '') {
-          rowHasValue = true; // Mark the row as non-empty
-
-          instance.setCellMeta(i, j, 'valid', true);
-          instance.setCellMeta(i, j, 'comment', '');
-        } else {
-          instance.setCellMeta(i, j, 'valid', true);
-          instance.setCellMeta(i, j, 'comment', '');
-        }
-      }
-
-      // Only validate the row if it has at least one non-empty cell
-      if (rowHasValue) {
-        instance.validateRows([i]);
-        if (instance.getCellMeta(i, 0).valid === false) {
-          hasError = true; // Mark that there is an error
-        }
-      }
-    }
-
-    // Re-render the table to display the validation feedback
-    instance.render();
-
-    // Show the overall error message if there is an error
-    return hasError
-  }
-
-  document.getElementById('clearRows').addEventListener('click', function (){
-    //reset table 
-    hot.updateData([])
-  })
-
-  const exportPlugin = hot.getPlugin('exportFile');
-
-  document.getElementById('exportTable').addEventListener('click', function(){
-    exportPlugin.downloadFile('csv', {
-      bom: false,
-      columnDelimiter: ',',
-      columnHeaders: true,
-      exportHiddenColumns: true,
-      exportHiddenRows: true,
-      fileExtension: 'csv',
-      filename: 'city_forecasts_[YYYY]-[MM]-[DD]',
-      mimeType: 'text/csv',
-      rowDelimiter: '\r\n',
-      rowHeaders: true
+    
+    const hot = new Handsontable(container, {
+      width: '100%',
+      rowHeaders: true,
+      colHeaders: [
+        'City',
+        'Min Temp',
+        'Max Temp',
+        'Condition'],
+      columns: [
+        {
+          type: 'dropdown',
+          source: city_ls.map(city => city.fields.name),
+          allowEmpty: false,
+        },
+        {
+          type: 'numeric',
+          allowEmpty: false,
+        },
+        {
+          type: 'numeric',
+          allowEmpty: false,
+        },
+        {
+          type: 'dropdown',
+          source: weather_condition_ls,
+          allowEmpty: false,
+        },
+      ],
+      data: [],
+      // dropdownMenu: true,
+      multiColumnSorting: true,
+      // filters: true,
+      allowInvalid: true,
+      minSpareRows: 1,
+      height: 'auto',
+      stretchH: "all",
+      licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
     });
-  })
+
+    const column_selectors = [
+      {dom_id:'city', index:0},
+      {dom_id:'minTemp', index:1},
+      {dom_id:'maxTemp', index:2},
+      {dom_id:'condition', index:3},
+    ]
+
+    document.getElementById('id_csv').addEventListener('change', function (e) {
+      var file = e.target.files[0];
+      var reader = new FileReader();
+
+      reader.onload = function (event) {
+        var csvData = event.target.result;
+        var lines = csvData.split('\n');
+        var columnHeaders = lines[0].split(',');
+        $('#header_section').show()
+
+        var contents = event.target.result;
+        var data = parseCSV(contents);
+
+        hot.updateData(data)
+
+        column_selectors.map(column => {
+
+          // prepopulate select with options by order 
+          generateSelectInput(column.dom_id, columnHeaders, column.index)
+          document.getElementById(column.dom_id).addEventListener('change', function(e){
+
+            var table_data = hot.getData()
+  
+            var column_arr = []
+            const rearrangedArr = data.map(arr => {
+              column_arr.push(arr[e.target.value])
+            })
+  
+            table_data.replace_data(column.index,column_arr )
+  
+            hot.updateData(table_data)
+    
+          })
+
+          return column
+          
+          
+        } )
+
+       
+
+        
+        
+       
+
+        // reorder_columns(data, 'city', 0)
+        
+      };
+
+      reader.readAsText(file);
+
+    });
 
 
-  document.getElementById('submitForecast').addEventListener('click', function () {
+    document.getElementById('forecast_form').addEventListener('submit', function (event) {
+      event.preventDefault();
 
-    var data = hot.getData();
+      var data = hot.getData();
 
-    // Filter out rows that have all values null or undefined
-    nonNullRows = data.filter(function (row) {
-      return row.some(function (cell) {
-        return cell !== null && cell !== undefined && cell !== '';
+      // Filter out rows that have all values null or undefined
+      nonNullRows = data.filter(function (row) {
+        return row.some(function (cell) {
+          return cell !== null && cell !== undefined && cell !== '';
+        });
       });
-    });
 
-    // Validate the data
-    var isValid = validateData();
+      // Validate the data
+      var isValid = validateData();
 
+      // Create an array of objects with the column names as keys
+      var postData = [];
+      // Retrieve the specific input value
+      var forecast_date = document.getElementById("id_date").value;
 
-    // Create an array of objects with the column names as keys
-    var postData = [];
+      if (nonNullRows.length > 0) {
 
-    if (nonNullRows.length > 0) {
+        for (var i = 0; i < nonNullRows.length; i++) {
+          var row = {
+            'city': city_ls.find(city => city.fields.name === nonNullRows[i][0]).pk,
+            'min_temp': nonNullRows[i][1],
+            'max_temp': nonNullRows[i][2],
+            'condition': nonNullRows[i][3],
+            'forecast_date': forecast_date,
+          };
+          postData.push(row);
 
-      for (var i = 0; i < nonNullRows.length; i++) {
-        var row = {
-          'city': nonNullRows[i][0],
-          'forecast_date': nonNullRows[i][1],
-          'min_temp': nonNullRows[i][2],
-          'max_temp': nonNullRows[i][3],
-          'wind_direction': nonNullRows[i][5],
-          'wind_speed': nonNullRows[i][4],
-          'condition': nonNullRows[i][6],
-        };
-        postData.push(row);
+        }
 
-      }
-
-
-      // Send the JSON data to a Django view via AJAX
-      $.ajax({
-        url: '{% url "save_data"%}',
-        type: 'POST',
-        data: {
-          'data': JSON.stringify(postData)
-        },
-        success: function (response) {
-          // Clear the Handsontable table
-          $('#creatSuccess').show('slow')
-
-          setTimeout(function () {
-            $('#creatSuccess').hide('slow')
-
-          }, 5000)
-
-          //clear table on successful submission
-          hot.updateData([])
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-
-          if (errorThrown) {
-            $('#creatError').show('slow')
-            $('#creatError').html(JSON.parse(jqXHR.responseText).error)
+        // Send the JSON data to a Django view via AJAX
+        $.ajax({
+          url: '/api/forecasts/',
+          type: 'POST',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}',  // Replace with the actual CSRF token value
+          },
+          data: JSON.stringify(postData),
+          contentType: 'application/json',
+          success: function (response) {
+            // Clear the Handsontable table
+            $('#creatSuccess').show('slow')
 
             setTimeout(function () {
-              $('#creatError').hide('slow')
+              $('#creatSuccess').hide('slow')
 
             }, 5000)
 
+            //clear table on successful submission
+            hot.updateData([])
+          },
+          error: function (jqXHR, textStatus, errorThrown) {
+ 
+            if (errorThrown) {
+              $('#creatError').show('slow')
+              $('#creatError').html( JSON.parse(jqXHR.responseText).error)
+
+              setTimeout(function () {
+                $('#creatError').hide('slow')
+
+              }, 5000)
+
+            }
+
           }
+        })
 
+      } else {
+        $('#creatError').show('slow')
+        $('#creatError').html('The table is empty. Please input data')
+
+        setTimeout(function () {
+          $('#creatError').hide('slow')
+
+        }, 5000)
+      }
+
+    })
+
+    function validateData() {
+      var instance = hot.getInstance();
+      var hasError = false; // Assume no errors initially
+  
+      for (var i = 0; i < instance.countRows(); i++) {
+        var rowHasValue = false; // Assume the row is empty initially
+  
+        for (var j = 0; j < instance.countCols(); j++) {
+          var cellData = instance.getDataAtCell(i, j);
+  
+          // Check if the cell is not null or empty string
+          if (cellData !== null && cellData !== '') {
+            rowHasValue = true; // Mark the row as non-empty
+  
+            instance.setCellMeta(i, j, 'valid', true);
+            instance.setCellMeta(i, j, 'comment', '');
+          } else {
+            instance.setCellMeta(i, j, 'valid', true);
+            instance.setCellMeta(i, j, 'comment', '');
+          }
         }
-      })
-
-    } else {
-      $('#creatError').show('slow')
-      $('#creatError').html('The table is empty. Please input data')
-
-      setTimeout(function () {
-        $('#creatError').hide('slow')
-
-      }, 5000)
+  
+        // Only validate the row if it has at least one non-empty cell
+        if (rowHasValue) {
+          instance.validateRows([i]);
+          if (instance.getCellMeta(i, 0).valid === false) {
+            hasError = true; // Mark that there is an error
+          }
+        }
+      }
+  
+      // Re-render the table to display the validation feedback
+      instance.render();
+  
+      // Show the overall error message if there is an error
+      return hasError
     }
+    
 
-  })
+const exportTemplate = new Handsontable(document.getElementById('exportTemplate'), {
+      colHeaders: [
+        'City',
+        'Min Temp',
+        'Max Temp',
+        'Condition'],
+      columns: [
+        {
+          type: 'dropdown',
+        },
+        {
+          type: 'numeric',
+        },
+        {
+          type: 'numeric',
+        },
+        {
+          type: 'dropdown',
 
-  document.getElementById('addRows').addEventListener('click', function () {
-    hot.alter('insert_row_below', hot.countRows(), 10);
+        },
+      ],
+      data: [
+
+      ],
+      // dropdownMenu: true,
+      // filters: true,
+      minSpareRows: 10,
+      licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
+    });
+
+    const exportPlugin = exportTemplate.getPlugin('exportFile');
+
+    document.getElementById('exportTable').addEventListener('click', function () {
+      var export_cities = []
+
+      city_ls.map(city => export_cities.push([city.fields.name]))
+
+      exportTemplate.loadData(export_cities)
+      exportPlugin.downloadFile('csv', {
+        bom: false,
+        columnDelimiter: ',',
+        columnHeaders: true,
+        exportHiddenColumns: true,
+        exportHiddenRows: true,
+        fileExtension: 'csv',
+        filename: 'city_forecasts_template',
+        mimeType: 'text/csv',
+        rowDelimiter: '\n',
+        rowHeaders: false
+      });
+    })
+
+
 
   })
 </script>
+
+{% endblock %}

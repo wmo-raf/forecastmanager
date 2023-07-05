@@ -6,7 +6,7 @@ import json
 import requests
 
 from wagtailgeowidget.helpers import geosgeometry_str_to_struct
-from forecastmanager.models import City,Forecast, ConditionCategory
+from forecastmanager.models import City,Forecast
 
 
 # Define the base URL for the Met Norway API
@@ -64,17 +64,12 @@ class Command(BaseCommand):
                     # Extract the minimum and maximum values of air temperature, wind speed, and wind direction
                     min_temp = group['data.instant.details.air_temperature'].min()
                     max_temp = group['data.instant.details.air_temperature'].max()
-                    wind_speed = group['data.instant.details.wind_speed'].mean()
-                    wind_dir = group['data.instant.details.wind_from_direction'].mean()
                     # Extract the value of next_12_hours summary
                     next_12_hours = group['data.next_12_hours.summary.symbol_code'].iloc[0]
                     # Create a dictionary of the extracted values
-                    values = {'min_temp': min_temp, 'max_temp': max_temp, 'wind_speed': wind_speed,
-                            'wind_dir': wind_dir, 
+                    values = {'min_temp': min_temp, 'max_temp': max_temp, 
                             'next_12_hours': next_12_hours}
                     return pd.Series(values, index=['min_temp', 'max_temp', 
-                                                    'wind_speed', 
-                                                    'wind_dir', 
                                                     'next_12_hours'])
 
                 # Group the DataFrame by date and apply the extract_values() function to each group
@@ -90,17 +85,15 @@ class Command(BaseCommand):
                     time = index.to_pydatetime()
                     min_temp = row['min_temp']
                     max_temp = row['max_temp']
-                    wind_speed = row['wind_speed']
-                    wind_dir = row['wind_dir']
 
                     # Create or update the child object with the parent and the name from the second column
                     # prioritize condition for the next 1 hour 
                     if 'next_1_hours' in row:
-                        condition = ConditionCategory.objects.get(short_name=row['next_1_hours']) 
+                        condition = row['next_1_hours'].split("_")[0]
                     elif 'next_6_hours' in row:
-                        condition = ConditionCategory.objects.get(short_name=row['next_6_hours']) 
+                        condition = row['next_6_hours'].split("_")[0]
                     else:
-                        condition = ConditionCategory.objects.get(short_name=row['next_12_hours']) 
+                        condition = row['next_12_hours'].split("_")[0]
 
                     # use update_or_create to update existing data
                     # and create new ones if the data does not exist
@@ -110,8 +103,6 @@ class Command(BaseCommand):
                         defaults={
                             'min_temp': min_temp,
                             'max_temp': max_temp,
-                            'wind_speed': wind_speed,
-                            'wind_direction': wind_dir,
                             'condition': condition
                         }
                     )

@@ -80,23 +80,12 @@
     padding-bottom: 30px
 }
 
-/* 1605px and lower*/
-@media screen and (max-width: 1605px) {
+
 h2,
 h2.section-title {
-    font-size: 36px;
+    font-size: 32px
 }
 
-}
-
-/*1440px and lower*/
-@media screen and (max-width: 1440px) {
-
-    h2,
-    h2.section-title {
-        font-size: 32px
-    }
-}
 </style>
 
 {% endblock extra_css %}
@@ -104,47 +93,16 @@ h2.section-title {
 {% block content %}
 
 <main class="is-index">
-    <section>
+    <section class="pt-4 mt-4">
         <div class="container">
-        <h2 class="section-title center pb-2">7 Day City Weather Forecast</h2>
-        <div class="share-buttons center  pb-6">
-        <a class="button is-small is-rounded"
-        target="_blank" rel="noopener"
-        id="forecast_img"
-        >
-            
-            <span class="share-button-title">Download Image</span>
-            <span class="icon">
-            <i class="fa fa-image" aria-hidden="true"></i>
-        </span>
-        </a>
-
-        <a class="button is-small is-rounded"
-        target="_blank" rel="noopener"
-        id="forecast_pdf"
-
-        >
-            
-            <span class="share-button-title">Download PDF</span>
-            <span class="icon">
-                <i class="fa fa-file-pdf" aria-hidden="true"></i>
-            </span>
-        </a>
+        <h2 class="section-title center pb-2" style="text-align:center">7 Day City Weather Forecast</h2>
         
-        </div>
 
-        <div class="featured-item-block" style="padding:60px 30px; border-radius:2em;    flex-direction: column;"  id="forecast-table">
-            {% image settings.base.OrganisationSetting.logo width-1000 as logo%}
-
-            {% if logo %} 
+        <div class="featured-item-block" style="padding:60px 30px; border-radius:2em; flex-direction: column;"  id="forecast-table">
             
-                <img src="{{logo.url}}" style="height:50px; margin-bottom:2em;display:none" id="organization-logo">
-    
-                {% else %}
                 
                 N.M.H.S
     
-            {% endif %}
         <table class="table is-striped">
             <thead>
               <tr>
@@ -160,42 +118,27 @@ h2.section-title {
                     <td>{{ city }}</td>
                     {% for item in vals %}
                     <td>
-                       
+                        <p style="text-align:center">{{item.get_condition_display}}</p>
                         <div class="columns is-gapless pb-1 mb-0 is-align-items-center is-mobile is-jsutify-content-center">
                             <div class="column mr-1" style="align-self:end; text-align: end;">
-                                {% if item.condition__icon_image__file %}
+                                {% if item.condition %}
                                 <figure class="forecast-icon" style="width:40px;display: inline-flex;">
                                     <img 
-                                        src="{{ MEDIA_URL }}{{ item.condition__icon_image__file }}" 
-                                        alt="{{ item.condition__icon_image }}"
+                                        src="{% static 'forecastmanager/img/'|add:item.condition|add:'.png' %}" 
+                                        alt="{{item.condition}}"
                                     />
                                 </figure>
                                 {% endif %}
 
                             </div>
                             <div class="column ml-1" style="text-align: start;">
-                                <h2 style="font-size:14px; font-weight:600">{{item.max_temp}} {{settings.forecastmanager.Setting.get_temp_units_display}}</h2>
-                                <h3 style="font-size:10px; font-weight:600">{{item.min_temp}} {{settings.forecastmanager.Setting.get_temp_units_display}}</h3>
+                                <h2 style="font-size:14px; font-weight:600">{{item.max_temp}} {{settings.forecastmanager.ForecastSetting.get_temp_units_display}}</h2>
+                                <h3 style="font-size:10px; font-weight:600">{{item.min_temp}} {{settings.forecastmanager.ForecastSetting.get_temp_units_display}}</h3>
 
                             </div>
 
                         </div>
 
-                        <span class="title"
-                            style="font-size: 13px; font-weight: 600;margin-bottom: 0.5rem;display: flex;
-                            justify-content: center; ">
-                            <img src="{% static 'img/wind_icon.png'%}" alt="" width="15"
-                                style="transform:rotate(calc({{item.wind_direction}}deg + 90deg));opacity: 0.7;">
-                                {{item.wind_direction}} °
-                            </h2>
-                        </span>
-
-
-                        <h2 class="title"
-                            style="font-size: 13px; font-weight: 600;margin-bottom: 0.5rem;display: flex;
-                            justify-content: center;">
-                            {{item.wind_speed}} {{settings.base.MeasurementSettings.get_wind_units_display}}
-                        </h2>
                    
                     </td>
 

@@ -6,19 +6,60 @@ from django.db import IntegrityError
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
+from rest_framework import viewsets
 
-from forecastmanager.models import City, Forecast, ConditionCategory
+from forecastmanager.models import City, Forecast
+from .serializers import CitySerializer, ForecastSerializer
+from rest_framework.permissions import BasePermission, IsAuthenticated, SAFE_METHODS
+
+
+class ReadOnly(BasePermission):
+    def has_permission(self, request, view):
+        return request.method in SAFE_METHODS
+    
+class CityAPIView(viewsets.ModelViewSet):
+    queryset = City.objects.all()
+    serializer_class = CitySerializer
+    permission_classes = [IsAuthenticated|ReadOnly]
+
+
+
+class ForecastAPIView(viewsets.ModelViewSet):
+    queryset = Forecast.objects.all()
+    serializer_class = ForecastSerializer
+    permission_classes = [IsAuthenticated|ReadOnly]
+    lookup_field = 'id'
+    
+
+    def get_serializer(self, *args, **kwargs):
+        # Override the get_serializer method to handle list input
+        kwargs['context'] = self.get_serializer_context()
+        if isinstance(kwargs.get('data', {}), list):
+            # If the input data is a list, use the many=True flag
+            kwargs['many'] = True
+        return self.serializer_class(*args, **kwargs)
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        forecast_date = self.request.query_params.get('forecast_date')
+
+        if forecast_date:
+            queryset = queryset.filter(forecast_date = forecast_date)
+    
+        return queryset
+    
+  
+    
 
 # Create your views here.
 def add_forecast(request):
     city_ls = City.objects.all()
-    weather_condition_ls = ConditionCategory.objects.all()
+    weather_condition_ls = Forecast._meta.get_field('condition').choices
     # data = serializers.serialize('json', city_ls)
-    # print(data)
 
-    return render(request, "forecastmanager/forecast.html", {
+    return render(request, "forecastmanager/create_forecast.html", {
         "city_ls": serializers.serialize('json', city_ls, fields = ('name', 'id')),
-        "weather_condition_ls":serializers.serialize('json',weather_condition_ls, fields = ('title', 'id'))
+        "weather_condition_ls": json.dumps([list(t)[0] for t in weather_condition_ls])
     })
 
 
@@ -29,13 +70,13 @@ def save_data(request):
         if len(data) > 0:
             # Iterate through the data and create or update Parent and Child objects
             try:
-
+                print(data)
                 for row in data:
                     # Get the name of the parent from the first column
                     parent_name = row['city']
                     # Try to get an existing parent with the same name, or create a new one
                     city = City.objects.get(name=parent_name)
-                    condtion = ConditionCategory.objects.get(title=row['condition'])
+                    # condtion = ConditionCategory.objects.get(title=row['condition'])
                     # Create or update the child object with the parent and the name from the second column
 
                     Forecast.objects.update_or_create(
@@ -44,9 +85,7 @@ def save_data(request):
                     defaults={
                         'max_temp':row['max_temp'],
                         'min_temp':row['min_temp'],
-                        'wind_direction':row['wind_direction'],
-                        'wind_speed':row['wind_speed'],
-                        'condition':condtion,
+                        'condition':row['condition'],
                     })
                 return JsonResponse({'success': True})
 
@@ -54,16 +93,12 @@ def save_data(request):
                 return JsonResponse({'error': 'Please fill in all required fields'},  status=400,  safe=False)
     else:
         return JsonResponse({'error': 'Invalid request method.'},  status=400,  safe=False)
+    
+def get_forecast(request):
 
-
-def get_data(request):
-    start_date_param = request.GET.get('start_date', None)
-    end_date_param = request.GET.get('end_date', None)
-    city_id = request.GET.get('city_id', None)
-    forecast_data = Forecast.objects.filter(city_id=city_id, forecast_date__gte=start_date_param,  forecast_date__lte=end_date_param).values('city__name','forecast_date', 'max_temp', 'min_temp', 'wind_speed', 'wind_direction', 'condition__title')
-
-    if city_id is not None:
-        return JsonResponse(list(forecast_data), safe=False)
-
-    else:
-        return JsonResponse({'error': 'City ID not provided.'})
+    dates_ls = Forecast.objects.order_by('-forecast_date').values_list('forecast_date', flat=True).distinct()[:7]
+    print(dates_ls)
+    
+    return render(request, "forecastmanager/load_forecast.html", {
+        'forecast_dates': dates_ls
+    })
