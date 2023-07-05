@@ -48,7 +48,7 @@ class ForecastSerializer(serializers.ModelSerializer):
                 'max_temp': representation['max_temp'],
                 'min_temp': representation['min_temp'],
                 'condition':representation['condition_display'],
-                'condition_icon': f'/static/forecastmanager/img/{representation["condition"]}.png',
+                'condition_icon': f'static/forecastmanager/img/{representation["condition"]}.png',
             },
             "geometry": {
                 "coordinates": representation['city_detail']['coordinates'],
