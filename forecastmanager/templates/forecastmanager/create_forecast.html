@@ -327,7 +327,7 @@
 
         // Send the JSON data to a Django view via AJAX
         $.ajax({
-          url: '/api/forecasts/',
+          url: '/cms/api/forecasts/',
           type: 'POST',
           headers: {
             'X-CSRFToken': '{{ csrf_token }}',  // Replace with the actual CSRF token value
