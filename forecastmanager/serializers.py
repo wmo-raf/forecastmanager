@@ -20,12 +20,12 @@ class CitySerializer(serializers.ModelSerializer):
 class ForecastSerializer(serializers.ModelSerializer):
 
     city_detail =  serializers.SerializerMethodField()
-    condition_display = serializers.SerializerMethodField()
+    # condition_display = serializers.SerializerMethodField()
     list_serializer_class = serializers.ListSerializer
 
     class Meta:
         model = Forecast
-        fields =['id','forecast_date','max_temp','min_temp', 'condition_display', 'city', 'city_detail', 'condition']
+        fields =['id','forecast_date','max_temp','min_temp', 'city', 'city_detail', 'condition']
 
 
     @staticmethod
@@ -33,8 +33,8 @@ class ForecastSerializer(serializers.ModelSerializer):
         serializer = CitySerializer(obj.city)
         return serializer.data
     
-    def get_condition_display(self, obj):
-            return obj.get_condition_display()
+    # def get_condition_display(self, obj):
+    #         return obj.get_condition_display()
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -47,8 +47,8 @@ class ForecastSerializer(serializers.ModelSerializer):
                 'forecast_date': representation['forecast_date'],
                 'max_temp': representation['max_temp'],
                 'min_temp': representation['min_temp'],
-                'condition':representation['condition_display'],
-                'condition_icon': f'static/forecastmanager/img/{representation["condition"]}.png',
+                'condition':representation['condition'],
+                'condition_icon': f'{representation["condition"]}.png',
             },
             "geometry": {
                 "coordinates": representation['city_detail']['coordinates'],

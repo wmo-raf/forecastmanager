@@ -65,7 +65,6 @@
 
         document.addEventListener("DOMContentLoaded", function() {
             
-        const BASE_URL = '{{request.get_full_path}}'
         // initialize map     
         var forecastMap = new maplibregl.Map({
             container:'forecast_map',
@@ -150,10 +149,9 @@
 
         }
 
-        function setForecastData(forecast_date){
-
+        function setForecastData(forecast_date){    
             // Make an HTTP GET request to the API endpoint
-            fetch(`${BASE_URL}api/forecasts?forecast_date=${forecast_date}`)
+            fetch(`{% url 'forecast-list'%}?forecast_date=${forecast_date}`)
             .then(response => response.json())  // Parse the response as JSON
             .then(data => {
                 // Process the retrieved data
@@ -168,7 +166,7 @@
                         }
 
                     }
-                    img.src = `${BASE_URL}${icon.properties.condition_icon}`
+                    img.src = `{% static 'forecastmanager/img/${icon.properties.condition_icon}' %}`
                     return img.src
     
                 })
