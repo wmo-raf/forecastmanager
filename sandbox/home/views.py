@@ -38,8 +38,6 @@ def list_forecasts(request):
 def daily_weather(request):
      
     report = DailyWeather.objects.all().order_by('issued_on').first()
-    print(report)
-
      
     return render(request, "integration/dailyweather_include.html", {
         "report":report
