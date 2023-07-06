@@ -70,7 +70,6 @@ def save_data(request):
         if len(data) > 0:
             # Iterate through the data and create or update Parent and Child objects
             try:
-                print(data)
                 for row in data:
                     # Get the name of the parent from the first column
                     parent_name = row['city']
@@ -97,7 +96,6 @@ def save_data(request):
 def get_forecast(request):
 
     dates_ls = Forecast.objects.order_by('-forecast_date').values_list('forecast_date', flat=True).distinct()[:7]
-    print(dates_ls)
     
     return render(request, "forecastmanager/load_forecast.html", {
         'forecast_dates': dates_ls

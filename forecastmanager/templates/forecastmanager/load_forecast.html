@@ -64,194 +64,196 @@
     
 
         document.addEventListener("DOMContentLoaded", function() {
-            
-        // initialize map     
-        var forecastMap = new maplibregl.Map({
-            container:'forecast_map',
-            style: basemap,
-            center:[39.67458166409534,8.709054632756391],
-            zoom:4.5
-        })
 
-        // Create a popup object
-        var popup = new maplibregl.Popup({
-            closeButton: false,
-            closeOnClick: false
-        });
-
-        forecastMap.addControl(new maplibregl.NavigationControl())
-
-
-        // initialize table
-        const forecastContainer = document.getElementById('latestForecast');
-            const forecastTable = new Handsontable(forecastContainer, {
-                readOnly: true,
-                width: '100%',
-                rowHeaders: true,
-                colHeaders: [
-                'City', 
-                'Min Temp {{settings.forecastmanager.ForecastSetting.temp_units}}',
-                'Max Temp {{settings.forecastmanager.ForecastSetting.temp_units}}',
-                'Condition'],
-                columns: [
-                {
-                    data: 'city_name',
-    
-                },
-                {
-                    data: 'min_temp',
-                },
-                {
-                    data: 'max_temp',
-                },
-                {
-                    data: 'condition',
-                },
-                ],
-                data:[],
-                // dropdownMenu: true,
-                multiColumnSorting: true,
-                // filters: true,
-                manualColumnResize: true,
-                minSpareRows: 1,
-                height: 'auto',
-                stretchH: "all",
-                licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
-            });
-
-
-        function populateMap(data){
-            forecastMap.addSource("city-forecasts", {
-                type: "geojson",
-                data: data
-            })
-
-            forecastMap.addLayer({
-                "id":"city-forecasts",
-                "type":"symbol",
-                "layout": {
-                    'icon-image': ['get', 'condition_icon'],
-                    'icon-size': 0.3,
-                    'icon-allow-overlap': true
-                  },
-                source:"city-forecasts"
-            })
-
-            var bbox = turf.bbox(data)
-
-            forecastMap.fitBounds(bbox, {
-                padding:{top: 100, bottom:100, left: 100, right: 100},
-                duration:1000,
-                easing: function (t) {
-                    return t * (2 - t); // Cubic easing function
-                  }
-            })
-
-        }
-
-        function setForecastData(forecast_date){    
-            // Make an HTTP GET request to the API endpoint
-            fetch(`{% url 'forecast-list'%}?forecast_date=${forecast_date}`)
-            .then(response => response.json())  // Parse the response as JSON
-            .then(data => {
-                // Process the retrieved data
-                data.map(icon => {
-    
-    
-                    let img = new Image()
-
-                    img.onload = () => {
-                        if (!forecastMap.hasImage(icon.properties.condition_icon)) {
-                            return forecastMap.addImage(`${icon.properties.condition_icon}`, img)
-                        }
-
-                    }
-                    img.src = `{% static 'forecastmanager/img/${icon.properties.condition_icon}' %}`
-                    return img.src
-    
-                })
-                // Access and use the data as needed                
-                populateMap({
-                    type: "FeatureCollection",
-                    features:data
-                })
-
-                var forecasts_props = []
-                data.map(latest_forecast => {
-                    forecasts_props.push(latest_forecast.properties) 
-                })
-
-                forecastTable.loadData(forecasts_props)
-
+            const static_path = '{% static "forecastmanager/img/" %}'
                 
+            // initialize map     
+            var forecastMap = new maplibregl.Map({
+                container:'forecast_map',
+                style: basemap,
+                center:[39.67458166409534,8.709054632756391],
+                zoom:4.5
             })
-            .catch(error => {
-                // Handle any errors that occurred during the request
-                console.error('Error:', error);
+
+            // Create a popup object
+            var popup = new maplibregl.Popup({
+                closeButton: false,
+                closeOnClick: false
             });
 
-        }
-
-        var initDate = document.getElementById("forecast_date");
-        setForecastData(initDate.value)
-    
-
-        forecastMap.on("load", () => {
-
-             // When a click event occurs on a feature in the places layer, open a popup at the
-            // location of the feature, with description HTML from its properties.
-            forecastMap.on("mouseenter", "city-forecasts", (e) => {
-                // Get the feature that was hovered over
-                var feature = e.features[0];
-                forecastMap.getCanvas().style.cursor = "pointer";
-
-                // Copy coordinates array.
-                const city_name = feature.properties.city_name;
-                const condition_desc = feature.properties.condition;
-                const min_temp = feature.properties.min_temp;
-                const max_temp = feature.properties.max_temp;
+            forecastMap.addControl(new maplibregl.NavigationControl())
 
 
-                popup.setLngLat(feature.geometry.coordinates)
-                    .setHTML(`
-                        <div class="block" style="margin:10px; width:200px">
-                            <h2 class="title" style="font-size:18px;">${city_name}</h2> 
-                            <h2 class="subtitle" style="font-size:14px;">${condition_desc}</h2> 
-                            <hr> 
-                            <p><b>Min Temperature: </b>${min_temp} °C</p> 
-                            <p><b>Max Temperature: </b>${max_temp} °C</p> 
-                        </div>`)
-                    .addTo(forecastMap);
-            });
+            // initialize table
+            const forecastContainer = document.getElementById('latestForecast');
+                const forecastTable = new Handsontable(forecastContainer, {
+                    readOnly: true,
+                    width: '100%',
+                    rowHeaders: true,
+                    colHeaders: [
+                    'City', 
+                    'Min Temp {{settings.forecastmanager.ForecastSetting.temp_units}}',
+                    'Max Temp {{settings.forecastmanager.ForecastSetting.temp_units}}',
+                    'Condition'],
+                    columns: [
+                    {
+                        data: 'city_name',
+        
+                    },
+                    {
+                        data: 'min_temp',
+                    },
+                    {
+                        data: 'max_temp',
+                    },
+                    {
+                        data: 'condition',
+                    },
+                    ],
+                    data:[],
+                    // dropdownMenu: true,
+                    multiColumnSorting: true,
+                    // filters: true,
+                    manualColumnResize: true,
+                    minSpareRows: 1,
+                    height: 'auto',
+                    stretchH: "all",
+                    licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
+                });
 
-            // // Change the cursor to a pointer when the mouse is over the places layer.
-            // forecastMap.on("mouseenter", "city-forecasts", () => {
-            //     forecastMap.getCanvas().style.cursor = "pointer";
-            // });
 
-            // Change it back to a pointer when it leaves.
-            forecastMap.on("mouseleave", "city-forecasts", () => {
-                popup.remove()
-                forecastMap.getCanvas().style.cursor = "";
-            });
-        })
+            function populateMap(data){
+                forecastMap.addSource("city-forecasts", {
+                    type: "geojson",
+                    data: data
+                })
 
-        $('#forecast_date').on('change', function(e){
-            var optionSelected = $("option:selected", this);
-            var valueSelected = this.value;
-            
-            if (forecastMap.getLayer("city-forecasts")) {
-                forecastMap.removeLayer("city-forecasts");
+                forecastMap.addLayer({
+                    "id":"city-forecasts",
+                    "type":"symbol",
+                    "layout": {
+                        'icon-image': ['get', 'condition_icon'],
+                        'icon-size': 0.3,
+                        'icon-allow-overlap': true
+                    },
+                    source:"city-forecasts"
+                })
+
+                var bbox = turf.bbox(data)
+
+                forecastMap.fitBounds(bbox, {
+                    padding:{top: 100, bottom:100, left: 100, right: 100},
+                    duration:1000,
+                    easing: function (t) {
+                        return t * (2 - t); // Cubic easing function
+                    }
+                })
+
             }
 
-            if (forecastMap.getSource("city-forecasts")) {
-                forecastMap.removeSource("city-forecasts");
+            function setForecastData(forecast_date){    
+                // Make an HTTP GET request to the API endpoint
+                fetch(`{% url 'forecast-list'%}?forecast_date=${forecast_date}`)
+                .then(response => response.json())  // Parse the response as JSON
+                .then(data => {
+                    // Process the retrieved data
+                    data.map(icon => {
+        
+        
+                        let img = new Image()
+
+                        img.onload = () => {
+                            if (!forecastMap.hasImage(icon.properties.condition_icon)) {
+                                return forecastMap.addImage(`${icon.properties.condition_icon}`, img)
+                            }
+
+                        }
+                        img.src = `${static_path}${icon.properties.condition_icon}`
+                        return img.src
+        
+                    })
+                    // Access and use the data as needed                
+                    populateMap({
+                        type: "FeatureCollection",
+                        features:data
+                    })
+
+                    var forecasts_props = []
+                    data.map(latest_forecast => {
+                        forecasts_props.push(latest_forecast.properties) 
+                    })
+
+                    forecastTable.loadData(forecasts_props)
+
+                    
+                })
+                .catch(error => {
+                    // Handle any errors that occurred during the request
+                    console.error('Error:', error);
+                });
+
             }
 
-            setForecastData(valueSelected)
+            var initDate = document.getElementById("forecast_date");
+            setForecastData(initDate.value)
+        
+
+            forecastMap.on("load", () => {
+
+                // When a click event occurs on a feature in the places layer, open a popup at the
+                // location of the feature, with description HTML from its properties.
+                forecastMap.on("mouseenter", "city-forecasts", (e) => {
+                    // Get the feature that was hovered over
+                    var feature = e.features[0];
+                    forecastMap.getCanvas().style.cursor = "pointer";
+
+                    // Copy coordinates array.
+                    const city_name = feature.properties.city_name;
+                    const condition_desc = feature.properties.condition;
+                    const min_temp = feature.properties.min_temp;
+                    const max_temp = feature.properties.max_temp;
 
 
-        })
+                    popup.setLngLat(feature.geometry.coordinates)
+                        .setHTML(`
+                            <div class="block" style="margin:10px; width:200px">
+                                <h2 class="title" style="font-size:18px;">${city_name}</h2> 
+                                <h2 class="subtitle" style="font-size:14px;">${condition_desc}</h2> 
+                                <hr> 
+                                <p><b>Min Temperature: </b>${min_temp} °C</p> 
+                                <p><b>Max Temperature: </b>${max_temp} °C</p> 
+                            </div>`)
+                        .addTo(forecastMap);
+                });
+
+                // // Change the cursor to a pointer when the mouse is over the places layer.
+                // forecastMap.on("mouseenter", "city-forecasts", () => {
+                //     forecastMap.getCanvas().style.cursor = "pointer";
+                // });
+
+                // Change it back to a pointer when it leaves.
+                forecastMap.on("mouseleave", "city-forecasts", () => {
+                    popup.remove()
+                    forecastMap.getCanvas().style.cursor = "";
+                });
+            })
+
+            $('#forecast_date').on('change', function(e){
+                var optionSelected = $("option:selected", this);
+                var valueSelected = this.value;
+                
+                if (forecastMap.getLayer("city-forecasts")) {
+                    forecastMap.removeLayer("city-forecasts");
+                }
+
+                if (forecastMap.getSource("city-forecasts")) {
+                    forecastMap.removeSource("city-forecasts");
+                }
+
+                setForecastData(valueSelected)
+
+
+            })
     
     })
     </script>

@@ -41,8 +41,6 @@ class Command(BaseCommand):
 
             # Construct the API URL for this location
             url = f"{BASE_URL}?lat={lat}&lon={lon}"
-
-            print(url)
             
             # Send a GET request to the API
             response = requests.get(url, headers=headers)

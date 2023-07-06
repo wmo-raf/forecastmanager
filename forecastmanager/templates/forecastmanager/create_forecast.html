@@ -189,6 +189,8 @@
     var city_ls = JSON.parse('{{city_ls|escapejs}}')
 
     const container = document.querySelector('#createTable');
+    const static_path = '{% static "forecastmanager/img/" %}'
+
     
     const hot = new Handsontable(container, {
       width: '100%',
@@ -274,12 +276,6 @@
           
           
         } )
-
-       
-
-        
-        
-       
 
         // reorder_columns(data, 'city', 0)
         
