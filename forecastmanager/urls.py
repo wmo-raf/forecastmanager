@@ -1,5 +1,5 @@
 
-from django.urls import path,include
+from django.urls import path,include, reverse
 from .views import CityAPIView, ForecastAPIView
 from rest_framework import routers
 
@@ -9,5 +9,5 @@ router.register(r'forecasts', ForecastAPIView)
 
 
 urlpatterns = [
-    path('api/', include(router.urls)),
+    path('api/', include(router.urls), name='api'),
 ]

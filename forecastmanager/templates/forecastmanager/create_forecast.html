@@ -189,8 +189,6 @@
     var city_ls = JSON.parse('{{city_ls|escapejs}}')
 
     const container = document.querySelector('#createTable');
-    const BASE_URL = '{{request.get_full_path}}'
-
     
     const hot = new Handsontable(container, {
       width: '100%',
@@ -328,7 +326,7 @@
 
         // Send the JSON data to a Django view via AJAX
         $.ajax({
-          url: `${BASE_URL}/api/forecasts/`,
+          url: `{% url 'forecast-list'%}`,
           type: 'POST',
           headers: {
             'X-CSRFToken': '{{ csrf_token }}',  // Replace with the actual CSRF token value
