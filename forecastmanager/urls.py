@@ -1,13 +1,9 @@
+from django.urls import path
 
-from django.urls import path,include, reverse
-from .views import CityAPIView, ForecastAPIView
-from rest_framework import routers
-
-router = routers.DefaultRouter()
-router.register(r'cities', CityAPIView)
-router.register(r'forecasts', ForecastAPIView)
-
+from .views import CityListView, ForecastListView, save_forecast_data
 
 urlpatterns = [
-    path('api/', include(router.urls), name='api'),
+    path('api/save-forecast', save_forecast_data, name='save-forecast-data'),
+    path('api/forecasts', ForecastListView.as_view(), name='forecast-list'),
+    path('api/cities', CityListView.as_view(), name='cities-list'),
 ]

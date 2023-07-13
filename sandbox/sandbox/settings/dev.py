@@ -11,6 +11,8 @@ ALLOWED_HOSTS = ["*"]
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
+GDAL_LIBRARY_PATH = os.getenv('GDAL_LIBRARY_PATH', None)
+GEOS_LIBRARY_PATH = os.getenv('GEOS_LIBRARY_PATH', None)
 
 try:
     from .local import *

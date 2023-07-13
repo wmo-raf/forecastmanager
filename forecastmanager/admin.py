@@ -1,8 +1,9 @@
-from django.contrib.gis import admin
-# from .models import City
+from django.contrib import admin
+from .models import Forecast
 
 
-# class CityAdmin(admin.GISModelAdmin):
-#     pass
+class ForecastAdmin(admin.ModelAdmin):
+    pass
 
-# admin.site.register(City, CityAdmin)
+
+admin.site.register(Forecast, ForecastAdmin)

@@ -1,15 +1,20 @@
-
-from wagtail.contrib.settings.models import BaseSiteSetting
-from wagtail.contrib.settings.registry import register_setting
 from django.db import models
+from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
+from modelcluster.fields import ParentalKey
+from modelcluster.models import ClusterableModel
 from wagtail.admin.panels import (
     FieldPanel,
     TabbedInterface,
-    ObjectList,
+    ObjectList, InlinePanel,
 )
+from wagtail.contrib.settings.models import BaseSiteSetting
+from wagtail.contrib.settings.registry import register_setting
+from wagtail.models import Orderable
+
+
 @register_setting
-class ForecastSetting(BaseSiteSetting):
+class ForecastSetting(ClusterableModel, BaseSiteSetting):
     enable_auto_forecast = models.BooleanField(
         default=True,
         verbose_name=_('Enable automated forecasts')
@@ -31,16 +36,13 @@ class ForecastSetting(BaseSiteSetting):
                                   verbose_name=_("Temperature"))
     wind_units = models.CharField(choices=WIND_UNITS, default='km_p_hr', max_length=255, verbose_name=_("Wind"))
 
-    panels = [
-        FieldPanel("temp_units"),
-        FieldPanel("wind_units"),
-    ]
-
-    panels = [
-        FieldPanel('enable_auto_forecast'),
-    ]
-
     edit_handler = TabbedInterface([
+        ObjectList([
+            InlinePanel('data_parameters', heading=_("Data Parameters"), label=_("Data Parameter")),
+        ], heading=_("Forecast Data Parameters")),
+        ObjectList([
+            InlinePanel('periods', heading=_("Forecast Periods"), label=_("Forecast Period")),
+        ], heading=_("Forecast Periods")),
         ObjectList([
             FieldPanel('enable_auto_forecast'),
         ], heading=_("Forecast Source")),
@@ -48,5 +50,42 @@ class ForecastSetting(BaseSiteSetting):
             FieldPanel("temp_units"),
             FieldPanel("wind_units"),
         ], heading=_("Measurement Units")),
-       
     ])
+
+    @cached_property
+    def data_parameter_values(self):
+        data_parameters = self.data_parameters.all()
+        params = []
+        for param in data_parameters:
+            params.append({"parameter": param.parameter, "name": param.name})
+        return params
+
+
+class ForecastPeriod(Orderable):
+    parent = ParentalKey(ForecastSetting, on_delete=models.CASCADE, related_name="periods")
+    forecast_effective_time = models.TimeField(unique=True, verbose_name=_("Forecast Effective Time"))
+    label = models.CharField(max_length=100, verbose_name=_("Label"))
+    whole_day = models.BooleanField(default=False, verbose_name=_("Is Whole Day"))
+
+
+class ForecastDataParameters(Orderable):
+    PARAMETER_CHOICES = (
+        ("maximum_temperature", "Maximum Temperature"),
+        ("minimum_temperature", "Minimum Temperature"),
+        ("temperature", "Temperature"),
+        ("wind_speed", "Wind Speed"),
+        ("wind_direction", "Wind Direction"),
+        ("humidity", "Humidity"),
+        ("sunrise", "Sunrise"),
+        ("sunset", "Sunrise"),
+        ("moonrise", "Moonrise"),
+        ("moonset", "Moonset"),
+    )
+
+    parent = ParentalKey(ForecastSetting, on_delete=models.CASCADE, related_name="data_parameters")
+    parameter = models.CharField(max_length=100, choices=PARAMETER_CHOICES, unique=True, verbose_name=_("Parameter"))
+    name = models.CharField(max_length=100, verbose_name=_("Parameter Label"),
+                            help_text=_("Parameter name as locally labelled"))
+
+    def __str__(self):
+        return self.name
