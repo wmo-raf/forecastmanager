@@ -11,7 +11,7 @@ from wagtail.contrib.modeladmin.options import (
 
 from forecastmanager.models import City, DailyWeather
 from forecastmanager.site_settings import ForecastSetting
-from forecastmanager.views import add_forecast, get_forecast
+from forecastmanager.views import add_forecast, view_forecast
 
 
 @hooks.register("register_admin_urls")
@@ -20,7 +20,7 @@ def register_admin_urls():
     Registers forecast urls in the wagtail admin.
     """
     return [
-        path("view-forecast/", get_forecast, name="view_forecast"),
+        path("view-forecast/", view_forecast, name="view_forecast"),
         path("add-forecast/", add_forecast, name="add_forecast"),
     ]
 

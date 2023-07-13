@@ -52,7 +52,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.gis",
-    "rest_framework"
+    "rest_framework",
+    "django_filters"
 ]
 
 MIDDLEWARE = [
@@ -93,16 +94,15 @@ WSGI_APPLICATION = "sandbox.wsgi.application"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 
-
 DATABASES = {
-  'default': {
-    'ENGINE': 'django.contrib.gis.db.backends.postgis',
-    'NAME': 'sandbox',
-    'HOST': 'localhost',
-    'PORT': 5432,
-    'USER': 'postgres',
-    'PASSWORD': 'postgres'
-  }
+    'default': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'sandbox',
+        'HOST': 'localhost',
+        'PORT': 5432,
+        'USER': 'postgres',
+        'PASSWORD': 'postgres'
+    }
 }
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

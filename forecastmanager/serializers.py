@@ -13,22 +13,28 @@ class CitySerializer(serializers.ModelSerializer):
 
     def get_coordinates(self, obj):
         # Implement the logic to compute the property value here
-
         return obj.coordinates
 
 
 class ForecastSerializer(serializers.ModelSerializer):
     city_detail = serializers.SerializerMethodField()
     list_serializer_class = serializers.ListSerializer
+    effective_period = serializers.SerializerMethodField()
 
     class Meta:
         model = Forecast
-        fields = ['id', "city", 'forecast_date', 'condition', "city_detail"]
+        fields = ['id', "city", 'forecast_date', 'condition', "city_detail", "effective_period"]
 
     @staticmethod
     def get_city_detail(obj):
         serializer = CitySerializer(obj.city)
         return serializer.data
+
+    def get_effective_period(self, instance):
+        return {"label": instance.effective_period.label,
+                "time": instance.effective_period.forecast_effective_time,
+                "whole_day": instance.effective_period.whole_day
+                }
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -51,6 +57,7 @@ class ForecastSerializer(serializers.ModelSerializer):
                 'id': representation['id'],
                 'city_name': representation['city_detail']['name'],
                 'forecast_date': representation['forecast_date'],
+                'effective_period': representation['effective_period'],
                 'condition': representation['condition'],
                 **parameter_values_data,
                 'condition_icon': f'{representation["condition"]}.png',

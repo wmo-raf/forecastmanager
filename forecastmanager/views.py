@@ -1,10 +1,10 @@
 import json
 
 from django.core import serializers
-from django.db import IntegrityError
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import ListAPIView
 
 from forecastmanager.models import City, Forecast
@@ -20,16 +20,8 @@ class CityListView(ListAPIView):
 class ForecastListView(ListAPIView):
     queryset = Forecast.objects.all()
     serializer_class = ForecastSerializer
-    lookup_field = 'id'
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        forecast_date = self.request.query_params.get('forecast_date')
-
-        if forecast_date:
-            queryset = queryset.filter(forecast_date=forecast_date)
-
-        return queryset
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["forecast_date", "effective_period"]
 
 
 def add_forecast(request):
@@ -137,9 +129,13 @@ def save_forecast_data(request):
         return JsonResponse({'error': 'Invalid request'}, status=400, safe=False)
 
 
-def get_forecast(request):
+def view_forecast(request):
+    forecast_setting = ForecastSetting.for_request(request)
+
     dates_ls = Forecast.objects.order_by('-forecast_date').values_list('forecast_date', flat=True).distinct()[:7]
 
-    return render(request, "forecastmanager/load_forecast.html", {
-        'forecast_dates': dates_ls
+    return render(request, "forecastmanager/view_forecast.html", {
+        'forecast_dates': dates_ls,
+        "data_parameter_values": forecast_setting.data_parameter_values,
+        "forecast_periods": forecast_setting.periods
     })
