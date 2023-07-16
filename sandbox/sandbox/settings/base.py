@@ -130,8 +130,36 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGES = [
+    ('en', 'English'),
+    ('es', 'Español'),
+    ('fr', 'French'),
+    ('ar', 'Arabic'),
+    ('am', 'Amharic'),
+    ('sw', 'Swahili'),
+]
 
+LANGUAGE_CODE = "en"
+
+WAGTAIL_CONTENT_LANGUAGES = LANGUAGES = [
+    ('en', 'English'),
+    ('es', 'Español'),
+    ('fr', 'French'),
+    ('ar', 'Arabic'),
+    ('am', 'Amharic'),
+    ('sw', 'Swahili'),
+]
+
+WAGTAIL_LANGUAGES_FALLBACK = False
+WAGTAILADMIN_PERMITTED_LANGUAGES = [
+    ('en', 'English'),
+    ('es', 'Español'),
+    ('fr', 'French'),
+    ('ar', 'Arabic'),
+    ('sw', 'Swahili'),
+    # ('am', 'Amharic'),
+
+]
 TIME_ZONE = "UTC"
 
 USE_I18N = True
