@@ -2,6 +2,7 @@ import logging
 from django.core.management.base import BaseCommand
 
 import pandas as pd
+import numpy as np
 import requests
 
 from wagtailgeowidget.helpers import geosgeometry_str_to_struct
