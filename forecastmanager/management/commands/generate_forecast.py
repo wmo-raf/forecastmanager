@@ -2,8 +2,6 @@ import logging
 from django.core.management.base import BaseCommand
 
 import pandas as pd
-import numpy as np
-import json
 import requests
 
 from wagtailgeowidget.helpers import geosgeometry_str_to_struct
@@ -34,8 +32,6 @@ class Command(BaseCommand):
         # if forecast_mode[0]['enable_auto_forecast']:
            
         cities_ls = list(City.objects.all().values())
-        records_to_update = []
-        records_to_create = []
 
         forecast_setting = ForecastSetting.objects.all().first()
         parameters = forecast_setting.data_parameter_values
