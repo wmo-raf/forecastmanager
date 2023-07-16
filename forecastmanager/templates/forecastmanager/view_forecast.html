@@ -23,8 +23,8 @@
 {% block forecast %}
     <h2 class="w-panel__heading" style="margin-bottom: 20px">Latest Available Forecast</h2>
     <div class="row row-flush" style="display:flex; align-items:baseline">
-        <div class="col6">
-            <div class="w-field__wrapper " data-field-wrapper="">
+        <div class="col6" style="display:flex; flex-wrap: wrap;">
+            <div class="w-field__wrapper " data-field-wrapper="" style="padding-right:1em">
                 <label class="w-field__label" for="id_forecast_date" id="id_forecast_date-label">
                     Forecast Date<span class="w-required-mark">*</span>
                 </label>
@@ -120,6 +120,9 @@
                     },
                     ...dataParams.map((p) => ({
                         data: p.parameter,
+                        type: p.parameter_type,
+                        timeFormat: 'h:mm' ? p.parameter_type === 'time' : '',
+                        correctFormat: true,
                     })),
                     {
                         data: 'condition',
@@ -138,31 +141,43 @@
 
 
             function populateMap(data) {
-                forecastMap.addSource("city-forecasts", {
-                    type: "geojson",
-                    data: data
-                })
 
-                forecastMap.addLayer({
-                    "id": "city-forecasts",
-                    "type": "symbol",
-                    "layout": {
-                        'icon-image': ['get', 'condition_icon'],
-                        'icon-size': 0.3,
-                        'icon-allow-overlap': true
-                    },
-                    source: "city-forecasts"
-                })
+                if(forecastMap.getLayer("city-forecasts")){
+                    forecastMap.removeLayer("city-forecasts")
+                }
 
-                const bbox = turf.bbox(data)
+                if(forecastMap.getSource("city-forecasts")){
+                    forecastMap.removeSource("city-forecasts")
 
-                forecastMap.fitBounds(bbox, {
-                    padding: {top: 100, bottom: 100, left: 100, right: 100},
-                    duration: 1000,
-                    easing: function (t) {
-                        return t * (2 - t); // Cubic easing function
-                    }
-                })
+                }
+                if(data.features.length >0){
+                    forecastMap.addSource("city-forecasts", {
+                        type: "geojson",
+                        data: data
+                    })
+    
+                    forecastMap.addLayer({
+                        "id": "city-forecasts",
+                        "type": "symbol",
+                        "layout": {
+                            'icon-image': ['get', 'condition_icon'],
+                            'icon-size': 0.3,
+                            'icon-allow-overlap': true
+                        },
+                        source: "city-forecasts"
+                    })
+    
+                    const bbox = turf.bbox(data)
+    
+                    forecastMap.fitBounds(bbox, {
+                        padding: {top: 100, bottom: 100, left: 100, right: 100},
+                        duration: 1000,
+                        easing: function (t) {
+                            return t * (2 - t); // Cubic easing function
+                        }
+                    })
+                }
+               
             }
 
             function getForecastData() {
@@ -170,7 +185,7 @@
                 const effectivePeriod = $periodInput.val()
 
 
-                if (forecastDate && effectivePeriod) {
+                if (forecastDate || effectivePeriod) {
                     // Make an HTTP GET request to the API endpoint
                     fetch(`{% url 'forecast-list'%}?forecast_date=${forecastDate}&effective_period=${effectivePeriod}`)
                         .then(response => response.json())  // Parse the response as JSON
@@ -226,11 +241,11 @@
                 }, "")
 
                 return `<div class="block" style="margin:10px; width:200px">
-                                <h2 class="title" style="font-size:18px;">${cityName}</h2>
-                                <h2 class="subtitle" style="font-size:14px;">${condition}</h2>
-                                <hr>
-                                ${values}
-                            </div>`
+                    <h2 class="title" style="font-size:18px;">${cityName}</h2>
+                    <h2 class="subtitle" style="font-size:14px;">${condition}</h2>
+                    <hr>
+                    ${values}
+                </div>`
             }
 
             forecastMap.on("load", () => {

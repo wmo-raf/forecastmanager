@@ -57,7 +57,7 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
         data_parameters = self.data_parameters.all()
         params = []
         for param in data_parameters:
-            params.append({"parameter": param.parameter, "name": param.name})
+            params.append({"parameter": param.parameter, "name": param.name, "parameter_type": param.parameter_type})
         return params
 
 
@@ -70,22 +70,33 @@ class ForecastPeriod(Orderable):
 
 class ForecastDataParameters(Orderable):
     PARAMETER_CHOICES = (
-        ("maximum_temperature", "Maximum Temperature"),
-        ("minimum_temperature", "Minimum Temperature"),
-        ("temperature", "Temperature"),
-        ("wind_speed", "Wind Speed"),
-        ("wind_direction", "Wind Direction"),
-        ("humidity", "Humidity"),
-        ("sunrise", "Sunrise"),
-        ("sunset", "Sunrise"),
-        ("moonrise", "Moonrise"),
-        ("moonset", "Moonset"),
+        ("air_temperature_max", _("Maximum Air Temperature")),
+        ("air_temperature_min", _("Minimum Air Temperature")),
+        ("air_temperature", _("Air Temperature")),
+        ("dew_point_temperature", _("Dew Point Temperature")),
+        ("precipitation_amount", _("Precipitation Amount")),
+        ("air_pressure_at_sea_level", _("Air Pressure (Sea level)")),
+        ("wind_speed", _("Wind Speed")),
+        ("wind_from_direction", _("Wind Direction")),
+        ("relative_humidity", _("Relative Humidity")),
+        ("sunrise", _("Sunrise")),
+        ("sunset", _("Sunset")),
+        ("moonrise", _("Moonrise")),
+        ("moonset", _("Moonset")),
+    )
+
+    PARAMETER_TYPE_CHOICES =(
+        ("text", _("Text")),
+        ("numeric", _("Number")),
+        ("time", _("Time")),
     )
 
     parent = ParentalKey(ForecastSetting, on_delete=models.CASCADE, related_name="data_parameters")
     parameter = models.CharField(max_length=100, choices=PARAMETER_CHOICES, unique=True, verbose_name=_("Parameter"))
     name = models.CharField(max_length=100, verbose_name=_("Parameter Label"),
                             help_text=_("Parameter name as locally labelled"))
+    parameter_type = models.CharField(max_length=100, choices=PARAMETER_TYPE_CHOICES, verbose_name=_("Parameter Type"), default="text")
+
 
     def __str__(self):
         return self.name

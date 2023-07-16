@@ -68,4 +68,5 @@ class ForecastSerializer(serializers.ModelSerializer):
             }
         }
 
-        return forecast_feature
+        return {k: v for k, v in forecast_feature.items() if v or v == 0 or v is False}
+

@@ -126,7 +126,6 @@ h2.section-title {
                         {% for item in vals %}
                         {% if city == item.city__name %}
 
-                        <p style="text-align:center">{{item.get_condition_display}}</p>
                         <div class="columns is-gapless pb-1 mb-0 is-align-items-center is-mobile">
                             <div class="column mr-1" style="align-self:end; text-align: end;">
                                 {% if item.condition %}
@@ -134,14 +133,15 @@ h2.section-title {
                                     <img 
                                         src="{% static 'forecastmanager/img/'|add:item.condition|add:'.png' %}" 
                                         alt="{{item.condition}}"
+                                        title="{{item.condition}}"
                                     />
                                 </figure>
                                 {% endif %}
 
                             </div>
                             <div class="column ml-1" style="text-align: start;">
-                               {% if item.data_value.air_temperature_max %} <h2 style="font-size:14px; font-weight:600">{{item.data_value.air_temperature_max}} {{settings.forecastmanager.ForecastSetting.get_temp_units_display}}</h2>{% endif %}
-                               {% if item.data_value.air_temperature_min %}  <h3 style="font-size:10px; font-weight:600">{{item.data_value.air_temperature_min}} {{settings.forecastmanager.ForecastSetting.get_temp_units_display}}</h3>{% endif %}
+                               {% if item.data_value.air_temperature_max %} <h2 style="font-size:14px; font-weight:600">{{item.data_value.air_temperature_max|floatformat}}{{settings.forecastmanager.ForecastSetting.get_temp_units_display}}</h2>{% endif %}
+                               {% if item.data_value.air_temperature_min %}  <h3 style="font-size:10px; font-weight:600">{{item.data_value.air_temperature_min|floatformat}}{{settings.forecastmanager.ForecastSetting.get_temp_units_display}}</h3>{% endif %}
 
                             </div>
 
@@ -153,7 +153,7 @@ h2.section-title {
                             <img src="{% static 'img/temperature_icon.png'%}" alt="" width="15"
                                 style="opacity: 0.7;">
                                 <span style="padding:0 0.5em">
-                                    {{item.data_value.air_temperature}} {{settings.forecastmanager.ForecastSetting.get_temp_units_display}}
+                                    {{item.data_value.air_temperature|floatformat}} {{settings.forecastmanager.ForecastSetting.get_temp_units_display}}
                                 </span>
                            
                         </span>

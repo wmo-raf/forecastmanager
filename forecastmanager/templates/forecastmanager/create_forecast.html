@@ -11,6 +11,21 @@
         select {
             font-size: 14px
         }
+
+        .param-selectors {
+            display:flex;
+            flex-wrap: wrap;
+        }
+
+        .param-selectors .selector{
+            width:50%;
+            box-sizing: border-box;
+            padding-bottom:1em
+        }
+
+        
+
+
     </style>
 
 {% endblock extra_css %}
@@ -35,6 +50,7 @@
                     </div>
                 </div>
                 <ul class="fields forecast">
+                    <div class="forecast-date-input">
                     <li>
                         <div class="w-field__wrapper" data-field-wrapper="">
                             <label class="w-field__label" for="id_forecast_date" id="id_forecast_date-label">
@@ -83,6 +99,8 @@
                             </div>
                         </div>
                     </li>
+
+                </div>
                     <li>
                         <div class="w-field__wrapper" data-field-wrapper="">
                             <label class="w-field__label" for="id_csv" id="id_csv-label">
@@ -115,9 +133,9 @@
                             </div>
                         </div>
                     </div>
-                    <li>
-                        <label for="city" class="w-field__label">City: <span
-                                class="w-required-mark">*</span></label>
+                    <div class ="param-selectors">
+                    <li class="selector">
+                        <label for="city" class="w-field__label">City:</label>
                         <div class="w-field w-field--file_field w-field--file_input">
                             <div class="w-field__input" data-field-input="">
                                 <select id="city">
@@ -126,9 +144,8 @@
                         </div>
                     </li>
                     {% for param in data_parameter_values %}
-                        <li>
-                            <label for="city" class="w-field__label">{{ param.name }}:
-                                <span class="w-required-mark">*</span>
+                        <li class="selector">
+                            <label for="{{ param.parameter }}" class="w-field__label">{{ param.name }}:
                             </label>
                             <div class="w-field w-field--file_field w-field--file_input">
                                 <div class="w-field__input" data-field-input="">
@@ -138,6 +155,17 @@
                             </div>
                         </li>
                     {% endfor %}
+                    <li class="selector">
+                        <label for="condition" class="w-field__label">Condition: </label>
+                        <div class="w-field w-field--file_field w-field--file_input">
+                            <div class="w-field__input" data-field-input="">
+                                <select id="condition">
+                                </select>
+                            </div>
+                        </div>
+                    </li>
+                </div>
+
                     <li style="padding-top:1em">
                         <button type="submit" id="submitForecast" class="button" disabled> Publish</button>
                     </li>
@@ -155,6 +183,7 @@
 
 {% block extra_js %}
     {{ block.super }}
+    
     <script src="{% versioned_static 'wagtailadmin/js/date-time-chooser.js' %}"></script>
     <script src="{% static 'forecastmanager/js/helpers.js' %}"></script>
 
@@ -173,7 +202,9 @@
             const $csvFileInput = $("#id_csv_data")
             const $forecastForm = $("#forecast_form")
             const $creatError = $('#creatError')
+            const $creatErrorMessage = $('#creatError .errorMessage')
             const $creatSuccess = $('#creatSuccess')
+            const $creatSuccessMessage = $('#creatSuccess .successMessage')
             const $submitBtn = $("#submitForecast")
             const $forecastEffectivePeriodInput = $("#id_forecast_effective_period")
             const $forecastDateInput = $("#id_forecast_date")
@@ -193,9 +224,12 @@
                         source: city_ls.map(city => city.fields.name),
                         allowEmpty: false,
                     },
-                    ...dataParams.map(() => ({
-                        type: 'numeric',
+                  
+                    ...dataParams.map((p) => ({
+                        type: p.parameter_type,
+                        timeFormat: 'HH:mm',
                         allowEmpty: false,
+                        correctFormat: true,
                     })),
                     {
                         type: 'dropdown',
@@ -211,6 +245,8 @@
                 stretchH: "all",
                 licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
             });
+
+
 
             const column_selectors = [
                 {dom_id: 'city', index: 0},
@@ -263,9 +299,17 @@
 
             $forecastForm.on('submit', function (e) {
                 e.preventDefault();
+                
 
+                
+                let dataHasErrors = validateData()
+
+                
+
+
+               
                 const data = hot.getData();
-
+                
 
                 // Filter out rows that have all values null or undefined
                 const nonNullRows = data.filter(function (row) {
@@ -274,38 +318,58 @@
                     });
                 });
 
-                // Validate the data
-                const isValid = validateData();
+                hot.addHook('afterValidate', (isValid, value, row, prop) => {
+                    if (value === '' || value === null) {
+                        return true
+                      }
+                    if (!isValid && (value !== ''|| value !== null)){
+                        dataHasErrors = true
+                    } 
+                
+                });
 
-                // Create an array of objects with the column names as keys
+                // Perform the validation
+                hot.validateCells((valid) => {
+                    $creatError.hide('slow')
+                    if (!dataHasErrors) {
+                        // Validation successful with no invalid inputs
+                        // Create an array of objects with the column names as keys
+                        if (nonNullRows.length > 0) {
+                            const postData = [];
+    
+                            for (let i = 0; i < nonNullRows.length; i++) {
+                                const row = {
+                                    'city': city_ls.find(city => city.fields.name === nonNullRows[i][0]).pk,
+                                    ...dataParams.reduce((all, item, index) => {
+                                        all[item.parameter] = nonNullRows[i][index + 1]
+                                        return all
+                                    }, {}),
+                                    'condition': nonNullRows[i][dataParams.length + 1],
+                                    'forecast_date': $forecastDateInput.val(),
+                                    'effective_period': $forecastEffectivePeriodInput.val(),
+                                };
+                                postData.push(row);
+                            }
+    
+    
+                            $creatError.hide('slow')
 
-
-                if (nonNullRows.length > 0) {
-                    const postData = [];
-
-                    for (let i = 0; i < nonNullRows.length; i++) {
-                        const row = {
-                            'city': city_ls.find(city => city.fields.name === nonNullRows[i][0]).pk,
-                            ...dataParams.reduce((all, item, index) => {
-                                all[item.parameter] = nonNullRows[i][index + 1]
-                                return all
-                            }, {}),
-                            'condition': nonNullRows[i][dataParams.length + 1],
-                            'forecast_date': $forecastDateInput.val(),
-                            'effective_period': $forecastEffectivePeriodInput.val(),
-                        };
-                        postData.push(row);
+                            submitData(postData)
+    
+                        } else {
+                            $creatError.show('slow')
+                            $creatErrorMessage.html('The table is empty. Please input data')
+                            
+                        }
+                    } else {
+                        // Validation failed or invalid input encountered
+                        $creatError.show('slow')
+                        $creatErrorMessage.html('Table contains invalid inputs')
+                            
                     }
+                });
 
-                    submitData(postData)
-
-                } else {
-                    $creatError.show('slow')
-                    $creatError.html('The table is empty. Please input data')
-                    setTimeout(function () {
-                        $creatError.hide('slow')
-                    }, 5000)
-                }
+               
             })
 
             const submitData = (data) => {
@@ -321,9 +385,11 @@
                     success: function (response) {
                         // Clear the Handsontable table
                         $creatSuccess.show('slow')
+                        $creatSuccessMessage.html(response.message)
                         setTimeout(function () {
                             $creatSuccess.hide('slow')
                         }, 5000)
+
 
                         //clear table on successful submission
                         // hot.updateData([])
@@ -331,7 +397,7 @@
                     error: function (jqXHR, textStatus, errorThrown) {
                         if (errorThrown) {
                             $creatError.show('slow')
-                            $creatError.html(JSON.parse(jqXHR.responseText).error)
+                            $creatErrorMessage.html(JSON.parse(jqXHR.responseText).error)
 
                             setTimeout(function () {
                                 $creatError.hide('slow')
@@ -341,9 +407,13 @@
                 })
             }
 
-            function validateData() {
+
+            const validateData = () => {
                 const instance = hot.getInstance();
                 let hasError = false; // Assume no errors initially
+                // verify no validation errors remaining  after checking for empty
+                
+            
 
                 for (let i = 0; i < instance.countRows(); i++) {
                     let rowHasValue = false; // Assume the row is empty initially
@@ -368,34 +438,35 @@
                         instance.validateRows([i]);
                         if (instance.getCellMeta(i, 0).valid === false) {
                             hasError = true; // Mark that there is an error
+                            
                         }
+
                     }
+                    
                 }
+
+                
+                
 
                 // Re-render the table to display the validation feedback
                 instance.render();
-
-                // Show the overall error message if there is an error
                 return hasError
+
             }
 
 
             const exportTemplate = new Handsontable(document.getElementById('exportTemplate'), {
                 colHeaders: [
                     'City',
-                    'Min Temp',
-                    'Max Temp',
+                    ...dataParams.map(p => p.name),
                     'Condition'],
                 columns: [
                     {
                         type: 'dropdown',
                     },
-                    {
-                        type: 'numeric',
-                    },
-                    {
-                        type: 'numeric',
-                    },
+                    ...dataParams.map((p) => ({
+                        type: p.parameter_type,
+                    })),
                     {
                         type: 'dropdown',
 
