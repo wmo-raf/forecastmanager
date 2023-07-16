@@ -54,7 +54,6 @@ class Command(BaseCommand):
                 weather_data = response.json()
                 data = weather_data['properties']['timeseries']
 
-
                 df = pd.json_normalize(data)
 
                 # convert the 'time' column to a datetime object and set it as the index

@@ -142,7 +142,7 @@ def save_forecast_data(request):
                         ["condition", "data_value"],
                         batch_size=1000
                     )
-                    res_message = "Data Successfully updated"
+                    res_message = _("Data Successfully updated")
                     # return JsonResponse({'success': True, 'message':'Data Successfully updated'})
 
                 # create
@@ -151,13 +151,13 @@ def save_forecast_data(request):
                         [Forecast(**values) for values in records_to_create], batch_size=1000
                     )
 
-                    res_message = "Data Successfully saved"
+                    res_message = _("Data Successfully saved")
 
                 return JsonResponse({'success': True, 'message':res_message})
             except Exception as e:
                 return JsonResponse({'error': 'Error occurred'}, status=400, safe=False)
     else:
-        return JsonResponse({'error': 'Invalid request'}, status=400, safe=False)
+        return JsonResponse({'error': _('Invalid request')}, status=400, safe=False)
 
 
 def view_forecast(request):

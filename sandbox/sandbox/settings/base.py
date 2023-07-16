@@ -53,7 +53,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.gis",
     "rest_framework",
-    "django_filters"
+    "django_filters",
+    "django_deep_translator"
 ]
 
 MIDDLEWARE = [
@@ -67,6 +68,10 @@ MIDDLEWARE = [
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
 ]
 
+
+LOCALE_PATHS = [
+    'forecastmanager/locales'
+]
 ROOT_URLCONF = "sandbox.urls"
 
 TEMPLATES = [

@@ -27,7 +27,7 @@ def register_admin_urls():
 
 class ForecastSettingAdmin(ModelAdmin):
     model = ForecastSetting
-    menu_label = 'Settings'
+    menu_label = _('Settings')
     menu_icon = 'cog'
     add_to_settings_menu = False
     exclude_from_explorer = False
@@ -35,7 +35,7 @@ class ForecastSettingAdmin(ModelAdmin):
 
 class CitiesAdmin(ModelAdmin):
     model = City
-    menu_label = 'Cities'
+    menu_label = _('Cities')
     menu_icon = 'site'
     add_to_settings_menu = False
     exclude_from_explorer = False
@@ -43,7 +43,7 @@ class CitiesAdmin(ModelAdmin):
 
 class DailyWeatherAdmin(ModelAdmin):
     model = DailyWeather
-    menu_label = 'Daily Weather'
+    menu_label = _('Daily Weather')
     menu_icon = 'site'
     add_to_settings_menu = False
     exclude_from_explorer = False
@@ -57,7 +57,7 @@ class DailyWeatherAdmin(ModelAdmin):
 #     exclude_from_explorer = False
 
 class CityForecastGroup(ModelAdminGroup):
-    menu_label = 'City Forecast'
+    menu_label = _('City Forecast')
     menu_icon = 'table'  # change as required
     menu_order = 200  # will put in 3rd place (000 being 1st, 100 2nd)
     items = (CitiesAdmin, DailyWeatherAdmin)
@@ -70,8 +70,8 @@ class CityForecastGroup(ModelAdminGroup):
             item_order += 1
 
             # append raster upload link
-        add_forecast_item = MenuItem(label="Add Forecasts", url=reverse("add_forecast"), icon_name="plus")
-        load_forecast_item = MenuItem(label="View Forecasts", url=reverse("view_forecast"), icon_name="view")
+        add_forecast_item = MenuItem(label=_("Add Forecasts"), url=reverse("add_forecast"), icon_name="plus")
+        load_forecast_item = MenuItem(label=_("View Forecasts"), url=reverse("view_forecast"), icon_name="view")
 
         menu_items.append(add_forecast_item)
         menu_items.append(load_forecast_item)

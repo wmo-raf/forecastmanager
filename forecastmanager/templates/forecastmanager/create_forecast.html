@@ -31,7 +31,7 @@
 {% endblock extra_css %}
 {% block forecast %}
 
-    <h2 class="w-panel__heading">Add forecast</h2>
+    <h2 class="w-panel__heading">{% trans 'Add forecast' %}</h2>
 
     <div class="row row-flush" style="padding-top:1rem">
 
@@ -43,10 +43,10 @@
                         <use href="#icon-info-circle"></use>
                     </svg>
                     <div>
-                        You can <a style="cursor:pointer"><b id="exportTable">download a template</b></a> of the CSV for
+                        {% trans 'You can' %} <a style="cursor:pointer"><b id="exportTable">{% trans 'download a template' %}</b></a> {% trans 'of the CSV for
                         offline
                         editing and upload it here. The template comes prepopulated
-                        with all pre-exisiting cities.
+                        with all pre-exisiting cities.' %}
                     </div>
                 </div>
                 <ul class="fields forecast">
@@ -54,11 +54,11 @@
                     <li>
                         <div class="w-field__wrapper" data-field-wrapper="">
                             <label class="w-field__label" for="id_forecast_date" id="id_forecast_date-label">
-                                Forecast Date
+                                {% trans 'Forecast Date' %}
                                 <span class="w-required-mark">*</span>
                             </label>
                             <div class="w-field__help" data-field-help="">
-                                <div class="help">Date of forecast</div>
+                                <div class="help">{% trans 'Date of forecast' %}</div>
                             </div>
                             <div class="w-field w-field--date_field w-field--admin_date_input" data-field=""
                                  data-contentpath="date">
@@ -81,7 +81,7 @@
                         <div class="w-field__wrapper " data-field-wrapper="">
                             <label class="w-field__label" for="id_forecast_effective_period"
                                    id="id_forecast_effective_period-label">
-                                Forecast effective period<span class="w-required-mark">*</span>
+                                   {% trans 'Forecast effective period' %}<span class="w-required-mark">*</span>
                             </label>
                             <div class="w-field w-field--choice_field w-field--select" data-field=""
                                  data-contentpath="select">
@@ -104,15 +104,15 @@
                     <li>
                         <div class="w-field__wrapper" data-field-wrapper="">
                             <label class="w-field__label" for="id_csv" id="id_csv-label">
-                                Forecast Upload
+                                {% trans 'Forecast Upload' %}
                             </label>
                             <div class="w-field w-field--file_field w-field--file_input" data-field=""
                                  data-contentpath="csv">
                                 <div class="w-field__errors" data-field-errors="">
                                 </div>
                                 <div class="w-field__help" data-field-help="">
-                                    <div class="help">The uploaded file should be a CSV, similar to the table on the
-                                        right
+                                    <div class="help">{% trans 'The uploaded file should be a CSV, similar to the table on the
+                                        right' %}
                                     </div>
                                 </div>
                                 <div class="w-field__input" data-field-input="">
@@ -129,13 +129,13 @@
                                 <use href="#icon-info-circle"></use>
                             </svg>
                             <div>
-                                Verify that all columns match correctly
+                                {% trans 'Verify that all columns match correctly' %}
                             </div>
                         </div>
                     </div>
                     <div class ="param-selectors">
                     <li class="selector">
-                        <label for="city" class="w-field__label">City:</label>
+                        <label for="city" class="w-field__label">{% trans 'City'%}:</label>
                         <div class="w-field w-field--file_field w-field--file_input">
                             <div class="w-field__input" data-field-input="">
                                 <select id="city">
@@ -156,7 +156,7 @@
                         </li>
                     {% endfor %}
                     <li class="selector">
-                        <label for="condition" class="w-field__label">Condition: </label>
+                        <label for="condition" class="w-field__label">{% trans 'Condition'%}: </label>
                         <div class="w-field w-field--file_field w-field--file_input">
                             <div class="w-field__input" data-field-input="">
                                 <select id="condition">
@@ -167,7 +167,7 @@
                 </div>
 
                     <li style="padding-top:1em">
-                        <button type="submit" id="submitForecast" class="button" disabled> Publish</button>
+                        <button type="submit" id="submitForecast" class="button" disabled>{% trans 'Publish'%}</button>
                     </li>
                 </ul>
             </form>
@@ -304,10 +304,6 @@
                 
                 let dataHasErrors = validateData()
 
-                
-
-
-               
                 const data = hot.getData();
                 
 
@@ -351,20 +347,19 @@
                                 postData.push(row);
                             }
     
-    
                             $creatError.hide('slow')
 
                             submitData(postData)
     
                         } else {
                             $creatError.show('slow')
-                            $creatErrorMessage.html('The table is empty. Please input data')
+                            $creatErrorMessage.html('{% trans "The table is empty. Please input data" %}')
                             
                         }
                     } else {
                         // Validation failed or invalid input encountered
                         $creatError.show('slow')
-                        $creatErrorMessage.html('Table contains invalid inputs')
+                        $creatErrorMessage.html('{% trans "Table contains invalid inputs" %}')
                             
                     }
                 });
@@ -444,10 +439,6 @@
                     }
                     
                 }
-
-                
-                
-
                 // Re-render the table to display the validation feedback
                 instance.render();
                 return hasError
