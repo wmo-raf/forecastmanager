@@ -107,19 +107,27 @@ h2.section-title {
             <thead>
               <tr>
                 <th>City</th>
-                {% for date in dates %}
-                  <th style="text-align:center">{{ date }}</th>
+
+                {% for date, vals in forecasts.items %}
+
+                  <th>{{ date }}</th>
                 {% endfor %}
               </tr>
             </thead>
             <tbody>
-              {% for city, vals in forecasts.items %}
+                {% for city in cities %}
                 <tr>
-                    <td>{{ city }}</td>
-                    {% for item in vals %}
+
+                    <td>{{city}}</td>
+
+                    {% for date, vals in forecasts.items %}
                     <td>
+
+                        {% for item in vals %}
+                        {% if city == item.city__name %}
+
                         <p style="text-align:center">{{item.get_condition_display}}</p>
-                        <div class="columns is-gapless pb-1 mb-0 is-align-items-center is-mobile is-jsutify-content-center">
+                        <div class="columns is-gapless pb-1 mb-0 is-align-items-center is-mobile">
                             <div class="column mr-1" style="align-self:end; text-align: end;">
                                 {% if item.condition %}
                                 <figure class="forecast-icon" style="width:40px;display: inline-flex;">
@@ -132,21 +140,139 @@ h2.section-title {
 
                             </div>
                             <div class="column ml-1" style="text-align: start;">
-                                <h2 style="font-size:14px; font-weight:600">{{item.max_temp}} {{settings.forecastmanager.ForecastSetting.get_temp_units_display}}</h2>
-                                <h3 style="font-size:10px; font-weight:600">{{item.min_temp}} {{settings.forecastmanager.ForecastSetting.get_temp_units_display}}</h3>
+                               {% if item.data_value.air_temperature_max %} <h2 style="font-size:14px; font-weight:600">{{item.data_value.air_temperature_max}} {{settings.forecastmanager.ForecastSetting.get_temp_units_display}}</h2>{% endif %}
+                               {% if item.data_value.air_temperature_min %}  <h3 style="font-size:10px; font-weight:600">{{item.data_value.air_temperature_min}} {{settings.forecastmanager.ForecastSetting.get_temp_units_display}}</h3>{% endif %}
 
                             </div>
 
                         </div>
 
-                   
+                        {% if item.data_value.air_temperature %}
+                        <span class="title"
+                            style="font-size: 13px; font-weight: 600;margin-bottom: 0.5rem;display: flex;">
+                            <img src="{% static 'img/temperature_icon.png'%}" alt="" width="15"
+                                style="opacity: 0.7;">
+                                <span style="padding:0 0.5em">
+                                    {{item.data_value.air_temperature}} {{settings.forecastmanager.ForecastSetting.get_temp_units_display}}
+                                </span>
+                           
+                        </span>
+                        {% endif %}
+
+                        {% if item.data_value.wind_from_direction %}
+                        <span class="title"
+                            style="font-size: 13px; font-weight: 600;margin-bottom: 0.5rem;display: flex;
+                             ">
+                            <img src="{% static 'img/winddirection_icon.png'%}" alt="" width="15"
+                                style="transform:rotate(calc({{item.data_value.air_temperature_min}}deg + 90deg));opacity: 0.7;">
+                                <span style="padding:0 0.5em">
+                                {{item.data_value.wind_from_direction}} °
+                                </span>
+                            </h2>
+                        </span>
+                        {% endif %}
+
+                        {% if item.data_value.wind_speed %}
+                        <span class="title"
+                            style="font-size: 13px; font-weight: 600;margin-bottom: 0.5rem;display: flex;">
+                            <img src="{% static 'img/windspeed_icon.png'%}" alt="" width="15"
+                                style="opacity: 0.7;">
+                            <span style="padding:0 0.5em">
+                                {{item.data_value.wind_speed}} {{settings.forecastmanager.ForecastSetting.get_wind_units_display}}
+
+                            </span>
+                        </span>
+                       
+                        {% endif %}
+                        {% if item.data_value.air_pressure_at_sea_level %}
+                        <span class="title"
+                            style="font-size: 13px; font-weight: 600;margin-bottom: 0.5rem;display: flex;">
+                            <img src="{% static 'img/pressure_icon.png'%}" alt="" width="15"
+                                style="opacity: 0.7;">
+                                <span style="padding:0 0.5em">
+                                    {{item.data_value.air_pressure_at_sea_level}} hPa
+                                </span>
+                           
+                        </span>
+                        {% endif %}
+
+                        {% if item.data_value.precipitation_amount %}
+                        <span class="title"
+                            style="font-size: 13px; font-weight: 600;margin-bottom: 0.5rem;display: flex;">
+                            <img src="{% static 'img/precipitation_icon.png'%}" alt="" width="15"
+                                >
+                                <span style="padding:0 0.5em">
+                                    {{item.data_value.precipitation_amount}} mm
+                                </span>
+                        </span>
+                        {% endif %}
+
+                        {% if item.data_value.relative_humidity %}
+                        <span class="title"
+                            style="font-size: 13px; font-weight: 600;margin-bottom: 0.5rem;display: flex;">
+                            <img src="{% static 'img/humidity_icon.png'%}" alt="" width="15"
+                                style="opacity: 0.7;">
+                                <span style="padding:0 0.5em">
+                                    {{item.data_value.relative_humidity}} %
+                                </span>
+                        </span>
+                        {% endif %}
+
+                        {% if item.data_value.sunrise %}
+                        <span class="title"
+                            style="font-size: 13px; font-weight: 600;margin-bottom: 0.5rem;display: flex;">
+                            <img src="{% static 'img/sunrise_icon.png'%}" alt="" width="15"
+                                style="opacity: 0.7;">
+                                <span style="padding:0 0.5em">
+                                    {{item.data_value.sunrise}}
+                                </span>
+                        </span>
+                        {% endif %}
+
+                        {% if item.data_value.sunset %}
+                        <span class="title"
+                            style="font-size: 13px; font-weight: 600;margin-bottom: 0.5rem;display: flex;">
+                            <img src="{% static 'img/sunset_icon.png'%}" alt="" width="15"
+                                style="opacity: 0.7;">
+                                <span style="padding:0 0.5em">
+                                    {{item.data_value.sunset}}
+                                </span>
+                        </span>
+                        {% endif %}
+
+                        {% if item.data_value.moonrise %}
+                        <span class="title"
+                            style="font-size: 13px; font-weight: 600;margin-bottom: 0.5rem;display: flex;">
+                            <img src="{% static 'img/moonrise_icon.png'%}" alt="" width="15"
+                                style="opacity: 0.7;">
+                                <span style="padding:0 0.5em">
+                                    {{item.data_value.moonrise}}
+                                </span>
+                        </span>
+                        {% endif %}
+
+                        {% if item.data_value.moonset %}
+                        <span class="title"
+                            style="font-size: 13px; font-weight: 600;margin-bottom: 0.5rem;display: flex;">
+                            <img src="{% static 'img/moonset_icon.png'%}" alt="" width="15"
+                                style="opacity: 0.7;">
+                                <span style="padding:0 0.5em">
+                                    {{item.data_value.moonset}}
+                                </span>
+                        </span>
+                        {% endif %}
+
+                            {% endif %}
+
+                        {% endfor %}
                     </td>
 
                     {% endfor %}
+                
                 </tr>
 
+                {% endfor %}
                 
-              {% endfor %}
             </tbody>
         </table>
     
