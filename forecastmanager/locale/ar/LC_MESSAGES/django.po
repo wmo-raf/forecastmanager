@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-16 17:21+0000\n"
+"POT-Creation-Date: 2023-07-16 18:40+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,8 +18,63 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 
+#: sandbox/home/templates/home/welcome_page.html:6
+msgid "Visit the Wagtail website"
+msgstr "قم بزيارة موقع Wagtail"
+
+#: sandbox/home/templates/home/welcome_page.html:15
+msgid "View the release notes"
+msgstr "عرض ملاحظات الإصدار"
+
+#: sandbox/home/templates/home/welcome_page.html:27
+msgid "Welcome to your new Wagtail site!"
+msgstr "مرحبا بكم في موقع الذعرة الجديد الخاص بك!"
+
+#: sandbox/home/templates/home/welcome_page.html:28
+msgid ""
+"Please feel free to <a "
+"href=\"https://github.com/wagtail/wagtail/wiki/Slack\">join our community on"
+" Slack</a>, or get started with one of the links below."
+msgstr ""
+"لا تتردد في <a href=\"https://github.com/wagtail/wagtail/wiki/Slack\"> "
+"الانضمام إلى مجتمعنا على Slack </a> ، أو البدء باستخدام أحد الروابط أدناه."
+
+#: sandbox/home/templates/home/welcome_page.html:35
+msgid "Wagtail Documentation"
+msgstr "توثيق الذعرة"
+
+#: sandbox/home/templates/home/welcome_page.html:36
+msgid "Topics, references, & how-tos"
+msgstr "الموضوعات والمراجع وطرق التنفيذ"
+
+#: sandbox/home/templates/home/welcome_page.html:42
+msgid "Tutorial"
+msgstr "درس تعليمي"
+
+#: sandbox/home/templates/home/welcome_page.html:43
+msgid "Build your first Wagtail site"
+msgstr "بناء موقع الذعرة الأول الخاص بك"
+
+#: sandbox/home/templates/home/welcome_page.html:49
+msgid "Admin Interface"
+msgstr "واجهة المسؤول"
+
+#: sandbox/home/templates/home/welcome_page.html:50
+msgid "Create your superuser first!"
+msgstr "قم بإنشاء المستخدم المتميز الخاص بك أولاً!"
+
+#: sandbox/home/templates/integration/dailyweather_include.html:3
+#: forecastmanager/wagtail_hooks.py:46
+msgid "Daily Weather"
+msgstr "الطقس اليومي"
+
+#: sandbox/home/templates/integration/forecasts_include.html:3
+#: forecastmanager/models.py:127
+msgid "Forecasts"
+msgstr "التنبؤ"
+
 #: forecastmanager/models.py:16
-#: forecastmanager/templates/forecastmanager/create_forecast.html:57
+#: forecastmanager/templates/forecastmanager/create_forecast.html:54
 #: forecastmanager/templates/forecastmanager/view_forecast.html:29
 msgid "Forecast Date"
 msgstr "تاريخ التنبؤ"
@@ -53,7 +108,7 @@ msgid "City Location (Lat, Lng)"
 msgstr "موقع المدينة (Lat ، Lng)"
 
 #: forecastmanager/models.py:62 forecastmanager/models.py:117
-#: forecastmanager/templates/forecastmanager/create_forecast.html:138
+#: forecastmanager/templates/forecastmanager/create_forecast.html:134
 msgid "City"
 msgstr "مدينة"
 
@@ -229,11 +284,6 @@ msgstr "على سبيل المثال الاستحمام الخفيفة"
 msgid "Forecast"
 msgstr "تنبؤ بالمناخ"
 
-#: forecastmanager/models.py:127
-#: sandbox/home/templates/integration/forecasts_include.html:3
-msgid "Forecasts"
-msgstr "التنبؤ"
-
 #: forecastmanager/site_settings.py:20
 msgid "Enable automated forecasts"
 msgstr "تمكين التنبؤات الآلية"
@@ -378,35 +428,49 @@ msgstr "أنت تستطيع"
 msgid "download a template"
 msgstr "تنزيل نموذج"
 
-#: forecastmanager/templates/forecastmanager/create_forecast.html:61
+#: forecastmanager/templates/forecastmanager/create_forecast.html:46
+msgid ""
+"of the CSV for offline editing and upload it here. The template comes "
+"prepopulated with all pre-exisiting cities."
+msgstr ""
+"من ملف CSV للتحرير في وضع عدم الاتصال وتحميله هنا. يأتي النموذج معبأ مسبقًا "
+"بجميع المدن الموجودة مسبقًا."
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:58
 msgid "Date of forecast"
 msgstr "تاريخ التوقعات"
 
-#: forecastmanager/templates/forecastmanager/create_forecast.html:84
+#: forecastmanager/templates/forecastmanager/create_forecast.html:81
 msgid "Forecast effective period"
 msgstr "فترة فعالية التنبؤ"
 
-#: forecastmanager/templates/forecastmanager/create_forecast.html:107
+#: forecastmanager/templates/forecastmanager/create_forecast.html:104
 msgid "Forecast Upload"
 msgstr "تحميل التوقعات"
 
-#: forecastmanager/templates/forecastmanager/create_forecast.html:132
+#: forecastmanager/templates/forecastmanager/create_forecast.html:111
+msgid "The uploaded file should be a CSV, similar to the table on the right"
+msgstr ""
+"يجب أن يكون الملف الذي تم تحميله بتنسيق CSV ، مشابهًا للجدول الموجود على "
+"اليسار"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:128
 msgid "Verify that all columns match correctly"
 msgstr "تحقق من تطابق جميع الأعمدة بشكل صحيح"
 
-#: forecastmanager/templates/forecastmanager/create_forecast.html:159
+#: forecastmanager/templates/forecastmanager/create_forecast.html:155
 msgid "Condition"
 msgstr "حالة"
 
-#: forecastmanager/templates/forecastmanager/create_forecast.html:170
+#: forecastmanager/templates/forecastmanager/create_forecast.html:166
 msgid "Publish"
 msgstr "ينشر"
 
-#: forecastmanager/templates/forecastmanager/create_forecast.html:356
+#: forecastmanager/templates/forecastmanager/create_forecast.html:352
 msgid "The table is empty. Please input data"
 msgstr "الجدول فارغ. الرجاء إدخال البيانات"
 
-#: forecastmanager/templates/forecastmanager/create_forecast.html:362
+#: forecastmanager/templates/forecastmanager/create_forecast.html:358
 msgid "Table contains invalid inputs"
 msgstr "يحتوي الجدول على مدخلات غير صالحة"
 
@@ -454,11 +518,6 @@ msgstr "طلب غير صالح"
 msgid "Settings"
 msgstr "إعدادات"
 
-#: forecastmanager/wagtail_hooks.py:46
-#: sandbox/home/templates/integration/dailyweather_include.html:3
-msgid "Daily Weather"
-msgstr "الطقس اليومي"
-
 #: forecastmanager/wagtail_hooks.py:60
 msgid "City Forecast"
 msgstr "توقعات المدينة"
@@ -466,48 +525,3 @@ msgstr "توقعات المدينة"
 #: forecastmanager/wagtail_hooks.py:73
 msgid "Add Forecasts"
 msgstr "أضف التوقعات"
-
-#: sandbox/home/templates/home/welcome_page.html:6
-msgid "Visit the Wagtail website"
-msgstr "قم بزيارة موقع Wagtail"
-
-#: sandbox/home/templates/home/welcome_page.html:15
-msgid "View the release notes"
-msgstr "عرض ملاحظات الإصدار"
-
-#: sandbox/home/templates/home/welcome_page.html:27
-msgid "Welcome to your new Wagtail site!"
-msgstr "مرحبا بكم في موقع الذعرة الجديد الخاص بك!"
-
-#: sandbox/home/templates/home/welcome_page.html:28
-msgid ""
-"Please feel free to <a "
-"href=\"https://github.com/wagtail/wagtail/wiki/Slack\">join our community on"
-" Slack</a>, or get started with one of the links below."
-msgstr ""
-"لا تتردد في <a href=\"https://github.com/wagtail/wagtail/wiki/Slack\"> "
-"الانضمام إلى مجتمعنا على Slack </a> ، أو البدء باستخدام أحد الروابط أدناه."
-
-#: sandbox/home/templates/home/welcome_page.html:35
-msgid "Wagtail Documentation"
-msgstr "توثيق الذعرة"
-
-#: sandbox/home/templates/home/welcome_page.html:36
-msgid "Topics, references, & how-tos"
-msgstr "الموضوعات والمراجع وطرق التنفيذ"
-
-#: sandbox/home/templates/home/welcome_page.html:42
-msgid "Tutorial"
-msgstr "درس تعليمي"
-
-#: sandbox/home/templates/home/welcome_page.html:43
-msgid "Build your first Wagtail site"
-msgstr "بناء موقع الذعرة الأول الخاص بك"
-
-#: sandbox/home/templates/home/welcome_page.html:49
-msgid "Admin Interface"
-msgstr "واجهة المسؤول"
-
-#: sandbox/home/templates/home/welcome_page.html:50
-msgid "Create your superuser first!"
-msgstr "قم بإنشاء المستخدم المتميز الخاص بك أولاً!"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-16 17:25+0000\n"
+"POT-Creation-Date: 2023-07-16 18:40+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,8 +18,64 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
+#: sandbox/home/templates/home/welcome_page.html:6
+msgid "Visit the Wagtail website"
+msgstr "Visitez le site Web de Bergeronnette"
+
+#: sandbox/home/templates/home/welcome_page.html:15
+msgid "View the release notes"
+msgstr "Consulter les notes de version"
+
+#: sandbox/home/templates/home/welcome_page.html:27
+msgid "Welcome to your new Wagtail site!"
+msgstr "Bienvenue sur votre nouveau site Bergeronnette !"
+
+#: sandbox/home/templates/home/welcome_page.html:28
+msgid ""
+"Please feel free to <a "
+"href=\"https://github.com/wagtail/wagtail/wiki/Slack\">join our community on"
+" Slack</a>, or get started with one of the links below."
+msgstr ""
+"N'hésitez pas à <a "
+"href=\"https://github.com/wagtail/wagtail/wiki/Slack\">rejoindre notre "
+"communauté sur Slack</a>, ou commencez avec l'un des liens ci-dessous."
+
+#: sandbox/home/templates/home/welcome_page.html:35
+msgid "Wagtail Documentation"
+msgstr "Documentation de la bergeronnette"
+
+#: sandbox/home/templates/home/welcome_page.html:36
+msgid "Topics, references, & how-tos"
+msgstr "Sujets, références et procédures"
+
+#: sandbox/home/templates/home/welcome_page.html:42
+msgid "Tutorial"
+msgstr "Didacticiel"
+
+#: sandbox/home/templates/home/welcome_page.html:43
+msgid "Build your first Wagtail site"
+msgstr "Créez votre premier site Wagtail"
+
+#: sandbox/home/templates/home/welcome_page.html:49
+msgid "Admin Interface"
+msgstr "Interface d'administration"
+
+#: sandbox/home/templates/home/welcome_page.html:50
+msgid "Create your superuser first!"
+msgstr "Créez d'abord votre superutilisateur !"
+
+#: sandbox/home/templates/integration/dailyweather_include.html:3
+#: forecastmanager/wagtail_hooks.py:46
+msgid "Daily Weather"
+msgstr "Météo quotidienne"
+
+#: sandbox/home/templates/integration/forecasts_include.html:3
+#: forecastmanager/models.py:127
+msgid "Forecasts"
+msgstr "Prévisions"
+
 #: forecastmanager/models.py:16
-#: forecastmanager/templates/forecastmanager/create_forecast.html:57
+#: forecastmanager/templates/forecastmanager/create_forecast.html:54
 #: forecastmanager/templates/forecastmanager/view_forecast.html:29
 msgid "Forecast Date"
 msgstr "Date de prévision"
@@ -53,7 +109,7 @@ msgid "City Location (Lat, Lng)"
 msgstr "Emplacement de la ville (Lat, Lng)"
 
 #: forecastmanager/models.py:62 forecastmanager/models.py:117
-#: forecastmanager/templates/forecastmanager/create_forecast.html:138
+#: forecastmanager/templates/forecastmanager/create_forecast.html:134
 msgid "City"
 msgstr "Ville"
 
@@ -229,11 +285,6 @@ msgstr "Par exemple, les averses légères"
 msgid "Forecast"
 msgstr "Prévision"
 
-#: forecastmanager/models.py:127
-#: sandbox/home/templates/integration/forecasts_include.html:3
-msgid "Forecasts"
-msgstr "Prévisions"
-
 #: forecastmanager/site_settings.py:20
 msgid "Enable automated forecasts"
 msgstr "Activer les prévisions automatisées"
@@ -378,35 +429,48 @@ msgstr "Tu peux"
 msgid "download a template"
 msgstr "télécharger un modèle"
 
-#: forecastmanager/templates/forecastmanager/create_forecast.html:61
+#: forecastmanager/templates/forecastmanager/create_forecast.html:46
+msgid ""
+"of the CSV for offline editing and upload it here. The template comes "
+"prepopulated with all pre-exisiting cities."
+msgstr ""
+"du CSV pour une édition hors ligne et téléchargez-le ici. Le modèle est "
+"prérempli avec toutes les villes préexistantes."
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:58
 msgid "Date of forecast"
 msgstr "Date de prévision"
 
-#: forecastmanager/templates/forecastmanager/create_forecast.html:84
+#: forecastmanager/templates/forecastmanager/create_forecast.html:81
 msgid "Forecast effective period"
 msgstr "Période effective prévisionnelle"
 
-#: forecastmanager/templates/forecastmanager/create_forecast.html:107
+#: forecastmanager/templates/forecastmanager/create_forecast.html:104
 msgid "Forecast Upload"
 msgstr "Téléchargement des prévisions"
 
-#: forecastmanager/templates/forecastmanager/create_forecast.html:132
+#: forecastmanager/templates/forecastmanager/create_forecast.html:111
+msgid "The uploaded file should be a CSV, similar to the table on the right"
+msgstr ""
+"Le fichier téléchargé doit être un CSV, similaire au tableau de droite"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:128
 msgid "Verify that all columns match correctly"
 msgstr "Vérifiez que toutes les colonnes correspondent correctement"
 
-#: forecastmanager/templates/forecastmanager/create_forecast.html:159
+#: forecastmanager/templates/forecastmanager/create_forecast.html:155
 msgid "Condition"
 msgstr "Condition"
 
-#: forecastmanager/templates/forecastmanager/create_forecast.html:170
+#: forecastmanager/templates/forecastmanager/create_forecast.html:166
 msgid "Publish"
 msgstr "Publier"
 
-#: forecastmanager/templates/forecastmanager/create_forecast.html:356
+#: forecastmanager/templates/forecastmanager/create_forecast.html:352
 msgid "The table is empty. Please input data"
 msgstr "Le tableau est vide. Veuillez entrer des données"
 
-#: forecastmanager/templates/forecastmanager/create_forecast.html:362
+#: forecastmanager/templates/forecastmanager/create_forecast.html:358
 msgid "Table contains invalid inputs"
 msgstr "Le tableau contient des entrées non valides"
 
@@ -456,11 +520,6 @@ msgstr "Requête invalide"
 msgid "Settings"
 msgstr "Paramètres"
 
-#: forecastmanager/wagtail_hooks.py:46
-#: sandbox/home/templates/integration/dailyweather_include.html:3
-msgid "Daily Weather"
-msgstr "Météo quotidienne"
-
 #: forecastmanager/wagtail_hooks.py:60
 msgid "City Forecast"
 msgstr "Prévisions de la ville"
@@ -468,49 +527,3 @@ msgstr "Prévisions de la ville"
 #: forecastmanager/wagtail_hooks.py:73
 msgid "Add Forecasts"
 msgstr "Ajouter des prévisions"
-
-#: sandbox/home/templates/home/welcome_page.html:6
-msgid "Visit the Wagtail website"
-msgstr "Visitez le site Web de Bergeronnette"
-
-#: sandbox/home/templates/home/welcome_page.html:15
-msgid "View the release notes"
-msgstr "Consulter les notes de version"
-
-#: sandbox/home/templates/home/welcome_page.html:27
-msgid "Welcome to your new Wagtail site!"
-msgstr "Bienvenue sur votre nouveau site Bergeronnette !"
-
-#: sandbox/home/templates/home/welcome_page.html:28
-msgid ""
-"Please feel free to <a "
-"href=\"https://github.com/wagtail/wagtail/wiki/Slack\">join our community on"
-" Slack</a>, or get started with one of the links below."
-msgstr ""
-"N'hésitez pas à <a "
-"href=\"https://github.com/wagtail/wagtail/wiki/Slack\">rejoindre notre "
-"communauté sur Slack</a>, ou commencez avec l'un des liens ci-dessous."
-
-#: sandbox/home/templates/home/welcome_page.html:35
-msgid "Wagtail Documentation"
-msgstr "Documentation de la bergeronnette"
-
-#: sandbox/home/templates/home/welcome_page.html:36
-msgid "Topics, references, & how-tos"
-msgstr "Sujets, références et procédures"
-
-#: sandbox/home/templates/home/welcome_page.html:42
-msgid "Tutorial"
-msgstr "Didacticiel"
-
-#: sandbox/home/templates/home/welcome_page.html:43
-msgid "Build your first Wagtail site"
-msgstr "Créez votre premier site Wagtail"
-
-#: sandbox/home/templates/home/welcome_page.html:49
-msgid "Admin Interface"
-msgstr "Interface d'administration"
-
-#: sandbox/home/templates/home/welcome_page.html:50
-msgid "Create your superuser first!"
-msgstr "Créez d'abord votre superutilisateur !"

@@ -70,7 +70,7 @@ MIDDLEWARE = [
 
 
 LOCALE_PATHS = [
-    'forecastmanager/locales'
+    'forecastmanager/locale'
 ]
 ROOT_URLCONF = "sandbox.urls"
 

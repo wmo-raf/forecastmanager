@@ -16,8 +16,9 @@
 
 {% block header %}
     {% trans 'View Forecasts' as header_str %}
+    {% trans 'Add Forecasts' as add_forecast %}
     {% url 'add_forecast' as add_forecast_url %}
-    {% include "wagtailadmin/shared/header.html" with title=header_str icon="form" action_url=add_forecast_url action_text="Add Forecast" %}
+    {% include "wagtailadmin/shared/header.html" with title=header_str icon="form" action_url=add_forecast_url action_text=add_forecast %}
 {% endblock %}
 
 {% block forecast %}
