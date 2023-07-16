@@ -1,0 +1,529 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-07-16 18:40+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: sandbox/home/templates/home/welcome_page.html:6
+msgid "Visit the Wagtail website"
+msgstr "Visitez le site Web de Bergeronnette"
+
+#: sandbox/home/templates/home/welcome_page.html:15
+msgid "View the release notes"
+msgstr "Consulter les notes de version"
+
+#: sandbox/home/templates/home/welcome_page.html:27
+msgid "Welcome to your new Wagtail site!"
+msgstr "Bienvenue sur votre nouveau site Bergeronnette !"
+
+#: sandbox/home/templates/home/welcome_page.html:28
+msgid ""
+"Please feel free to <a "
+"href=\"https://github.com/wagtail/wagtail/wiki/Slack\">join our community on"
+" Slack</a>, or get started with one of the links below."
+msgstr ""
+"N'hésitez pas à <a "
+"href=\"https://github.com/wagtail/wagtail/wiki/Slack\">rejoindre notre "
+"communauté sur Slack</a>, ou commencez avec l'un des liens ci-dessous."
+
+#: sandbox/home/templates/home/welcome_page.html:35
+msgid "Wagtail Documentation"
+msgstr "Documentation de la bergeronnette"
+
+#: sandbox/home/templates/home/welcome_page.html:36
+msgid "Topics, references, & how-tos"
+msgstr "Sujets, références et procédures"
+
+#: sandbox/home/templates/home/welcome_page.html:42
+msgid "Tutorial"
+msgstr "Didacticiel"
+
+#: sandbox/home/templates/home/welcome_page.html:43
+msgid "Build your first Wagtail site"
+msgstr "Créez votre premier site Wagtail"
+
+#: sandbox/home/templates/home/welcome_page.html:49
+msgid "Admin Interface"
+msgstr "Interface d'administration"
+
+#: sandbox/home/templates/home/welcome_page.html:50
+msgid "Create your superuser first!"
+msgstr "Créez d'abord votre superutilisateur !"
+
+#: sandbox/home/templates/integration/dailyweather_include.html:3
+#: forecastmanager/wagtail_hooks.py:46
+msgid "Daily Weather"
+msgstr "Météo quotidienne"
+
+#: sandbox/home/templates/integration/forecasts_include.html:3
+#: forecastmanager/models.py:127
+msgid "Forecasts"
+msgstr "Prévisions"
+
+#: forecastmanager/models.py:16
+#: forecastmanager/templates/forecastmanager/create_forecast.html:54
+#: forecastmanager/templates/forecastmanager/view_forecast.html:29
+msgid "Forecast Date"
+msgstr "Date de prévision"
+
+#: forecastmanager/models.py:17
+msgid "Weather Forecast Description"
+msgstr "Description des prévisions météorologiques"
+
+#: forecastmanager/models.py:18
+msgid "Summary Date"
+msgstr "Date du résumé"
+
+#: forecastmanager/models.py:19
+msgid "Weather Summary Description"
+msgstr "Résumé météo Description"
+
+#: forecastmanager/models.py:20
+msgid "Extreme Date"
+msgstr "Rendez-vous extrême"
+
+#: forecastmanager/models.py:51
+msgid "Unique UUID. Auto generated on creation."
+msgstr "UUID unique. Généré automatiquement à la création."
+
+#: forecastmanager/models.py:53
+msgid "City Name"
+msgstr "Nom de Ville"
+
+#: forecastmanager/models.py:54
+msgid "City Location (Lat, Lng)"
+msgstr "Emplacement de la ville (Lat, Lng)"
+
+#: forecastmanager/models.py:62 forecastmanager/models.py:117
+#: forecastmanager/templates/forecastmanager/create_forecast.html:134
+msgid "City"
+msgstr "Ville"
+
+#: forecastmanager/models.py:63 forecastmanager/wagtail_hooks.py:38
+msgid "Cities"
+msgstr "Villes"
+
+#: forecastmanager/models.py:76
+msgid "Clear sky"
+msgstr "Ciel clair"
+
+#: forecastmanager/models.py:77
+msgid "Cloudy"
+msgstr "Nuageux"
+
+#: forecastmanager/models.py:78
+msgid "Fair"
+msgstr "Équitable"
+
+#: forecastmanager/models.py:79
+msgid "Fog"
+msgstr "Brouillard"
+
+#: forecastmanager/models.py:80
+msgid "Heavy Rain"
+msgstr "Forte pluie"
+
+#: forecastmanager/models.py:81
+msgid "Heavy Rain and Thunder"
+msgstr "Forte pluie et tonnerre"
+
+#: forecastmanager/models.py:82
+msgid "Heavy Rain Showers"
+msgstr "Fortes averses de pluie"
+
+#: forecastmanager/models.py:83
+msgid "Heavy Rain Showers and Thunder"
+msgstr "Fortes averses de pluie et tonnerre"
+
+#: forecastmanager/models.py:84
+msgid "Heavy Sleet"
+msgstr "Neige lourde"
+
+#: forecastmanager/models.py:85
+msgid "Heavy Sleet and Thunder"
+msgstr "Gros grésil et tonnerre"
+
+#: forecastmanager/models.py:86
+msgid "Heavy Sleet Showers"
+msgstr "Fortes averses de grésil"
+
+#: forecastmanager/models.py:87
+msgid "Heavy Sleet Showers and Thunder"
+msgstr "Fortes averses de grésil et tonnerre"
+
+#: forecastmanager/models.py:88
+msgid "Heavy Snow"
+msgstr "Beaucoup de neige"
+
+#: forecastmanager/models.py:89
+msgid "Heavy Snow and Thunder"
+msgstr "Neige abondante et tonnerre"
+
+#: forecastmanager/models.py:90
+msgid "Heavy Snow Showers"
+msgstr "Fortes averses de neige"
+
+#: forecastmanager/models.py:91
+msgid "Heavy Snow Showers and Thunder"
+msgstr "Fortes averses de neige et tonnerre"
+
+#: forecastmanager/models.py:92
+msgid "Light Rain"
+msgstr "Pluie légère"
+
+#: forecastmanager/models.py:93
+msgid "Light Rain and Thunder"
+msgstr "Pluie légère et tonnerre"
+
+#: forecastmanager/models.py:94
+msgid "Light Rain Showers"
+msgstr "Averses de pluie légères"
+
+#: forecastmanager/models.py:95
+msgid "Light Rain Showers and Thunder"
+msgstr "Légères averses de pluie et tonnerre"
+
+#: forecastmanager/models.py:96
+msgid "Light Sleet"
+msgstr "Léger grésil"
+
+#: forecastmanager/models.py:97
+msgid "Light Sleet and Thunder"
+msgstr "Léger grésil et tonnerre"
+
+#: forecastmanager/models.py:98
+msgid "Light Sleet Showers"
+msgstr "Légères averses de grésil"
+
+#: forecastmanager/models.py:99
+msgid "Light Sleet Showers and Thunder"
+msgstr "Légères averses de grésil et tonnerre"
+
+#: forecastmanager/models.py:100
+msgid "Light Snow Showers and Thunder"
+msgstr "Légères averses de neige et tonnerre"
+
+#: forecastmanager/models.py:101
+msgid "Partly Cloudy"
+msgstr "Partiellement nuageux"
+
+#: forecastmanager/models.py:102
+msgid "Rain"
+msgstr "Pluie"
+
+#: forecastmanager/models.py:103
+msgid "Rain and Thunder"
+msgstr "Pluie et tonnerre"
+
+#: forecastmanager/models.py:104
+msgid "Rain showers"
+msgstr "Averses de pluie"
+
+#: forecastmanager/models.py:105
+msgid "Rain Showes and Thunder"
+msgstr "Averses de pluie et tonnerre"
+
+#: forecastmanager/models.py:106
+msgid "Sleet"
+msgstr "Neige fondue"
+
+#: forecastmanager/models.py:107
+msgid "Sleet and Thunder"
+msgstr "Neige et tonnerre"
+
+#: forecastmanager/models.py:108
+msgid "Sleet Showers"
+msgstr "Averses de grésil"
+
+#: forecastmanager/models.py:109
+msgid "Sleet Showes and Thunder"
+msgstr "Spectacles de grésil et tonnerre"
+
+#: forecastmanager/models.py:110
+msgid "Snow"
+msgstr "Neige"
+
+#: forecastmanager/models.py:111
+msgid "Snow and Thunder"
+msgstr "Neige et tonnerre"
+
+#: forecastmanager/models.py:112
+msgid "Snow Showers"
+msgstr "Douches de neige"
+
+#: forecastmanager/models.py:113
+msgid "Snow Showers and Thunder"
+msgstr "Averses de neige et tonnerre"
+
+#: forecastmanager/models.py:118
+msgid "Forecasts Date"
+msgstr "Date des prévisions"
+
+#: forecastmanager/models.py:120
+msgid "General Weather Condition"
+msgstr "Conditions météorologiques générales"
+
+#: forecastmanager/models.py:121
+msgid "E.g Light Showers"
+msgstr "Par exemple, les averses légères"
+
+#: forecastmanager/models.py:126
+msgid "Forecast"
+msgstr "Prévision"
+
+#: forecastmanager/site_settings.py:20
+msgid "Enable automated forecasts"
+msgstr "Activer les prévisions automatisées"
+
+#: forecastmanager/site_settings.py:36
+msgid "Temperature"
+msgstr "Température"
+
+#: forecastmanager/site_settings.py:37
+msgid "Wind"
+msgstr "Vent"
+
+#: forecastmanager/site_settings.py:41
+msgid "Data Parameters"
+msgstr "Paramètres de données"
+
+#: forecastmanager/site_settings.py:41
+msgid "Data Parameter"
+msgstr "Paramètre de données"
+
+#: forecastmanager/site_settings.py:42
+msgid "Forecast Data Parameters"
+msgstr "Paramètres des données de prévision"
+
+#: forecastmanager/site_settings.py:44 forecastmanager/site_settings.py:45
+msgid "Forecast Periods"
+msgstr "Périodes de prévision"
+
+#: forecastmanager/site_settings.py:44
+msgid "Forecast Period"
+msgstr "Période de prévision"
+
+#: forecastmanager/site_settings.py:48
+msgid "Forecast Source"
+msgstr "Source de prévision"
+
+#: forecastmanager/site_settings.py:52
+msgid "Measurement Units"
+msgstr "Unités de mesure"
+
+#: forecastmanager/site_settings.py:66
+msgid "Forecast Effective Time"
+msgstr "Heure effective de la prévision"
+
+#: forecastmanager/site_settings.py:67
+msgid "Label"
+msgstr "Étiqueter"
+
+#: forecastmanager/site_settings.py:68
+msgid "Is Whole Day"
+msgstr "Est toute la journée"
+
+#: forecastmanager/site_settings.py:73
+msgid "Maximum Air Temperature"
+msgstr "Température maximale de l'air"
+
+#: forecastmanager/site_settings.py:74
+msgid "Minimum Air Temperature"
+msgstr "Température minimale de l'air"
+
+#: forecastmanager/site_settings.py:75
+msgid "Air Temperature"
+msgstr "Température de l'air"
+
+#: forecastmanager/site_settings.py:76
+msgid "Dew Point Temperature"
+msgstr "Température du point de rosée"
+
+#: forecastmanager/site_settings.py:77
+msgid "Precipitation Amount"
+msgstr "Quantité de précipitations"
+
+#: forecastmanager/site_settings.py:78
+msgid "Air Pressure (Sea level)"
+msgstr "Pression atmosphérique (niveau de la mer)"
+
+#: forecastmanager/site_settings.py:79
+msgid "Wind Speed"
+msgstr "Vitesse du vent"
+
+#: forecastmanager/site_settings.py:80
+msgid "Wind Direction"
+msgstr "Direction du vent"
+
+#: forecastmanager/site_settings.py:81
+msgid "Relative Humidity"
+msgstr "Humidité relative"
+
+#: forecastmanager/site_settings.py:82
+msgid "Sunrise"
+msgstr "Lever du soleil"
+
+#: forecastmanager/site_settings.py:83
+msgid "Sunset"
+msgstr "Coucher de soleil"
+
+#: forecastmanager/site_settings.py:84
+msgid "Moonrise"
+msgstr "Lever de la lune"
+
+#: forecastmanager/site_settings.py:85
+msgid "Moonset"
+msgstr "Coucher de lune"
+
+#: forecastmanager/site_settings.py:89
+msgid "Text"
+msgstr "Texte"
+
+#: forecastmanager/site_settings.py:90
+msgid "Number"
+msgstr "Nombre"
+
+#: forecastmanager/site_settings.py:91
+msgid "Time"
+msgstr "Temps"
+
+#: forecastmanager/site_settings.py:95
+msgid "Parameter"
+msgstr "Paramètre"
+
+#: forecastmanager/site_settings.py:96
+msgid "Parameter Label"
+msgstr "Libellé du paramètre"
+
+#: forecastmanager/site_settings.py:97
+msgid "Parameter name as locally labelled"
+msgstr "Nom du paramètre tel qu'il est étiqueté localement"
+
+#: forecastmanager/site_settings.py:98
+msgid "Parameter Type"
+msgstr "Type de paramètre"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:34
+msgid "Add forecast"
+msgstr "Ajouter une prévision"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:46
+msgid "You can"
+msgstr "Tu peux"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:46
+msgid "download a template"
+msgstr "télécharger un modèle"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:46
+msgid ""
+"of the CSV for offline editing and upload it here. The template comes "
+"prepopulated with all pre-exisiting cities."
+msgstr ""
+"du CSV pour une édition hors ligne et téléchargez-le ici. Le modèle est "
+"prérempli avec toutes les villes préexistantes."
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:58
+msgid "Date of forecast"
+msgstr "Date de prévision"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:81
+msgid "Forecast effective period"
+msgstr "Période effective prévisionnelle"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:104
+msgid "Forecast Upload"
+msgstr "Téléchargement des prévisions"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:111
+msgid "The uploaded file should be a CSV, similar to the table on the right"
+msgstr ""
+"Le fichier téléchargé doit être un CSV, similaire au tableau de droite"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:128
+msgid "Verify that all columns match correctly"
+msgstr "Vérifiez que toutes les colonnes correspondent correctement"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:155
+msgid "Condition"
+msgstr "Condition"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:166
+msgid "Publish"
+msgstr "Publier"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:352
+msgid "The table is empty. Please input data"
+msgstr "Le tableau est vide. Veuillez entrer des données"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:358
+msgid "Table contains invalid inputs"
+msgstr "Le tableau contient des entrées non valides"
+
+#: forecastmanager/templates/forecastmanager/forecast_base.html:14
+#: forecastmanager/templates/forecastmanager/forecast_base.html:61
+msgid "Forecast Manager"
+msgstr "Gestionnaire des prévisions"
+
+#: forecastmanager/templates/forecastmanager/forecast_base.html:37
+msgid ""
+"Autoforecasting has been enabled and manually added forecasts here will be "
+"overidden."
+msgstr ""
+"La prévision automatique a été activée et les prévisions ajoutées "
+"manuellement ici seront ignorées."
+
+#: forecastmanager/templates/forecastmanager/forecast_base.html:40
+msgid "Change autoforecasting setting"
+msgstr "Modifier le paramètre de prévision automatique"
+
+#: forecastmanager/templates/forecastmanager/view_forecast.html:18
+#: forecastmanager/wagtail_hooks.py:74
+msgid "View Forecasts"
+msgstr "Afficher les prévisions"
+
+#: forecastmanager/templates/forecastmanager/view_forecast.html:24
+msgid "Latest Available Forecast"
+msgstr "Dernières prévisions disponibles"
+
+#: forecastmanager/templates/forecastmanager/view_forecast.html:44
+msgid "Forecast Effective Period"
+msgstr "Période effective de la prévision"
+
+#: forecastmanager/views.py:145
+msgid "Data Successfully updated"
+msgstr "Données mises à jour avec succès"
+
+#: forecastmanager/views.py:154
+msgid "Data Successfully saved"
+msgstr "Données enregistrées avec succès"
+
+#: forecastmanager/views.py:160
+msgid "Invalid request"
+msgstr "Requête invalide"
+
+#: forecastmanager/wagtail_hooks.py:30 forecastmanager/wagtail_hooks.py:84
+msgid "Settings"
+msgstr "Paramètres"
+
+#: forecastmanager/wagtail_hooks.py:60
+msgid "City Forecast"
+msgstr "Prévisions de la ville"
+
+#: forecastmanager/wagtail_hooks.py:73
+msgid "Add Forecasts"
+msgstr "Ajouter des prévisions"

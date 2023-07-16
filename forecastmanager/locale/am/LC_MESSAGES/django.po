@@ -1,0 +1,522 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-07-16 18:40+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: sandbox/home/templates/home/welcome_page.html:6
+msgid "Visit the Wagtail website"
+msgstr "የWagtail ድህረ ገጽን ይጎብኙ"
+
+#: sandbox/home/templates/home/welcome_page.html:15
+msgid "View the release notes"
+msgstr "የመልቀቂያ ማስታወሻዎችን ይመልከቱ"
+
+#: sandbox/home/templates/home/welcome_page.html:27
+msgid "Welcome to your new Wagtail site!"
+msgstr "ወደ አዲሱ የዋግቴል ጣቢያ እንኳን በደህና መጡ!"
+
+#: sandbox/home/templates/home/welcome_page.html:28
+msgid ""
+"Please feel free to <a "
+"href=\"https://github.com/wagtail/wagtail/wiki/Slack\">join our community on"
+" Slack</a>, or get started with one of the links below."
+msgstr ""
+"እባክዎ <a href=\"https://github.com/wagtail/wagtail/wiki/Slack\">በSlack ላይ "
+"ማህበረሰባችንን ለመቀላቀል</a>፣ ወይም ከታች ካሉት ማገናኛዎች በአንዱ ይጀምሩ።"
+
+#: sandbox/home/templates/home/welcome_page.html:35
+msgid "Wagtail Documentation"
+msgstr "Wagtail ሰነድ"
+
+#: sandbox/home/templates/home/welcome_page.html:36
+msgid "Topics, references, & how-tos"
+msgstr "ርዕሶች፣ ማጣቀሻዎች እና እንዴት እንደሚደረግ"
+
+#: sandbox/home/templates/home/welcome_page.html:42
+msgid "Tutorial"
+msgstr "አጋዥ ስልጠና"
+
+#: sandbox/home/templates/home/welcome_page.html:43
+msgid "Build your first Wagtail site"
+msgstr "የመጀመሪያውን የWagtail ጣቢያዎን ይገንቡ"
+
+#: sandbox/home/templates/home/welcome_page.html:49
+msgid "Admin Interface"
+msgstr "የአስተዳዳሪ በይነገጽ"
+
+#: sandbox/home/templates/home/welcome_page.html:50
+msgid "Create your superuser first!"
+msgstr "መጀመሪያ ሱፐር ተጠቃሚዎን ይፍጠሩ!"
+
+#: sandbox/home/templates/integration/dailyweather_include.html:3
+#: forecastmanager/wagtail_hooks.py:46
+msgid "Daily Weather"
+msgstr "ዕለታዊ የአየር ሁኔታ"
+
+#: sandbox/home/templates/integration/forecasts_include.html:3
+#: forecastmanager/models.py:127
+msgid "Forecasts"
+msgstr "ትንበያዎች"
+
+#: forecastmanager/models.py:16
+#: forecastmanager/templates/forecastmanager/create_forecast.html:54
+#: forecastmanager/templates/forecastmanager/view_forecast.html:29
+msgid "Forecast Date"
+msgstr "የትንበያ ቀን"
+
+#: forecastmanager/models.py:17
+msgid "Weather Forecast Description"
+msgstr "የአየር ሁኔታ ትንበያ መግለጫ"
+
+#: forecastmanager/models.py:18
+msgid "Summary Date"
+msgstr "ማጠቃለያ ቀን"
+
+#: forecastmanager/models.py:19
+msgid "Weather Summary Description"
+msgstr "የአየር ሁኔታ ማጠቃለያ መግለጫ"
+
+#: forecastmanager/models.py:20
+msgid "Extreme Date"
+msgstr "ጽንፈኛ ቀን"
+
+#: forecastmanager/models.py:51
+msgid "Unique UUID. Auto generated on creation."
+msgstr "ልዩ UUID በፍጥረት ላይ በራስ-ሰር የተፈጠረ።"
+
+#: forecastmanager/models.py:53
+msgid "City Name"
+msgstr "የከተማ ስም"
+
+#: forecastmanager/models.py:54
+msgid "City Location (Lat, Lng)"
+msgstr "የከተማ አካባቢ (ላት፣ ኤልንግ)"
+
+#: forecastmanager/models.py:62 forecastmanager/models.py:117
+#: forecastmanager/templates/forecastmanager/create_forecast.html:134
+msgid "City"
+msgstr "ከተማ"
+
+#: forecastmanager/models.py:63 forecastmanager/wagtail_hooks.py:38
+msgid "Cities"
+msgstr "ከተሞች"
+
+#: forecastmanager/models.py:76
+msgid "Clear sky"
+msgstr "የጠራ ሰማይ"
+
+#: forecastmanager/models.py:77
+msgid "Cloudy"
+msgstr "ደመናማ"
+
+#: forecastmanager/models.py:78
+msgid "Fair"
+msgstr "ፍትሃዊ"
+
+#: forecastmanager/models.py:79
+msgid "Fog"
+msgstr "ጭጋግ"
+
+#: forecastmanager/models.py:80
+msgid "Heavy Rain"
+msgstr "ከባድ ዝናብ"
+
+#: forecastmanager/models.py:81
+msgid "Heavy Rain and Thunder"
+msgstr "ከባድ ዝናብ እና ነጎድጓድ"
+
+#: forecastmanager/models.py:82
+msgid "Heavy Rain Showers"
+msgstr "ከባድ ዝናብ ዝናብ"
+
+#: forecastmanager/models.py:83
+msgid "Heavy Rain Showers and Thunder"
+msgstr "የከባድ ዝናብ ዝናብ እና ነጎድጓድ"
+
+#: forecastmanager/models.py:84
+msgid "Heavy Sleet"
+msgstr "ከባድ ስሊት"
+
+#: forecastmanager/models.py:85
+msgid "Heavy Sleet and Thunder"
+msgstr "ከባድ በረዶ እና ነጎድጓድ"
+
+#: forecastmanager/models.py:86
+msgid "Heavy Sleet Showers"
+msgstr "ከባድ የበረዶ ሸርተቴዎች"
+
+#: forecastmanager/models.py:87
+msgid "Heavy Sleet Showers and Thunder"
+msgstr "ከባድ የበረዶ ዝናብ እና ነጎድጓድ"
+
+#: forecastmanager/models.py:88
+msgid "Heavy Snow"
+msgstr "ከባድ በረዶ"
+
+#: forecastmanager/models.py:89
+msgid "Heavy Snow and Thunder"
+msgstr "ኃይለኛ በረዶ እና ነጎድጓድ"
+
+#: forecastmanager/models.py:90
+msgid "Heavy Snow Showers"
+msgstr "ከባድ የበረዶ ዝናብ"
+
+#: forecastmanager/models.py:91
+msgid "Heavy Snow Showers and Thunder"
+msgstr "ከባድ የበረዶ ዝናብ እና ነጎድጓድ"
+
+#: forecastmanager/models.py:92
+msgid "Light Rain"
+msgstr "ቀላል ዝናብ"
+
+#: forecastmanager/models.py:93
+msgid "Light Rain and Thunder"
+msgstr "ቀላል ዝናብ እና ነጎድጓድ"
+
+#: forecastmanager/models.py:94
+msgid "Light Rain Showers"
+msgstr "ቀላል ዝናብ ዝናብ"
+
+#: forecastmanager/models.py:95
+msgid "Light Rain Showers and Thunder"
+msgstr "ቀላል ዝናብ ዝናብ እና ነጎድጓድ"
+
+#: forecastmanager/models.py:96
+msgid "Light Sleet"
+msgstr "ፈካ ያለ የበረዶ ሸርተቴ"
+
+#: forecastmanager/models.py:97
+msgid "Light Sleet and Thunder"
+msgstr "ፈካ ያለ በረዶ እና ነጎድጓድ"
+
+#: forecastmanager/models.py:98
+msgid "Light Sleet Showers"
+msgstr "ፈካ ያለ የበረዶ ሸርተቴ ሻወር"
+
+#: forecastmanager/models.py:99
+msgid "Light Sleet Showers and Thunder"
+msgstr "ቀላል የበረዶ ዝናብ እና ነጎድጓድ"
+
+#: forecastmanager/models.py:100
+msgid "Light Snow Showers and Thunder"
+msgstr "ቀላል የበረዶ ዝናብ እና ነጎድጓድ"
+
+#: forecastmanager/models.py:101
+msgid "Partly Cloudy"
+msgstr "ከፊል ደመናማ"
+
+#: forecastmanager/models.py:102
+msgid "Rain"
+msgstr "ዝናብ"
+
+#: forecastmanager/models.py:103
+msgid "Rain and Thunder"
+msgstr "ዝናብ እና ነጎድጓድ"
+
+#: forecastmanager/models.py:104
+msgid "Rain showers"
+msgstr "የዝናብ ዝናብ"
+
+#: forecastmanager/models.py:105
+msgid "Rain Showes and Thunder"
+msgstr "የዝናብ ትርኢቶች እና ነጎድጓዶች"
+
+#: forecastmanager/models.py:106
+msgid "Sleet"
+msgstr "ስሊት"
+
+#: forecastmanager/models.py:107
+msgid "Sleet and Thunder"
+msgstr "በረዶ እና ነጎድጓድ"
+
+#: forecastmanager/models.py:108
+msgid "Sleet Showers"
+msgstr "የበረዶ ሻወር"
+
+#: forecastmanager/models.py:109
+msgid "Sleet Showes and Thunder"
+msgstr "የበረዶ ሸርተቴዎች እና ነጎድጓድ"
+
+#: forecastmanager/models.py:110
+msgid "Snow"
+msgstr "በረዶ"
+
+#: forecastmanager/models.py:111
+msgid "Snow and Thunder"
+msgstr "በረዶ እና ነጎድጓድ"
+
+#: forecastmanager/models.py:112
+msgid "Snow Showers"
+msgstr "የበረዶ ዝናብ"
+
+#: forecastmanager/models.py:113
+msgid "Snow Showers and Thunder"
+msgstr "የበረዶ ዝናብ እና ነጎድጓድ"
+
+#: forecastmanager/models.py:118
+msgid "Forecasts Date"
+msgstr "ትንበያዎች ቀን"
+
+#: forecastmanager/models.py:120
+msgid "General Weather Condition"
+msgstr "አጠቃላይ የአየር ሁኔታ"
+
+#: forecastmanager/models.py:121
+msgid "E.g Light Showers"
+msgstr "ለምሳሌ የብርሃን ሻወር"
+
+#: forecastmanager/models.py:126
+msgid "Forecast"
+msgstr "ትንበያ"
+
+#: forecastmanager/site_settings.py:20
+msgid "Enable automated forecasts"
+msgstr "ራስ-ሰር ትንበያዎችን አንቃ"
+
+#: forecastmanager/site_settings.py:36
+msgid "Temperature"
+msgstr "የሙቀት መጠን"
+
+#: forecastmanager/site_settings.py:37
+msgid "Wind"
+msgstr "ንፋስ"
+
+#: forecastmanager/site_settings.py:41
+msgid "Data Parameters"
+msgstr "የውሂብ መለኪያዎች"
+
+#: forecastmanager/site_settings.py:41
+msgid "Data Parameter"
+msgstr "የውሂብ መለኪያ"
+
+#: forecastmanager/site_settings.py:42
+msgid "Forecast Data Parameters"
+msgstr "ትንበያ የውሂብ መለኪያዎች"
+
+#: forecastmanager/site_settings.py:44 forecastmanager/site_settings.py:45
+msgid "Forecast Periods"
+msgstr "የትንበያ ወቅቶች"
+
+#: forecastmanager/site_settings.py:44
+msgid "Forecast Period"
+msgstr "የትንበያ ጊዜ"
+
+#: forecastmanager/site_settings.py:48
+msgid "Forecast Source"
+msgstr "የትንበያ ምንጭ"
+
+#: forecastmanager/site_settings.py:52
+msgid "Measurement Units"
+msgstr "የመለኪያ ክፍሎች"
+
+#: forecastmanager/site_settings.py:66
+msgid "Forecast Effective Time"
+msgstr "ትንበያ ውጤታማ ጊዜ"
+
+#: forecastmanager/site_settings.py:67
+msgid "Label"
+msgstr "መለያ"
+
+#: forecastmanager/site_settings.py:68
+msgid "Is Whole Day"
+msgstr "ሙሉ ቀን ነው።"
+
+#: forecastmanager/site_settings.py:73
+msgid "Maximum Air Temperature"
+msgstr "ከፍተኛው የአየር ሙቀት"
+
+#: forecastmanager/site_settings.py:74
+msgid "Minimum Air Temperature"
+msgstr "ዝቅተኛ የአየር ሙቀት"
+
+#: forecastmanager/site_settings.py:75
+msgid "Air Temperature"
+msgstr "የአየር ሙቀት"
+
+#: forecastmanager/site_settings.py:76
+msgid "Dew Point Temperature"
+msgstr "የጤዛ ነጥብ ሙቀት"
+
+#: forecastmanager/site_settings.py:77
+msgid "Precipitation Amount"
+msgstr "የዝናብ መጠን"
+
+#: forecastmanager/site_settings.py:78
+msgid "Air Pressure (Sea level)"
+msgstr "የአየር ግፊት (የባህር ደረጃ)"
+
+#: forecastmanager/site_settings.py:79
+msgid "Wind Speed"
+msgstr "የንፋስ ፍጥነት"
+
+#: forecastmanager/site_settings.py:80
+msgid "Wind Direction"
+msgstr "የንፋስ አቅጣጫ"
+
+#: forecastmanager/site_settings.py:81
+msgid "Relative Humidity"
+msgstr "አንፃራዊ እርጥበት"
+
+#: forecastmanager/site_settings.py:82
+msgid "Sunrise"
+msgstr "የፀሐይ መውጣት"
+
+#: forecastmanager/site_settings.py:83
+msgid "Sunset"
+msgstr "ጀንበር ስትጠልቅ"
+
+#: forecastmanager/site_settings.py:84
+msgid "Moonrise"
+msgstr "የጨረቃ መነሳት"
+
+#: forecastmanager/site_settings.py:85
+msgid "Moonset"
+msgstr "ጨረቃ ስትጠልቅ"
+
+#: forecastmanager/site_settings.py:89
+msgid "Text"
+msgstr "ጽሑፍ"
+
+#: forecastmanager/site_settings.py:90
+msgid "Number"
+msgstr "ቁጥር"
+
+#: forecastmanager/site_settings.py:91
+msgid "Time"
+msgstr "ጊዜ"
+
+#: forecastmanager/site_settings.py:95
+msgid "Parameter"
+msgstr "መለኪያ"
+
+#: forecastmanager/site_settings.py:96
+msgid "Parameter Label"
+msgstr "የመለኪያ መለያ"
+
+#: forecastmanager/site_settings.py:97
+msgid "Parameter name as locally labelled"
+msgstr "የመለኪያ ስም በአካባቢው እንደተሰየመ"
+
+#: forecastmanager/site_settings.py:98
+msgid "Parameter Type"
+msgstr "የመለኪያ አይነት"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:34
+msgid "Add forecast"
+msgstr "ትንበያ ጨምር"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:46
+msgid "You can"
+msgstr "ትችላለህ"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:46
+msgid "download a template"
+msgstr "አብነት አውርድ"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:46
+msgid ""
+"of the CSV for offline editing and upload it here. The template comes "
+"prepopulated with all pre-exisiting cities."
+msgstr "የCSV ከመስመር ውጭ አርትዖት እና እዚህ ይስቀሉት። አብነቱ በሁሉም ቅድመ-ነባር ከተሞች ቀድሞ ተሞልቷል።"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:58
+msgid "Date of forecast"
+msgstr "የትንበያ ቀን"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:81
+msgid "Forecast effective period"
+msgstr "ውጤታማ ጊዜ ትንበያ"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:104
+msgid "Forecast Upload"
+msgstr "የትንበያ ጭነት"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:111
+msgid "The uploaded file should be a CSV, similar to the table on the right"
+msgstr "የተሰቀለው ፋይል በቀኝ በኩል ካለው ሰንጠረዥ ጋር ተመሳሳይ የሆነ ሲኤስቪ መሆን አለበት።"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:128
+msgid "Verify that all columns match correctly"
+msgstr "ሁሉም አምዶች በትክክል የሚዛመዱ መሆናቸውን ያረጋግጡ"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:155
+msgid "Condition"
+msgstr "ሁኔታ"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:166
+msgid "Publish"
+msgstr "አትም"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:352
+msgid "The table is empty. Please input data"
+msgstr "ጠረጴዛው ባዶ ነው። እባክዎን ውሂብ ያስገቡ"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:358
+msgid "Table contains invalid inputs"
+msgstr "ሠንጠረዥ ልክ ያልሆኑ ግብዓቶችን ይዟል"
+
+#: forecastmanager/templates/forecastmanager/forecast_base.html:14
+#: forecastmanager/templates/forecastmanager/forecast_base.html:61
+msgid "Forecast Manager"
+msgstr "ትንበያ አስተዳዳሪ"
+
+#: forecastmanager/templates/forecastmanager/forecast_base.html:37
+msgid ""
+"Autoforecasting has been enabled and manually added forecasts here will be "
+"overidden."
+msgstr "ራስ-ትንበያ ነቅቷል እና እዚህ በእጅ የታከሉ ትንበያዎች ከመጠን በላይ ይደረጋሉ።"
+
+#: forecastmanager/templates/forecastmanager/forecast_base.html:40
+msgid "Change autoforecasting setting"
+msgstr "ራስ-ትንበያ ቅንብርን ይቀይሩ"
+
+#: forecastmanager/templates/forecastmanager/view_forecast.html:18
+#: forecastmanager/wagtail_hooks.py:74
+msgid "View Forecasts"
+msgstr "ትንበያዎችን ይመልከቱ"
+
+#: forecastmanager/templates/forecastmanager/view_forecast.html:24
+msgid "Latest Available Forecast"
+msgstr "የቅርብ ጊዜ የሚገኝ ትንበያ"
+
+#: forecastmanager/templates/forecastmanager/view_forecast.html:44
+msgid "Forecast Effective Period"
+msgstr "ትንበያ ውጤታማ ጊዜ"
+
+#: forecastmanager/views.py:145
+msgid "Data Successfully updated"
+msgstr "ውሂብ በተሳካ ሁኔታ ዘምኗል"
+
+#: forecastmanager/views.py:154
+msgid "Data Successfully saved"
+msgstr "ውሂብ በተሳካ ሁኔታ ተቀምጧል"
+
+#: forecastmanager/views.py:160
+msgid "Invalid request"
+msgstr "ልክ ያልሆነ ጥያቄ"
+
+#: forecastmanager/wagtail_hooks.py:30 forecastmanager/wagtail_hooks.py:84
+msgid "Settings"
+msgstr "ቅንብሮች"
+
+#: forecastmanager/wagtail_hooks.py:60
+msgid "City Forecast"
+msgstr "የከተማ ትንበያ"
+
+#: forecastmanager/wagtail_hooks.py:73
+msgid "Add Forecasts"
+msgstr "ትንበያዎችን ያክሉ"

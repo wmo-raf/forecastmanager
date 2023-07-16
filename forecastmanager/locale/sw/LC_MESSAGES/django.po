@@ -1,0 +1,527 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-07-16 18:40+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: sandbox/home/templates/home/welcome_page.html:6
+msgid "Visit the Wagtail website"
+msgstr "Tembelea tovuti ya Wagtail"
+
+#: sandbox/home/templates/home/welcome_page.html:15
+msgid "View the release notes"
+msgstr "Tazama maelezo ya kutolewa"
+
+#: sandbox/home/templates/home/welcome_page.html:27
+msgid "Welcome to your new Wagtail site!"
+msgstr "Karibu kwenye tovuti yako mpya ya Wagtail!"
+
+#: sandbox/home/templates/home/welcome_page.html:28
+msgid ""
+"Please feel free to <a "
+"href=\"https://github.com/wagtail/wagtail/wiki/Slack\">join our community on"
+" Slack</a>, or get started with one of the links below."
+msgstr ""
+"Tafadhali jisikie huru <a "
+"href=\"https://github.com/wagtail/wagtail/wiki/Slack\">kujiunga na jumuiya "
+"yetu kwenye Slack</a>, au anza na mojawapo ya viungo vilivyo hapa chini."
+
+#: sandbox/home/templates/home/welcome_page.html:35
+msgid "Wagtail Documentation"
+msgstr "Nyaraka za Wagtail"
+
+#: sandbox/home/templates/home/welcome_page.html:36
+msgid "Topics, references, & how-tos"
+msgstr "Mada, marejeleo na jinsi ya kufanya"
+
+#: sandbox/home/templates/home/welcome_page.html:42
+msgid "Tutorial"
+msgstr "Mafunzo"
+
+#: sandbox/home/templates/home/welcome_page.html:43
+msgid "Build your first Wagtail site"
+msgstr "Jenga tovuti yako ya kwanza ya Wagtail"
+
+#: sandbox/home/templates/home/welcome_page.html:49
+msgid "Admin Interface"
+msgstr "Kiolesura cha Msimamizi"
+
+#: sandbox/home/templates/home/welcome_page.html:50
+msgid "Create your superuser first!"
+msgstr "Unda mtumiaji wako mkuu kwanza!"
+
+#: sandbox/home/templates/integration/dailyweather_include.html:3
+#: forecastmanager/wagtail_hooks.py:46
+msgid "Daily Weather"
+msgstr "Hali ya hewa ya kila siku"
+
+#: sandbox/home/templates/integration/forecasts_include.html:3
+#: forecastmanager/models.py:127
+msgid "Forecasts"
+msgstr "Utabiri"
+
+#: forecastmanager/models.py:16
+#: forecastmanager/templates/forecastmanager/create_forecast.html:54
+#: forecastmanager/templates/forecastmanager/view_forecast.html:29
+msgid "Forecast Date"
+msgstr "Tarehe ya Utabiri"
+
+#: forecastmanager/models.py:17
+msgid "Weather Forecast Description"
+msgstr "Maelezo ya Utabiri wa Hali ya Hewa"
+
+#: forecastmanager/models.py:18
+msgid "Summary Date"
+msgstr "Tarehe ya muhtasari"
+
+#: forecastmanager/models.py:19
+msgid "Weather Summary Description"
+msgstr "Maelezo ya Muhtasari wa Hali ya Hewa"
+
+#: forecastmanager/models.py:20
+msgid "Extreme Date"
+msgstr "Tarehe Iliyokithiri"
+
+#: forecastmanager/models.py:51
+msgid "Unique UUID. Auto generated on creation."
+msgstr "UUID ya kipekee. Imetengenezwa kiotomatiki kwenye uundaji."
+
+#: forecastmanager/models.py:53
+msgid "City Name"
+msgstr "Jina la Mji"
+
+#: forecastmanager/models.py:54
+msgid "City Location (Lat, Lng)"
+msgstr "Mahali pa Jiji (Lat, Lng)"
+
+#: forecastmanager/models.py:62 forecastmanager/models.py:117
+#: forecastmanager/templates/forecastmanager/create_forecast.html:134
+msgid "City"
+msgstr "Jiji"
+
+#: forecastmanager/models.py:63 forecastmanager/wagtail_hooks.py:38
+msgid "Cities"
+msgstr "Miji"
+
+#: forecastmanager/models.py:76
+msgid "Clear sky"
+msgstr "Anga wazi"
+
+#: forecastmanager/models.py:77
+msgid "Cloudy"
+msgstr "Mawingu"
+
+#: forecastmanager/models.py:78
+msgid "Fair"
+msgstr "Haki"
+
+#: forecastmanager/models.py:79
+msgid "Fog"
+msgstr "Ukungu"
+
+#: forecastmanager/models.py:80
+msgid "Heavy Rain"
+msgstr "Mvua Kubwa"
+
+#: forecastmanager/models.py:81
+msgid "Heavy Rain and Thunder"
+msgstr "Mvua Kubwa na Ngurumo"
+
+#: forecastmanager/models.py:82
+msgid "Heavy Rain Showers"
+msgstr "Manyunyu ya Mvua Kubwa"
+
+#: forecastmanager/models.py:83
+msgid "Heavy Rain Showers and Thunder"
+msgstr "Mvua Kubwa na Ngurumo"
+
+#: forecastmanager/models.py:84
+msgid "Heavy Sleet"
+msgstr "Theluji Nzito"
+
+#: forecastmanager/models.py:85
+msgid "Heavy Sleet and Thunder"
+msgstr "Theluji Nzito na Ngurumo"
+
+#: forecastmanager/models.py:86
+msgid "Heavy Sleet Showers"
+msgstr "Manyunyu ya theluji Nzito"
+
+#: forecastmanager/models.py:87
+msgid "Heavy Sleet Showers and Thunder"
+msgstr "Mvua Nzito na Ngurumo"
+
+#: forecastmanager/models.py:88
+msgid "Heavy Snow"
+msgstr "Theluji Nzito"
+
+#: forecastmanager/models.py:89
+msgid "Heavy Snow and Thunder"
+msgstr "Theluji Nzito na Ngurumo"
+
+#: forecastmanager/models.py:90
+msgid "Heavy Snow Showers"
+msgstr "Manyunyu ya Theluji Nzito"
+
+#: forecastmanager/models.py:91
+msgid "Heavy Snow Showers and Thunder"
+msgstr "Manyunyu ya Theluji Nzito na Ngurumo"
+
+#: forecastmanager/models.py:92
+msgid "Light Rain"
+msgstr "Mvua Nyepesi"
+
+#: forecastmanager/models.py:93
+msgid "Light Rain and Thunder"
+msgstr "Mvua Nyepesi na Ngurumo"
+
+#: forecastmanager/models.py:94
+msgid "Light Rain Showers"
+msgstr "Manyunyu ya Mvua Nyepesi"
+
+#: forecastmanager/models.py:95
+msgid "Light Rain Showers and Thunder"
+msgstr "Manyunyu ya Mvua na Ngurumo"
+
+#: forecastmanager/models.py:96
+msgid "Light Sleet"
+msgstr "Mwanga wa Sleet"
+
+#: forecastmanager/models.py:97
+msgid "Light Sleet and Thunder"
+msgstr "Mwanga wa theluji na Ngurumo"
+
+#: forecastmanager/models.py:98
+msgid "Light Sleet Showers"
+msgstr "Manyunyu ya Mwanga wa Sleet"
+
+#: forecastmanager/models.py:99
+msgid "Light Sleet Showers and Thunder"
+msgstr "Manyunyu ya Mwanga wa Sleet na Ngurumo"
+
+#: forecastmanager/models.py:100
+msgid "Light Snow Showers and Thunder"
+msgstr "Manyunyu ya Theluji Mwanga na Ngurumo"
+
+#: forecastmanager/models.py:101
+msgid "Partly Cloudy"
+msgstr "Mawingu Kiasi"
+
+#: forecastmanager/models.py:102
+msgid "Rain"
+msgstr "Mvua"
+
+#: forecastmanager/models.py:103
+msgid "Rain and Thunder"
+msgstr "Mvua na Ngurumo"
+
+#: forecastmanager/models.py:104
+msgid "Rain showers"
+msgstr "Manyunyu ya mvua"
+
+#: forecastmanager/models.py:105
+msgid "Rain Showes and Thunder"
+msgstr "Mvua na Ngurumo"
+
+#: forecastmanager/models.py:106
+msgid "Sleet"
+msgstr "Tulia"
+
+#: forecastmanager/models.py:107
+msgid "Sleet and Thunder"
+msgstr "Theluji na Ngurumo"
+
+#: forecastmanager/models.py:108
+msgid "Sleet Showers"
+msgstr "Manyunyu ya theluji"
+
+#: forecastmanager/models.py:109
+msgid "Sleet Showes and Thunder"
+msgstr "Manyunyu ya theluji na Ngurumo"
+
+#: forecastmanager/models.py:110
+msgid "Snow"
+msgstr "Theluji"
+
+#: forecastmanager/models.py:111
+msgid "Snow and Thunder"
+msgstr "Theluji na Ngurumo"
+
+#: forecastmanager/models.py:112
+msgid "Snow Showers"
+msgstr "Manyunyu ya theluji"
+
+#: forecastmanager/models.py:113
+msgid "Snow Showers and Thunder"
+msgstr "Manyunyu ya Theluji na Ngurumo"
+
+#: forecastmanager/models.py:118
+msgid "Forecasts Date"
+msgstr "Tarehe ya Utabiri"
+
+#: forecastmanager/models.py:120
+msgid "General Weather Condition"
+msgstr "Hali ya Hewa ya Jumla"
+
+#: forecastmanager/models.py:121
+msgid "E.g Light Showers"
+msgstr "K.m. Manyunyu ya Mwanga"
+
+#: forecastmanager/models.py:126
+msgid "Forecast"
+msgstr "Utabiri"
+
+#: forecastmanager/site_settings.py:20
+msgid "Enable automated forecasts"
+msgstr "Washa utabiri wa kiotomatiki"
+
+#: forecastmanager/site_settings.py:36
+msgid "Temperature"
+msgstr "Halijoto"
+
+#: forecastmanager/site_settings.py:37
+msgid "Wind"
+msgstr "Upepo"
+
+#: forecastmanager/site_settings.py:41
+msgid "Data Parameters"
+msgstr "Vigezo vya Data"
+
+#: forecastmanager/site_settings.py:41
+msgid "Data Parameter"
+msgstr "Kigezo cha data"
+
+#: forecastmanager/site_settings.py:42
+msgid "Forecast Data Parameters"
+msgstr "Vigezo vya Takwimu za Utabiri"
+
+#: forecastmanager/site_settings.py:44 forecastmanager/site_settings.py:45
+msgid "Forecast Periods"
+msgstr "Vipindi vya Utabiri"
+
+#: forecastmanager/site_settings.py:44
+msgid "Forecast Period"
+msgstr "Kipindi cha Utabiri"
+
+#: forecastmanager/site_settings.py:48
+msgid "Forecast Source"
+msgstr "Chanzo cha Utabiri"
+
+#: forecastmanager/site_settings.py:52
+msgid "Measurement Units"
+msgstr "Vitengo vya Vipimo"
+
+#: forecastmanager/site_settings.py:66
+msgid "Forecast Effective Time"
+msgstr "Wakati Ufanisi wa Utabiri"
+
+#: forecastmanager/site_settings.py:67
+msgid "Label"
+msgstr "Lebo"
+
+#: forecastmanager/site_settings.py:68
+msgid "Is Whole Day"
+msgstr "Ni Siku Nzima"
+
+#: forecastmanager/site_settings.py:73
+msgid "Maximum Air Temperature"
+msgstr "Kiwango cha Juu cha Joto la Hewa"
+
+#: forecastmanager/site_settings.py:74
+msgid "Minimum Air Temperature"
+msgstr "Kiwango cha chini cha Joto la Hewa"
+
+#: forecastmanager/site_settings.py:75
+msgid "Air Temperature"
+msgstr "Joto la Hewa"
+
+#: forecastmanager/site_settings.py:76
+msgid "Dew Point Temperature"
+msgstr "Kiwango cha joto cha Umande"
+
+#: forecastmanager/site_settings.py:77
+msgid "Precipitation Amount"
+msgstr "Kiasi cha Mvua"
+
+#: forecastmanager/site_settings.py:78
+msgid "Air Pressure (Sea level)"
+msgstr "Shinikizo la Hewa (kiwango cha bahari)"
+
+#: forecastmanager/site_settings.py:79
+msgid "Wind Speed"
+msgstr "Kasi ya Upepo"
+
+#: forecastmanager/site_settings.py:80
+msgid "Wind Direction"
+msgstr "Mwelekeo wa Upepo"
+
+#: forecastmanager/site_settings.py:81
+msgid "Relative Humidity"
+msgstr "Unyevu wa Jamaa"
+
+#: forecastmanager/site_settings.py:82
+msgid "Sunrise"
+msgstr "Kuchomoza kwa jua"
+
+#: forecastmanager/site_settings.py:83
+msgid "Sunset"
+msgstr "machweo"
+
+#: forecastmanager/site_settings.py:84
+msgid "Moonrise"
+msgstr "Kupanda kwa mwezi"
+
+#: forecastmanager/site_settings.py:85
+msgid "Moonset"
+msgstr "Mwezi wa mwezi"
+
+#: forecastmanager/site_settings.py:89
+msgid "Text"
+msgstr "Maandishi"
+
+#: forecastmanager/site_settings.py:90
+msgid "Number"
+msgstr "Nambari"
+
+#: forecastmanager/site_settings.py:91
+msgid "Time"
+msgstr "Wakati"
+
+#: forecastmanager/site_settings.py:95
+msgid "Parameter"
+msgstr "Kigezo"
+
+#: forecastmanager/site_settings.py:96
+msgid "Parameter Label"
+msgstr "Lebo ya Kigezo"
+
+#: forecastmanager/site_settings.py:97
+msgid "Parameter name as locally labelled"
+msgstr "Jina la kigezo kama lilivyo na lebo ya ndani"
+
+#: forecastmanager/site_settings.py:98
+msgid "Parameter Type"
+msgstr "Aina ya Parameta"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:34
+msgid "Add forecast"
+msgstr "Ongeza utabiri"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:46
+msgid "You can"
+msgstr "Unaweza"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:46
+msgid "download a template"
+msgstr "pakua kiolezo"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:46
+msgid ""
+"of the CSV for offline editing and upload it here. The template comes "
+"prepopulated with all pre-exisiting cities."
+msgstr ""
+"ya CSV kwa uhariri wa nje ya mtandao na uipakie hapa. Kiolezo huja na miji "
+"yote iliyokuwepo awali."
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:58
+msgid "Date of forecast"
+msgstr "Tarehe ya utabiri"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:81
+msgid "Forecast effective period"
+msgstr "Utabiri wa kipindi cha ufanisi"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:104
+msgid "Forecast Upload"
+msgstr "Upakiaji wa Utabiri"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:111
+msgid "The uploaded file should be a CSV, similar to the table on the right"
+msgstr ""
+"Faili iliyopakiwa inapaswa kuwa CSV, sawa na jedwali lililo upande wa kulia"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:128
+msgid "Verify that all columns match correctly"
+msgstr "Thibitisha kuwa safu wima zote zinalingana ipasavyo"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:155
+msgid "Condition"
+msgstr "Hali"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:166
+msgid "Publish"
+msgstr "Kuchapisha"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:352
+msgid "The table is empty. Please input data"
+msgstr "Jedwali ni tupu. Tafadhali ingiza data"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:358
+msgid "Table contains invalid inputs"
+msgstr "Jedwali lina ingizo batili"
+
+#: forecastmanager/templates/forecastmanager/forecast_base.html:14
+#: forecastmanager/templates/forecastmanager/forecast_base.html:61
+msgid "Forecast Manager"
+msgstr "Meneja Utabiri"
+
+#: forecastmanager/templates/forecastmanager/forecast_base.html:37
+msgid ""
+"Autoforecasting has been enabled and manually added forecasts here will be "
+"overidden."
+msgstr "Utabiri otomatiki umewashwa na utabiri ulioongezwa hapa utazidiwa."
+
+#: forecastmanager/templates/forecastmanager/forecast_base.html:40
+msgid "Change autoforecasting setting"
+msgstr "Badilisha mpangilio wa utabiri otomatiki"
+
+#: forecastmanager/templates/forecastmanager/view_forecast.html:18
+#: forecastmanager/wagtail_hooks.py:74
+msgid "View Forecasts"
+msgstr "Tazama Utabiri"
+
+#: forecastmanager/templates/forecastmanager/view_forecast.html:24
+msgid "Latest Available Forecast"
+msgstr "Utabiri Unaopatikana Hivi Karibuni"
+
+#: forecastmanager/templates/forecastmanager/view_forecast.html:44
+msgid "Forecast Effective Period"
+msgstr "Kipindi cha Ufanisi cha Utabiri"
+
+#: forecastmanager/views.py:145
+msgid "Data Successfully updated"
+msgstr "Data Imesasishwa"
+
+#: forecastmanager/views.py:154
+msgid "Data Successfully saved"
+msgstr "Data Imefaulu kuhifadhiwa"
+
+#: forecastmanager/views.py:160
+msgid "Invalid request"
+msgstr "Ombi batili"
+
+#: forecastmanager/wagtail_hooks.py:30 forecastmanager/wagtail_hooks.py:84
+msgid "Settings"
+msgstr "Mipangilio"
+
+#: forecastmanager/wagtail_hooks.py:60
+msgid "City Forecast"
+msgstr "Utabiri wa Jiji"
+
+#: forecastmanager/wagtail_hooks.py:73
+msgid "Add Forecasts"
+msgstr "Ongeza Utabiri"

@@ -52,7 +52,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.gis",
-    "rest_framework"
+    "rest_framework",
+    "django_filters",
+    "django_deep_translator"
 ]
 
 MIDDLEWARE = [
@@ -66,6 +68,10 @@ MIDDLEWARE = [
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
 ]
 
+
+LOCALE_PATHS = [
+    'forecastmanager/locale'
+]
 ROOT_URLCONF = "sandbox.urls"
 
 TEMPLATES = [
@@ -93,16 +99,15 @@ WSGI_APPLICATION = "sandbox.wsgi.application"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 
-
 DATABASES = {
-  'default': {
-    'ENGINE': 'django.contrib.gis.db.backends.postgis',
-    'NAME': 'sandbox',
-    'HOST': 'localhost',
-    'PORT': 5432,
-    'USER': 'postgres',
-    'PASSWORD': 'postgres'
-  }
+    'default': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'sandbox',
+        'HOST': 'localhost',
+        'PORT': 5432,
+        'USER': 'postgres',
+        'PASSWORD': 'postgres'
+    }
 }
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -125,8 +130,36 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGES = [
+    ('en', 'English'),
+    ('es', 'Español'),
+    ('fr', 'French'),
+    ('ar', 'Arabic'),
+    ('am', 'Amharic'),
+    ('sw', 'Swahili'),
+]
 
+LANGUAGE_CODE = "en"
+
+WAGTAIL_CONTENT_LANGUAGES = LANGUAGES = [
+    ('en', 'English'),
+    ('es', 'Español'),
+    ('fr', 'French'),
+    ('ar', 'Arabic'),
+    ('am', 'Amharic'),
+    ('sw', 'Swahili'),
+]
+
+WAGTAIL_LANGUAGES_FALLBACK = False
+WAGTAILADMIN_PERMITTED_LANGUAGES = [
+    ('en', 'English'),
+    ('es', 'Español'),
+    ('fr', 'French'),
+    ('ar', 'Arabic'),
+    ('sw', 'Swahili'),
+    # ('am', 'Amharic'),
+
+]
 TIME_ZONE = "UTC"
 
 USE_I18N = True

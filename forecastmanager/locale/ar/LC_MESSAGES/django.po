@@ -1,0 +1,527 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-07-16 18:40+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+#: sandbox/home/templates/home/welcome_page.html:6
+msgid "Visit the Wagtail website"
+msgstr "قم بزيارة موقع Wagtail"
+
+#: sandbox/home/templates/home/welcome_page.html:15
+msgid "View the release notes"
+msgstr "عرض ملاحظات الإصدار"
+
+#: sandbox/home/templates/home/welcome_page.html:27
+msgid "Welcome to your new Wagtail site!"
+msgstr "مرحبا بكم في موقع الذعرة الجديد الخاص بك!"
+
+#: sandbox/home/templates/home/welcome_page.html:28
+msgid ""
+"Please feel free to <a "
+"href=\"https://github.com/wagtail/wagtail/wiki/Slack\">join our community on"
+" Slack</a>, or get started with one of the links below."
+msgstr ""
+"لا تتردد في <a href=\"https://github.com/wagtail/wagtail/wiki/Slack\"> "
+"الانضمام إلى مجتمعنا على Slack </a> ، أو البدء باستخدام أحد الروابط أدناه."
+
+#: sandbox/home/templates/home/welcome_page.html:35
+msgid "Wagtail Documentation"
+msgstr "توثيق الذعرة"
+
+#: sandbox/home/templates/home/welcome_page.html:36
+msgid "Topics, references, & how-tos"
+msgstr "الموضوعات والمراجع وطرق التنفيذ"
+
+#: sandbox/home/templates/home/welcome_page.html:42
+msgid "Tutorial"
+msgstr "درس تعليمي"
+
+#: sandbox/home/templates/home/welcome_page.html:43
+msgid "Build your first Wagtail site"
+msgstr "بناء موقع الذعرة الأول الخاص بك"
+
+#: sandbox/home/templates/home/welcome_page.html:49
+msgid "Admin Interface"
+msgstr "واجهة المسؤول"
+
+#: sandbox/home/templates/home/welcome_page.html:50
+msgid "Create your superuser first!"
+msgstr "قم بإنشاء المستخدم المتميز الخاص بك أولاً!"
+
+#: sandbox/home/templates/integration/dailyweather_include.html:3
+#: forecastmanager/wagtail_hooks.py:46
+msgid "Daily Weather"
+msgstr "الطقس اليومي"
+
+#: sandbox/home/templates/integration/forecasts_include.html:3
+#: forecastmanager/models.py:127
+msgid "Forecasts"
+msgstr "التنبؤ"
+
+#: forecastmanager/models.py:16
+#: forecastmanager/templates/forecastmanager/create_forecast.html:54
+#: forecastmanager/templates/forecastmanager/view_forecast.html:29
+msgid "Forecast Date"
+msgstr "تاريخ التنبؤ"
+
+#: forecastmanager/models.py:17
+msgid "Weather Forecast Description"
+msgstr "وصف توقعات الطقس"
+
+#: forecastmanager/models.py:18
+msgid "Summary Date"
+msgstr "تاريخ الملخص"
+
+#: forecastmanager/models.py:19
+msgid "Weather Summary Description"
+msgstr "وصف ملخص الطقس"
+
+#: forecastmanager/models.py:20
+msgid "Extreme Date"
+msgstr "التاريخ المتطرف"
+
+#: forecastmanager/models.py:51
+msgid "Unique UUID. Auto generated on creation."
+msgstr "UUID فريد. تم إنشاؤه تلقائيًا عند الإنشاء."
+
+#: forecastmanager/models.py:53
+msgid "City Name"
+msgstr "اسم المدينة"
+
+#: forecastmanager/models.py:54
+msgid "City Location (Lat, Lng)"
+msgstr "موقع المدينة (Lat ، Lng)"
+
+#: forecastmanager/models.py:62 forecastmanager/models.py:117
+#: forecastmanager/templates/forecastmanager/create_forecast.html:134
+msgid "City"
+msgstr "مدينة"
+
+#: forecastmanager/models.py:63 forecastmanager/wagtail_hooks.py:38
+msgid "Cities"
+msgstr "مدن"
+
+#: forecastmanager/models.py:76
+msgid "Clear sky"
+msgstr "سماء صافية"
+
+#: forecastmanager/models.py:77
+msgid "Cloudy"
+msgstr "غائم"
+
+#: forecastmanager/models.py:78
+msgid "Fair"
+msgstr "عدل"
+
+#: forecastmanager/models.py:79
+msgid "Fog"
+msgstr "ضباب"
+
+#: forecastmanager/models.py:80
+msgid "Heavy Rain"
+msgstr "مطر غزير"
+
+#: forecastmanager/models.py:81
+msgid "Heavy Rain and Thunder"
+msgstr "أمطار غزيرة ورعد"
+
+#: forecastmanager/models.py:82
+msgid "Heavy Rain Showers"
+msgstr "امطار غزيرة"
+
+#: forecastmanager/models.py:83
+msgid "Heavy Rain Showers and Thunder"
+msgstr "أمطار غزيرة ورعد"
+
+#: forecastmanager/models.py:84
+msgid "Heavy Sleet"
+msgstr "مطر ثقيل"
+
+#: forecastmanager/models.py:85
+msgid "Heavy Sleet and Thunder"
+msgstr "صقيع ورعد كثيف"
+
+#: forecastmanager/models.py:86
+msgid "Heavy Sleet Showers"
+msgstr "تساقط ثلوج كثيفة"
+
+#: forecastmanager/models.py:87
+msgid "Heavy Sleet Showers and Thunder"
+msgstr "تساقط ثلوج كثيفة ورعد"
+
+#: forecastmanager/models.py:88
+msgid "Heavy Snow"
+msgstr "ثلوج كثيفة"
+
+#: forecastmanager/models.py:89
+msgid "Heavy Snow and Thunder"
+msgstr "ثلوج كثيفة ورعد"
+
+#: forecastmanager/models.py:90
+msgid "Heavy Snow Showers"
+msgstr "تساقط ثلوج كثيفة"
+
+#: forecastmanager/models.py:91
+msgid "Heavy Snow Showers and Thunder"
+msgstr "تساقط ثلوج كثيفة ورعد"
+
+#: forecastmanager/models.py:92
+msgid "Light Rain"
+msgstr "مطر خفيف"
+
+#: forecastmanager/models.py:93
+msgid "Light Rain and Thunder"
+msgstr "أمطار خفيفة ورعد"
+
+#: forecastmanager/models.py:94
+msgid "Light Rain Showers"
+msgstr "أمطار خفيفة"
+
+#: forecastmanager/models.py:95
+msgid "Light Rain Showers and Thunder"
+msgstr "أمطار خفيفة ورعد"
+
+#: forecastmanager/models.py:96
+msgid "Light Sleet"
+msgstr "صقيع خفيف"
+
+#: forecastmanager/models.py:97
+msgid "Light Sleet and Thunder"
+msgstr "صقيع خفيف ورعد"
+
+#: forecastmanager/models.py:98
+msgid "Light Sleet Showers"
+msgstr "أمطار ثلجية خفيفة"
+
+#: forecastmanager/models.py:99
+msgid "Light Sleet Showers and Thunder"
+msgstr "تساقط ثلوج خفيف ورعد"
+
+#: forecastmanager/models.py:100
+msgid "Light Snow Showers and Thunder"
+msgstr "تساقط ثلوج خفيفة ورعد"
+
+#: forecastmanager/models.py:101
+msgid "Partly Cloudy"
+msgstr "غائم جزئيا"
+
+#: forecastmanager/models.py:102
+msgid "Rain"
+msgstr "مطر"
+
+#: forecastmanager/models.py:103
+msgid "Rain and Thunder"
+msgstr "المطر والرعد"
+
+#: forecastmanager/models.py:104
+msgid "Rain showers"
+msgstr "زخات المطر"
+
+#: forecastmanager/models.py:105
+msgid "Rain Showes and Thunder"
+msgstr "هطول أمطار ورعد"
+
+#: forecastmanager/models.py:106
+msgid "Sleet"
+msgstr "البرد"
+
+#: forecastmanager/models.py:107
+msgid "Sleet and Thunder"
+msgstr "الصقيع والرعد"
+
+#: forecastmanager/models.py:108
+msgid "Sleet Showers"
+msgstr "أمطار ثلجية"
+
+#: forecastmanager/models.py:109
+msgid "Sleet Showes and Thunder"
+msgstr "يظهر الصقيع والرعد"
+
+#: forecastmanager/models.py:110
+msgid "Snow"
+msgstr "ثلج"
+
+#: forecastmanager/models.py:111
+msgid "Snow and Thunder"
+msgstr "الثلج والرعد"
+
+#: forecastmanager/models.py:112
+msgid "Snow Showers"
+msgstr "زخات الثلوج"
+
+#: forecastmanager/models.py:113
+msgid "Snow Showers and Thunder"
+msgstr "زخات ثلج ورعد"
+
+#: forecastmanager/models.py:118
+msgid "Forecasts Date"
+msgstr "تاريخ التوقعات"
+
+#: forecastmanager/models.py:120
+msgid "General Weather Condition"
+msgstr "حالة الطقس العامة"
+
+#: forecastmanager/models.py:121
+msgid "E.g Light Showers"
+msgstr "على سبيل المثال الاستحمام الخفيفة"
+
+#: forecastmanager/models.py:126
+msgid "Forecast"
+msgstr "تنبؤ بالمناخ"
+
+#: forecastmanager/site_settings.py:20
+msgid "Enable automated forecasts"
+msgstr "تمكين التنبؤات الآلية"
+
+#: forecastmanager/site_settings.py:36
+msgid "Temperature"
+msgstr "درجة حرارة"
+
+#: forecastmanager/site_settings.py:37
+msgid "Wind"
+msgstr "رياح"
+
+#: forecastmanager/site_settings.py:41
+msgid "Data Parameters"
+msgstr "معلمات البيانات"
+
+#: forecastmanager/site_settings.py:41
+msgid "Data Parameter"
+msgstr "معلمة البيانات"
+
+#: forecastmanager/site_settings.py:42
+msgid "Forecast Data Parameters"
+msgstr "معلمات بيانات التنبؤ"
+
+#: forecastmanager/site_settings.py:44 forecastmanager/site_settings.py:45
+msgid "Forecast Periods"
+msgstr "فترات التنبؤ"
+
+#: forecastmanager/site_settings.py:44
+msgid "Forecast Period"
+msgstr "فترة التنبؤ"
+
+#: forecastmanager/site_settings.py:48
+msgid "Forecast Source"
+msgstr "مصدر التنبؤ"
+
+#: forecastmanager/site_settings.py:52
+msgid "Measurement Units"
+msgstr "وحدات القياس"
+
+#: forecastmanager/site_settings.py:66
+msgid "Forecast Effective Time"
+msgstr "الوقت الفعلي للتنبؤ"
+
+#: forecastmanager/site_settings.py:67
+msgid "Label"
+msgstr "ملصق"
+
+#: forecastmanager/site_settings.py:68
+msgid "Is Whole Day"
+msgstr "هو يوم كامل"
+
+#: forecastmanager/site_settings.py:73
+msgid "Maximum Air Temperature"
+msgstr "أقصى درجة حرارة للهواء"
+
+#: forecastmanager/site_settings.py:74
+msgid "Minimum Air Temperature"
+msgstr "الحد الأدنى لدرجة حرارة الهواء"
+
+#: forecastmanager/site_settings.py:75
+msgid "Air Temperature"
+msgstr "درجة حرارة الهواء"
+
+#: forecastmanager/site_settings.py:76
+msgid "Dew Point Temperature"
+msgstr "مقياس معدل الرطوبة"
+
+#: forecastmanager/site_settings.py:77
+msgid "Precipitation Amount"
+msgstr "كمية الهطول"
+
+#: forecastmanager/site_settings.py:78
+msgid "Air Pressure (Sea level)"
+msgstr "ضغط الهواء (مستوى البحر)"
+
+#: forecastmanager/site_settings.py:79
+msgid "Wind Speed"
+msgstr "سرعة الرياح"
+
+#: forecastmanager/site_settings.py:80
+msgid "Wind Direction"
+msgstr "اتجاه الرياح"
+
+#: forecastmanager/site_settings.py:81
+msgid "Relative Humidity"
+msgstr "الرطوبة النسبية"
+
+#: forecastmanager/site_settings.py:82
+msgid "Sunrise"
+msgstr "شروق الشمس"
+
+#: forecastmanager/site_settings.py:83
+msgid "Sunset"
+msgstr "غروب"
+
+#: forecastmanager/site_settings.py:84
+msgid "Moonrise"
+msgstr "طلوع القمر"
+
+#: forecastmanager/site_settings.py:85
+msgid "Moonset"
+msgstr "غروب القمر"
+
+#: forecastmanager/site_settings.py:89
+msgid "Text"
+msgstr "نص"
+
+#: forecastmanager/site_settings.py:90
+msgid "Number"
+msgstr "رقم"
+
+#: forecastmanager/site_settings.py:91
+msgid "Time"
+msgstr "وقت"
+
+#: forecastmanager/site_settings.py:95
+msgid "Parameter"
+msgstr "معامل"
+
+#: forecastmanager/site_settings.py:96
+msgid "Parameter Label"
+msgstr "تسمية المعلمة"
+
+#: forecastmanager/site_settings.py:97
+msgid "Parameter name as locally labelled"
+msgstr "اسم المعلمة كما هو محدد محليًا"
+
+#: forecastmanager/site_settings.py:98
+msgid "Parameter Type"
+msgstr "نوع المعلمة"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:34
+msgid "Add forecast"
+msgstr "أضف توقعات"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:46
+msgid "You can"
+msgstr "أنت تستطيع"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:46
+msgid "download a template"
+msgstr "تنزيل نموذج"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:46
+msgid ""
+"of the CSV for offline editing and upload it here. The template comes "
+"prepopulated with all pre-exisiting cities."
+msgstr ""
+"من ملف CSV للتحرير في وضع عدم الاتصال وتحميله هنا. يأتي النموذج معبأ مسبقًا "
+"بجميع المدن الموجودة مسبقًا."
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:58
+msgid "Date of forecast"
+msgstr "تاريخ التوقعات"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:81
+msgid "Forecast effective period"
+msgstr "فترة فعالية التنبؤ"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:104
+msgid "Forecast Upload"
+msgstr "تحميل التوقعات"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:111
+msgid "The uploaded file should be a CSV, similar to the table on the right"
+msgstr ""
+"يجب أن يكون الملف الذي تم تحميله بتنسيق CSV ، مشابهًا للجدول الموجود على "
+"اليسار"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:128
+msgid "Verify that all columns match correctly"
+msgstr "تحقق من تطابق جميع الأعمدة بشكل صحيح"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:155
+msgid "Condition"
+msgstr "حالة"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:166
+msgid "Publish"
+msgstr "ينشر"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:352
+msgid "The table is empty. Please input data"
+msgstr "الجدول فارغ. الرجاء إدخال البيانات"
+
+#: forecastmanager/templates/forecastmanager/create_forecast.html:358
+msgid "Table contains invalid inputs"
+msgstr "يحتوي الجدول على مدخلات غير صالحة"
+
+#: forecastmanager/templates/forecastmanager/forecast_base.html:14
+#: forecastmanager/templates/forecastmanager/forecast_base.html:61
+msgid "Forecast Manager"
+msgstr "مدير التنبؤ"
+
+#: forecastmanager/templates/forecastmanager/forecast_base.html:37
+msgid ""
+"Autoforecasting has been enabled and manually added forecasts here will be "
+"overidden."
+msgstr "تم تمكين البث التلقائي وسيتم تجاوز التوقعات المضافة يدويًا هنا."
+
+#: forecastmanager/templates/forecastmanager/forecast_base.html:40
+msgid "Change autoforecasting setting"
+msgstr "تغيير إعداد البث التلقائي"
+
+#: forecastmanager/templates/forecastmanager/view_forecast.html:18
+#: forecastmanager/wagtail_hooks.py:74
+msgid "View Forecasts"
+msgstr "عرض التوقعات"
+
+#: forecastmanager/templates/forecastmanager/view_forecast.html:24
+msgid "Latest Available Forecast"
+msgstr "أحدث التوقعات المتاحة"
+
+#: forecastmanager/templates/forecastmanager/view_forecast.html:44
+msgid "Forecast Effective Period"
+msgstr "فترة فعالية التنبؤ"
+
+#: forecastmanager/views.py:145
+msgid "Data Successfully updated"
+msgstr "تم تحديث البيانات بنجاح"
+
+#: forecastmanager/views.py:154
+msgid "Data Successfully saved"
+msgstr "تم حفظ البيانات بنجاح"
+
+#: forecastmanager/views.py:160
+msgid "Invalid request"
+msgstr "طلب غير صالح"
+
+#: forecastmanager/wagtail_hooks.py:30 forecastmanager/wagtail_hooks.py:84
+msgid "Settings"
+msgstr "إعدادات"
+
+#: forecastmanager/wagtail_hooks.py:60
+msgid "City Forecast"
+msgstr "توقعات المدينة"
+
+#: forecastmanager/wagtail_hooks.py:73
+msgid "Add Forecasts"
+msgstr "أضف التوقعات"

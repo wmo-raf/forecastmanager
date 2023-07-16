@@ -2,15 +2,15 @@ import logging
 from django.core.management.base import BaseCommand
 
 import pandas as pd
-import json
 import requests
 
 from wagtailgeowidget.helpers import geosgeometry_str_to_struct
 from forecastmanager.models import City,Forecast
+from forecastmanager.site_settings import ForecastSetting,ForecastPeriod
 
 
 # Define the base URL for the Met Norway API
-BASE_URL = "https://api.met.no/weatherapi/locationforecast/2.0/compact"
+BASE_URL = "https://api.met.no/weatherapi/locationforecast/2.0/complete"
 headers = {
   'User-Agent':'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Mobile Safari/537.36'
 }
@@ -32,6 +32,9 @@ class Command(BaseCommand):
         # if forecast_mode[0]['enable_auto_forecast']:
            
         cities_ls = list(City.objects.all().values())
+
+        forecast_setting = ForecastSetting.objects.all().first()
+        parameters = forecast_setting.data_parameter_values
 
         for city in cities_ls:
 
@@ -57,57 +60,55 @@ class Command(BaseCommand):
                 df['time'] = pd.to_datetime(df['time'])
                 df.set_index('time', inplace=True)
 
+
                 # Define a function to extract the required values from a group
-                def extract_values(group):
+                def extract_values(group, params):
                     # Extract the minimum and maximum values of air temperature, wind speed, and wind direction
-                    min_temp = group['data.instant.details.air_temperature'].min()
-                    max_temp = group['data.instant.details.air_temperature'].max()
-                    # Extract the value of next_12_hours summary
-                    next_12_hours = group['data.next_12_hours.summary.symbol_code'].iloc[0]
-                    # Create a dictionary of the extracted values
-                    values = {'min_temp': min_temp, 'max_temp': max_temp, 
-                            'next_12_hours': next_12_hours}
-                    return pd.Series(values, index=['min_temp', 'max_temp', 
-                                                    'next_12_hours'])
+    
+                    param_val = {}
+                    for param in params:
+                    
+                        if param["parameter"] == 'air_temperature_max' or param["parameter"] =='air_temperature_min' or param["parameter"]  =='precipitation_amount':
+                            param_val[f'{param["parameter"]}'] =round(group[f'data.next_6_hours.details.{param["parameter"]}'].mean(),1)
+                              
+                        else:
+                            if f'data.instant.details.{param["parameter"]}' in group.columns:
+                                param_val[f'{param["parameter"]}'] = round(group[f'data.instant.details.{param["parameter"]}'].mean(),1)
+
+                            else:
+                                param_val[f'{param["parameter"]}'] = None
+
+                    param_val['condition'] = group['data.next_6_hours.summary.symbol_code'].iloc[0]
+
+                    
+                    return pd.Series(param_val)
 
                 # Group the DataFrame by date and apply the extract_values() function to each group
-                grouped = df.groupby(pd.Grouper(freq='D')).apply(extract_values)
-                grouped = grouped.dropna()
+                grouped = df.groupby(pd.Grouper(freq='D')).apply(extract_values, parameters)
+                grouped = grouped.dropna(how="all")
+                grouped = grouped.replace({np.nan: None})
 
                 # Get the name of the parent from the first column
                 parent_name = city['name']
                 # Try to get an existing parent with the same name, or create a new one
                 city = City.objects.get(name=parent_name)
-                
+                print("City:", parent_name )
+
                 for index, row in grouped.iterrows():
                     time = index.to_pydatetime()
-                    min_temp = row['min_temp']
-                    max_temp = row['max_temp']
-
-                    # Create or update the child object with the parent and the name from the second column
-                    # prioritize condition for the next 1 hour 
-                    if 'next_1_hours' in row:
-                        condition = row['next_1_hours'].split("_")[0]
-                    elif 'next_6_hours' in row:
-                        condition = row['next_6_hours'].split("_")[0]
-                    else:
-                        condition = row['next_12_hours'].split("_")[0]
-
+                    
                     # use update_or_create to update existing data
                     # and create new ones if the data does not exist
                     obj, created = Forecast.objects.update_or_create(
                         forecast_date=time,
                         city=city, 
                         defaults={
-                            'min_temp': min_temp,
-                            'max_temp': max_temp,
-                            'condition': condition
-                        }
+                            'condition':row['condition'].split('_')[0] if row['condition'] else row['condition'],
+                            'effective_period':ForecastPeriod.objects.get(pk=1),
+                            'data_value':row.to_dict()
+                            }
                     )
 
-            else:
-                # Handle errors
-                print(f"Error fetching weather data for ({lat}, {lon}): {response.status_code}")
 
 
         # else:

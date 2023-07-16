@@ -1,0 +1,286 @@
+{% extends 'forecastmanager/forecast_base.html' %}
+{% load wagtailadmin_tags i18n static %}
+{% load wagtailsettings_tags %}
+{% get_settings use_default_site=True %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <style>
+        #forecast_map {
+            height: 60vh;
+            width: 100%;
+            box-shadow: 0px 0px 7px 0px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+{% endblock extra_css %}
+
+{% block header %}
+    {% trans 'View Forecasts' as header_str %}
+    {% trans 'Add Forecasts' as add_forecast %}
+    {% url 'add_forecast' as add_forecast_url %}
+    {% include "wagtailadmin/shared/header.html" with title=header_str icon="form" action_url=add_forecast_url action_text=add_forecast %}
+{% endblock %}
+
+{% block forecast %}
+    <h2 class="w-panel__heading" style="margin-bottom: 20px">{% trans 'Latest Available Forecast' %}</h2>
+    <div class="row row-flush" style="display:flex; align-items:baseline">
+        <div class="col6" style="display:flex; flex-wrap: wrap;">
+            <div class="w-field__wrapper " data-field-wrapper="" style="padding-right:1em">
+                <label class="w-field__label" for="id_forecast_date" id="id_forecast_date-label">
+                    {% trans 'Forecast Date' %}<span class="w-required-mark">*</span>
+                </label>
+                <div class="w-field w-field--choice_field w-field--select" data-field="" data-contentpath="select">
+                    <div class="w-field__input" data-field-input="">
+                        <select name="forecast_date" id="id_forecast_date">
+                            {% for day in forecast_dates %}
+                                <option value="{{ day|date:'Y-m-d' }}"
+                                        {% if forloop.first %}selected{% endif %}>{{ day }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="w-field__wrapper " data-field-wrapper="">
+                <label class="w-field__label" for="id_effective_period" id="id_effective_period-label">
+                    {% trans 'Forecast Effective Period' %}<span class="w-required-mark">*</span>
+                </label>
+                <div class="w-field w-field--choice_field w-field--select" data-field="" data-contentpath="select">
+                    <div class="w-field__input" data-field-input="">
+                        <select name="select" id="id_effective_period">
+                            {% for period in forecast_periods.all %}
+                                <option value="{{ period.pk }}"
+                                        {% if forloop.first %}selected{% endif %}>{{ period.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="padding:2em 0">
+        <div class="row row-flush">
+            <div class="col7">
+                <div id="latestForecast" style=z-index:1></div>
+            </div>
+            <div class="col5">
+                <div id="forecast_map"></div>
+            </div>
+        </div>
+    </div>
+{% endblock forecast %}
+
+
+{% block extra_js %}
+    {{ block.super }}
+
+    <script type="text/javascript">
+
+        const dataParams = {{ data_parameter_values|safe|default_if_none:"" }};
+
+
+        $(document).ready(function () {
+            const static_path = '{% static "forecastmanager/img/" %}'
+
+            const $dateInput = $("#id_forecast_date");
+            const $periodInput = $("#id_effective_period");
+
+            const forecastContainer = document.getElementById('latestForecast');
+
+            // initialize map     
+            const forecastMap = new maplibregl.Map({
+                container: 'forecast_map',
+                style: basemap,
+                center: [39.67458166409534, 8.709054632756391],
+                zoom: 4.5
+            })
+
+            // Create a popup object
+            const popup = new maplibregl.Popup({
+                closeButton: false,
+                closeOnClick: false
+            });
+
+            forecastMap.addControl(new maplibregl.NavigationControl())
+
+            // initialize
+            getForecastData()
+
+            // initialize table
+            const forecastTable = new Handsontable(forecastContainer, {
+                readOnly: true,
+                width: '100%',
+                rowHeaders: true,
+                colHeaders: [
+                    'City',
+                    ...dataParams.map(p => p.name),
+                    'Condition'
+                ],
+                columns: [
+                    {
+                        data: 'city_name',
+                    },
+                    ...dataParams.map((p) => ({
+                        data: p.parameter,
+                        type: p.parameter_type,
+                        timeFormat: 'h:mm' ? p.parameter_type === 'time' : '',
+                        correctFormat: true,
+                    })),
+                    {
+                        data: 'condition',
+                    },
+                ],
+                data: [],
+                // dropdownMenu: true,
+                multiColumnSorting: true,
+                // filters: true,
+                manualColumnResize: true,
+                minSpareRows: 1,
+                height: 'auto',
+                stretchH: "all",
+                licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
+            });
+
+
+            function populateMap(data) {
+
+                if(forecastMap.getLayer("city-forecasts")){
+                    forecastMap.removeLayer("city-forecasts")
+                }
+
+                if(forecastMap.getSource("city-forecasts")){
+                    forecastMap.removeSource("city-forecasts")
+
+                }
+                if(data.features.length >0){
+                    forecastMap.addSource("city-forecasts", {
+                        type: "geojson",
+                        data: data
+                    })
+    
+                    forecastMap.addLayer({
+                        "id": "city-forecasts",
+                        "type": "symbol",
+                        "layout": {
+                            'icon-image': ['get', 'condition_icon'],
+                            'icon-size': 0.3,
+                            'icon-allow-overlap': true
+                        },
+                        source: "city-forecasts"
+                    })
+    
+                    const bbox = turf.bbox(data)
+    
+                    forecastMap.fitBounds(bbox, {
+                        padding: {top: 100, bottom: 100, left: 100, right: 100},
+                        duration: 1000,
+                        easing: function (t) {
+                            return t * (2 - t); // Cubic easing function
+                        }
+                    })
+                }
+               
+            }
+
+            function getForecastData() {
+                const forecastDate = $dateInput.val()
+                const effectivePeriod = $periodInput.val()
+
+
+                if (forecastDate || effectivePeriod) {
+                    // Make an HTTP GET request to the API endpoint
+                    fetch(`{% url 'forecast-list'%}?forecast_date=${forecastDate}&effective_period=${effectivePeriod}`)
+                        .then(response => response.json())  // Parse the response as JSON
+                        .then(data => {
+                            // Process the retrieved data
+                            data.map(icon => {
+                                let img = new Image()
+                                img.onload = () => {
+                                    if (!forecastMap.hasImage(icon.properties.condition_icon)) {
+                                        return forecastMap.addImage(`${icon.properties.condition_icon}`, img)
+                                    }
+
+                                }
+                                img.src = `${static_path}${icon.properties.condition_icon}`
+                                return img.src
+
+                            })
+                            // Access and use the data as needed
+                            populateMap({
+                                type: "FeatureCollection",
+                                features: data
+                            })
+
+                            const forecasts_props = []
+                            data.map(latest_forecast => {
+                                forecasts_props.push(latest_forecast.properties)
+                            })
+
+                            forecastTable.loadData(forecasts_props)
+                        })
+                        .catch(error => {
+                            // Handle any errors that occurred during the request
+                            console.error('Error:', error);
+                        });
+                }
+            }
+
+
+            const getPopupHTML = (props) => {
+                const paramValues = dataParams.reduce((all, param) => {
+                    if (props[param.parameter]) {
+                        all[param.name] = props[param.parameter]
+                    }
+                    return all
+                }, {})
+
+                const cityName = props.city_name;
+                const condition = props.condition;
+
+                let values = Object.keys(paramValues).reduce((all, key) => {
+                    all = all + `<p><b>${key}: </b>${paramValues[key]}</p>`
+                    return all
+                }, "")
+
+                return `<div class="block" style="margin:10px; width:200px">
+                    <h2 class="title" style="font-size:18px;">${cityName}</h2>
+                    <h2 class="subtitle" style="font-size:14px;">${condition}</h2>
+                    <hr>
+                    ${values}
+                </div>`
+            }
+
+            forecastMap.on("load", () => {
+                // When a click event occurs on a feature in the places layer, open a popup at the
+                // location of the feature, with description HTML from its properties.
+                forecastMap.on("mouseenter", "city-forecasts", (e) => {
+                    // Get the feature that was hovered over
+                    const feature = e.features[0];
+                    forecastMap.getCanvas().style.cursor = "pointer";
+
+                    popup.setLngLat(feature.geometry.coordinates)
+                        .setHTML(getPopupHTML(feature.properties))
+                        .addTo(forecastMap);
+                });
+
+                // // Change the cursor to a pointer when the mouse is over the places layer.
+                // forecastMap.on("mouseenter", "city-forecasts", () => {
+                //     forecastMap.getCanvas().style.cursor = "pointer";
+                // });
+
+                // Change it back to a pointer when it leaves.
+                forecastMap.on("mouseleave", "city-forecasts", () => {
+                    popup.remove()
+                    forecastMap.getCanvas().style.cursor = "";
+                });
+            })
+
+            $dateInput.on('change', (e) => {
+                getForecastData()
+            })
+
+            $periodInput.on('change', (e) => {
+                getForecastData()
+            })
+        })
+    </script>
+{% endblock extra_js %}
