@@ -9,7 +9,7 @@ class CitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = City
-        fields = ('name', 'coordinates')
+        fields = ('id','name', 'coordinates')
 
     def get_coordinates(self, obj):
         # Implement the logic to compute the property value here
