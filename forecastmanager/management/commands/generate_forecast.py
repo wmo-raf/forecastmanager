@@ -8,7 +8,8 @@ import requests
 from wagtailgeowidget.helpers import geosgeometry_str_to_struct
 from forecastmanager.models import City,Forecast
 from forecastmanager.site_settings import ForecastSetting,ForecastPeriod
-
+from forecastmanager.tasks import generate_forecasts
+from datetime import timedelta
 
 # Define the base URL for the Met Norway API
 BASE_URL = "https://api.met.no/weatherapi/locationforecast/2.0/complete"
@@ -28,6 +29,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
+        # generate_forecasts(repeat=timedelta(hours=3).seconds, verbose_name="generate_forecasts")
+
+        # self.stdout.write(self.style.SUCCESS("Successfully submitted City Forecasts download task"))
         print("ATTEMPTING TO AUTOGENERATE 7 DAY FORECAST...")
            
         cities_ls = list(City.objects.all().values())

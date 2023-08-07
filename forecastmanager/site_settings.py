@@ -16,7 +16,7 @@ from wagtail.models import Orderable
 @register_setting
 class ForecastSetting(ClusterableModel, BaseSiteSetting):
     enable_auto_forecast = models.BooleanField(
-        default=True,
+        default=False,
         verbose_name=_('Enable automated forecasts')
     )
 
