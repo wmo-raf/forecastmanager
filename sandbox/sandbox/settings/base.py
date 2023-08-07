@@ -54,7 +54,8 @@ INSTALLED_APPS = [
     "django.contrib.gis",
     "rest_framework",
     "django_filters",
-    "django_deep_translator"
+    "django_deep_translator",
+    "background_task"
 ]
 
 MIDDLEWARE = [
@@ -67,6 +68,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
 ]
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 LOCALE_PATHS = [
