@@ -63,7 +63,7 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
         data_parameters = self.data_parameters.all()
         params = []
         for param in data_parameters:
-            params.append({"parameter": param.parameter, "name": param.name, "parameter_type": param.parameter_type, "parameter_unit":param.parameter_unit})
+            params.append({"parameter": param.parameter, "name": param.name, "parameter_type": param.parameter_type, "parameter_unit":param.parameter_unit if param.parameter_unit else " " })
         return params
 
 
