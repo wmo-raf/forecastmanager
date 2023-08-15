@@ -140,8 +140,8 @@ h2.section-title {
 
                             </div>
                             <div class="column ml-1" style="text-align: start;">
-                               {% if item.data_value.air_temperature_max %} <h2 style="font-size:14px; font-weight:600">{{item.data_value.air_temperature_max|floatformat}}{{settings.forecastmanager.ForecastSetting.get_temp_units_display}}</h2>{% endif %}
-                               {% if item.data_value.air_temperature_min %}  <h3 style="font-size:10px; font-weight:600">{{item.data_value.air_temperature_min|floatformat}}{{settings.forecastmanager.ForecastSetting.get_temp_units_display}}</h3>{% endif %}
+                               {% if item.data_value.air_temperature_max %} <h2 style="font-size:14px; font-weight:600">{{item.data_value.air_temperature_max|floatformat}}</h2>{% endif %}
+                               {% if item.data_value.air_temperature_min %}  <h3 style="font-size:10px; font-weight:600">{{item.data_value.air_temperature_min|floatformat}}</h3>{% endif %}
 
                             </div>
 
@@ -153,7 +153,7 @@ h2.section-title {
                             <img src="{% static 'img/temperature_icon.png'%}" alt="" width="15"
                                 style="opacity: 0.7;">
                                 <span style="padding:0 0.5em">
-                                    {{item.data_value.air_temperature|floatformat}} {{settings.forecastmanager.ForecastSetting.get_temp_units_display}}
+                                    {{item.data_value.air_temperature|floatformat}}
                                 </span>
                            
                         </span>

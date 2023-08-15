@@ -5,7 +5,8 @@ from django.utils.translation import gettext_lazy as _
 from wagtail.admin.panels import FieldPanel, MultiFieldPanel
 from wagtail.fields import RichTextField, StreamField
 from wagtailgeowidget.helpers import geosgeometry_str_to_struct
-from wagtailgeowidget.panels import LeafletPanel
+from wagtailgeowidget.panels import LeafletPanel,GeoAddressPanel
+from wagtailgeowidget import geocoders
 
 from .blocks import ExtremeBlock
 from .site_settings import ForecastPeriod
@@ -52,10 +53,9 @@ class City(models.Model):
     )
     name = models.CharField(verbose_name=_("City Name"), max_length=255, null=True, blank=False, unique=True)
     location = models.PointField(verbose_name=_("City Location (Lat, Lng)"))
-
     panels = [
-        FieldPanel("name"),
-        LeafletPanel("location"),
+        GeoAddressPanel("name", geocoder=geocoders.NOMINATIM),
+        LeafletPanel("location", address_field="name"),
     ]
 
     class Meta:

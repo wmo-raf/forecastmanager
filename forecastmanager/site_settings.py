@@ -11,6 +11,7 @@ from wagtail.admin.panels import (
 from wagtail.contrib.settings.models import BaseSiteSetting
 from wagtail.contrib.settings.registry import register_setting
 from wagtail.models import Orderable
+# from .models import City
 
 
 @register_setting
@@ -20,21 +21,23 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
         verbose_name=_('Enable automated forecasts')
     )
 
-    TEMPERATURE_UNITS = (
-        ("celsius", "°C"),
-        ("fareinheit", "°F"),
-        ("kelvin", "K")
-    )
-    WIND_UNITS = (
-        ("knots", "knots"),
-        ("km_p_hr", "km/h"),
-        ("mtr_p_s", "m/s"),
-        ("mile_p_hr", "mph"),
-        ("feet_p_s", "ft/s")
-    )
-    temp_units = models.CharField(choices=TEMPERATURE_UNITS, default='celsius', max_length=255,
-                                  verbose_name=_("Temperature"))
-    wind_units = models.CharField(choices=WIND_UNITS, default='km_p_hr', max_length=255, verbose_name=_("Wind"))
+    default_city = models.ForeignKey("City", on_delete=models.CASCADE, verbose_name=_("Default City"), null=True, blank=True)
+
+    # TEMPERATURE_UNITS = (
+    #     ("celsius", "°C"),
+    #     ("fareinheit", "°F"),
+    #     ("kelvin", "K")
+    # )
+    # WIND_UNITS = (
+    #     ("knots", "knots"),
+    #     ("km_p_hr", "km/h"),
+    #     ("mtr_p_s", "m/s"),
+    #     ("mile_p_hr", "mph"),
+    #     ("feet_p_s", "ft/s")
+    # )
+    # temp_units = models.CharField(choices=TEMPERATURE_UNITS, default='celsius', max_length=255,
+    #                               verbose_name=_("Temperature"))
+    # wind_units = models.CharField(choices=WIND_UNITS, default='km_p_hr', max_length=255, verbose_name=_("Wind"))
 
     edit_handler = TabbedInterface([
         ObjectList([
@@ -46,10 +49,13 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
         ObjectList([
             FieldPanel('enable_auto_forecast'),
         ], heading=_("Forecast Source")),
-        ObjectList([
-            FieldPanel("temp_units"),
-            FieldPanel("wind_units"),
-        ], heading=_("Measurement Units")),
+         ObjectList([
+            FieldPanel('default_city'),
+        ], heading=_("City")),
+        # ObjectList([
+        #     FieldPanel("temp_units"),
+        #     FieldPanel("wind_units"),
+        # ], heading=_("Measurement Units")),
     ])
 
     @cached_property
@@ -57,7 +63,7 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
         data_parameters = self.data_parameters.all()
         params = []
         for param in data_parameters:
-            params.append({"parameter": param.parameter, "name": param.name, "parameter_type": param.parameter_type})
+            params.append({"parameter": param.parameter, "name": param.name, "parameter_type": param.parameter_type, "parameter_unit":param.parameter_unit})
         return params
 
 
@@ -96,7 +102,7 @@ class ForecastDataParameters(Orderable):
     name = models.CharField(max_length=100, verbose_name=_("Parameter Label"),
                             help_text=_("Parameter name as locally labelled"))
     parameter_type = models.CharField(max_length=100, choices=PARAMETER_TYPE_CHOICES, verbose_name=_("Parameter Type"), default="text")
-
+    parameter_unit = models.CharField(_("Unit of measurement"), max_length=100, null=True, blank=True, help_text="e.g °C, %, mm, hPa, etc ")
 
     def __str__(self):
         return self.name
