@@ -1,0 +1,407 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+
+<style>
+    .chart {
+        height: 250px;
+    }
+    
+    #csv {
+        display: none;
+    }
+    
+    .highcharts-figure,
+    .highcharts-data-table table {
+        min-width: 320px;
+        margin: 1em auto;
+    }
+    
+    .highcharts-data-table table {
+        font-family: Verdana, sans-serif;
+        border-collapse: collapse;
+        border: 1px solid #ebebeb;
+        margin: 10px auto;
+        text-align: center;
+        width: 100%;
+        max-width: 500px;
+    }
+    
+    .highcharts-data-table caption {
+        padding: 1em 0;
+        font-size: 1.2em;
+        color: #555;
+    }
+    
+    .highcharts-data-table th {
+        font-weight: 600;
+        padding: 0.5em;
+    }
+    
+    .highcharts-data-table td,
+    .highcharts-data-table th,
+    .highcharts-data-table caption {
+        padding: 0.5em;
+    }
+    
+    .highcharts-data-table thead tr,
+    .highcharts-data-table tr:nth-child(even) {
+        background: #f8f8f8;
+    }
+    
+    .highcharts-data-table tr:hover {
+        background: #f1f7ff;
+    }
+</style>    
+
+{% endblock extra_css %}
+
+{% block content %}
+
+<section>
+    <div class="container">
+        <h1>City analysis page</h1>
+
+        <h2> {{city_name}} </h2>
+
+        <hr>
+
+        <div class="charts-container px-6">
+            <figure class="highcharts-figure wind-chart-container" style="display:none">
+                <div id="wind-chart" class="chart"></div>
+            </figure>
+
+            
+
+            <figure class="highcharts-figure precipitation-chart-container" style="display:none">
+                <div id="precipitation-chart" class="chart"></div>
+            </figure>
+
+            
+            
+            <figure class="highcharts-figure pressure-chart-container" style="display:none">
+                <div id="pressure-chart" class="chart"></div>
+            </figure>
+
+            <figure class="highcharts-figure humidity-chart-container" style="display:none">
+                <div id="humidity-chart" class="chart"></div>
+            </figure>
+
+            <figure class="highcharts-figure temperature-extremes-chart-container" style="display:none">
+                <div id="temperature-extremes-chart" class="chart"></div>
+            </figure>
+
+            <figure class="highcharts-figure temperature-chart-container" style="display:none">
+                <div id="temperature-chart" class="chart"></div>
+            </figure>
+        </div>
+
+    </div>
+
+
+</section>
+
+{% endblock content %}
+
+{% block extra_js %}
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/windbarb.js"></script>
+<script src="https://code.highcharts.com/modules/datagrouping.js"></script>
+{% comment %} <script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script> {% endcomment %}
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+
+
+<script>
+
+    // Get the current date in 'yyyy-month-dd' format
+    function getCurrentDate() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0'); // Add 1 because months are zero-based
+        const day = String(today.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    // Calculate the date for the seventh day from today
+    function getSevenDaysFromToday() {
+        const today = new Date();
+        const sevenDaysLater = new Date(today);
+        sevenDaysLater.setDate(today.getDate() + 7);
+        const year = sevenDaysLater.getFullYear();
+        const month = String(sevenDaysLater.getMonth() + 1).padStart(2, '0'); // Add 1 because months are zero-based
+        const day = String(sevenDaysLater.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+
+    function parseData(forecasts, params){
+        // initialize param data array
+        let paramData = []
+        let paramDates = []
+
+        if(forecasts && params){
+            
+            params.map(param => {
+                let paramVal = []
+                forecasts.map(forecast => {
+                    if(forecast.properties.city_name === '{{city_name}}'){
+                        if(forecast.properties.hasOwnProperty(param.param_key)){
+                            paramVal.push([forecast.properties[param.param_key]])
+                        }
+                    }
+                })
+                paramData.push(paramVal)
+            })
+
+            forecasts.map(forecast => {
+                if(forecast.properties.city_name === '{{city_name}}'){
+                    let forecast_date = forecast.properties.forecast_date.split('-')
+                    console.log(forecast_date)
+                    paramDates.push(Date.UTC(forecast_date[0], forecast_date[1], forecast_date[2]))
+                }
+            })
+                    
+        }
+
+        return {
+            vals:paramData,
+            dates:paramDates
+        }
+    }
+
+    function createChart(container, data, params, title){
+
+        let clean_data = parseData(data, params)
+        let parsed_data = clean_data.vals
+        let parsed_dates = clean_data.dates
+
+        console.log(parsed_dates)
+        if(parsed_data.length > 1){
+
+            let paramSeries = []
+            let xAxis_offset;
+
+            params.map((param, i) => {
+                xAxis_offset= param.param_key === 'wind_speed' ? 40 : 0
+                
+                return paramSeries.push(
+                    {
+                        type:param.param_key === 'wind_from_direction' ? 'windbarb' : param.param_key === 'precipitation_amount' ? 'column' : 'spline',
+                        data: param.param_key === 'wind_from_direction' ? parsed_data[0].map((_, i) => parsed_data.flatMap(arr => arr[i])) : parsed_data[i],        
+                        name: parsed_data[i].length > 0 ? `${param.param_title} ${param.units}` : '',
+                        tooltip: {
+                            valueSuffix: ` ${param.units}`
+                        },
+                        color:param.param_color,
+                        showInLegend: param.param_key === 'wind_from_direction' ||parsed_data[i].length == 0  ? false : true,
+                    },
+                )
+              })
+
+            $(`.${container}-container`).show()
+
+            Highcharts.chart(container, {
+                chart: {
+                      
+                      scrollablePlotArea: {
+                          minWidth: 600,
+                          scrollPositionX: 1
+                      }
+                  },
+                  title:{
+                      text:''
+                  },
+              
+                  subtitle: {
+                      text: title,
+                      align: 'left'
+                  },
+                  legend:{
+                    align:'left',
+                  },
+              
+                  xAxis: {
+                    type: 'datetime',
+                      offset:xAxis_offset,
+                      gridLineWidth:1,
+                      categories:parsed_dates,
+                      labels: {
+                        rotation:0,
+                        formatter: function () {
+                            return Highcharts.dateFormat('%b %Y', this.value); // Format to show Month and Year
+                        }
+
+                    }
+                      
+                  },
+              
+                  yAxis: {
+                      title: {
+                          text: `${title}`
+                      },
+                     
+                          
+                  },
+                  plotOptions: {
+                    series:{
+                    },
+                      spline: {
+                          lineWidth: 2.5,
+                          states: {
+                              hover: {
+                                  lineWidth: 3
+                              }
+                          },
+                          marker: {
+                              enabled: false
+                          },
+                          
+                      },
+                      windbarb: {
+                            color: "#000",
+                            vectorLength:12,
+                            
+                            // shared options for all windbarb series
+                        }  
+
+                  },
+              
+                  series: paramSeries
+              
+              });
+        }
+        
+    }
+    
+    
+    let query_params = {
+        start_date:getCurrentDate(),
+        end_date:getSevenDaysFromToday(),
+        effective_period__whole_day:true
+    }
+
+
+    $.ajax({
+        url: "{% url 'forecast-list' %}",
+        method: "GET",
+        data: query_params,
+        success: function(data) {
+
+            let chartConfigs = [
+                {
+                    container:'wind-chart',
+                    params:[
+                        {
+                            param_title:'Wind Speed',
+                            param_key:'wind_speed',
+                            param_color:'green',
+                            units:'m/s',
+
+                        },
+                        {
+                            param_title:'Wind Direction',
+                            param_key:'wind_from_direction',
+                            param_color:'black',
+                            units:'°',
+                            
+                        },
+                        
+                        
+                    ],
+                    title: 'Wind'
+                },
+                {
+                    container:'temperature-extremes-chart',
+                    params:[
+                        {
+                            param_title:'Minimum Air Temperature',
+                            param_key:'air_temperature_min',
+                            param_color:'blue',
+                            units:'°C',
+                            
+                        },
+                        {
+                            param_title:'Maximum Air Temperature',
+                            param_key:'air_temperature_max',
+                            param_color:'red',
+                            units:'°C',
+
+                        },
+                        
+                    ],
+                    title: 'Temperature Extremes'
+                },
+                {
+                    container:'temperature-chart',
+                    params:[
+                        {
+                            param_title:'Air Temperature',
+                            param_key:'air_temperature',
+                            param_color:'green',
+                            units:'°C',
+                            
+                        },
+                        {
+                            param_title:'Dew Point Temperature',
+                            param_key:'dew_point_temperature',
+                            param_color:'brown',
+                            units:'°C',
+
+                        },
+                        
+                    ],
+                    title: 'Temperature'
+                },
+                {
+                    container:'humidity-chart',
+                    params:[
+                        {
+                            param_title:'Relative Humidity',
+                            param_key:'relative_humidity',
+                            param_color:'brown',
+                            units:'%',
+                            
+                        }
+                        
+                    ],
+                    title: 'Relative Humidity'
+                },
+                {
+                    container:'pressure-chart',
+                    params:[
+                        {
+                            param_title:'Atmospheric Pressure',
+                            param_key:'air_pressure_at_sea_level',
+                            param_color:'brown',
+                            units:'hPa',
+                            
+                        },
+                        {
+                            param_title:'Relative Humidity',
+                            param_key:'relative_humidity',
+                            param_color:'brown',
+                            units:'%',
+                            
+                        }
+                        
+                    ],
+                    title: 'Atmospheric Pressure'
+                },
+                
+            ]
+            
+            if(data.length>0){
+                chartConfigs.map(chart =>{
+                    createChart(chart.container, data, chart.params, chart.title)
+                })
+            }
+            
+        }
+    })
+    
+    
+</script>
+
+{% endblock extra_js %}

@@ -1,4 +1,5 @@
 from django.db import models
+# import logging
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from modelcluster.fields import ParentalKey
@@ -11,6 +12,9 @@ from wagtail.admin.panels import (
 from wagtail.contrib.settings.models import BaseSiteSetting
 from wagtail.contrib.settings.registry import register_setting
 from wagtail.models import Orderable
+# from django.db.models.signals import post_save, post_delete
+# from django.dispatch import receiver
+# from wagtailcache.cache import clear_cache
 # from .models import City
 
 
@@ -21,7 +25,7 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
         verbose_name=_('Enable automated forecasts')
     )
 
-    default_city = models.ForeignKey("City", on_delete=models.CASCADE, verbose_name=_("Default City"), null=True, blank=True)
+    default_city = models.ForeignKey("City", on_delete=models.CASCADE, verbose_name=_("Default City"), null=True, blank=True, help_text="City will appear as first in homepage city forecasts" )
 
     # TEMPERATURE_UNITS = (
     #     ("celsius", "°C"),
@@ -51,7 +55,7 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
         ], heading=_("Forecast Source")),
          ObjectList([
             FieldPanel('default_city'),
-        ], heading=_("City")),
+        ], heading=_("Default City")),
         # ObjectList([
         #     FieldPanel("temp_units"),
         #     FieldPanel("wind_units"),
@@ -106,3 +110,10 @@ class ForecastDataParameters(Orderable):
 
     def __str__(self):
         return self.name
+
+# TODO: install wagtailcache
+# @receiver(post_save, sender=NavigatForecastSettingionSettings)
+
+# def handle_clear_wagtail_cache(sender, **kwargs):
+#     logging.info("[WAGTAIL_CACHE]: Clearing cache")
+#     clear_cache()
