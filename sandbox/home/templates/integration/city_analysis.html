@@ -391,10 +391,13 @@
                 },
                 
             ]
-
-            chartConfigs.map(chart =>{
-                createChart(chart.container, data, chart.params, chart.title)
-            })
+            
+            if(data.length>0){
+                chartConfigs.map(chart =>{
+                    createChart(chart.container, data, chart.params, chart.title)
+                })
+            }
+            
         }
     })
     
