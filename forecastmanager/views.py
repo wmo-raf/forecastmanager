@@ -27,7 +27,7 @@ class ForecastListView(ListAPIView):
     serializer_class = ForecastSerializer
     filter_backends = [DjangoFilterBackend]
     permission_classes = [IsAuthenticated|ReadOnly]
-    filterset_fields = ["forecast_date", "effective_period", "effective_period__whole_day"]
+    filterset_fields = ["forecast_date", "effective_period", "effective_period__whole_day" ]
 
     def get_serializer(self, *args, **kwargs):
         # Override the get_serializer method to handle list input
@@ -40,6 +40,12 @@ class ForecastListView(ListAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         forecast_date = self.request.query_params.get('forecast_date')
+
+        start_date=self.request.query_params.get('start_date')
+        end_date=self.request.query_params.get('end_date')
+        
+        if start_date and end_date:
+            queryset = queryset.filter(forecast_date__gte=start_date, forecast_date__lte=end_date )
 
         if forecast_date:
             queryset = queryset.filter(forecast_date = forecast_date)

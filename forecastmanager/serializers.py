@@ -31,7 +31,8 @@ class ForecastSerializer(serializers.ModelSerializer):
         return serializer.data
 
     def get_effective_period(self, instance):
-        return {"label": instance.effective_period.label,
+        return {
+            "label": instance.effective_period.label,
                 "time": instance.effective_period.forecast_effective_time,
                 "whole_day": instance.effective_period.whole_day
                 }
