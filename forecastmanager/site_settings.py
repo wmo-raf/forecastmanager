@@ -73,10 +73,13 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
 
 class ForecastPeriod(Orderable):
     parent = ParentalKey(ForecastSetting, on_delete=models.CASCADE, related_name="periods")
-    forecast_effective_time = models.TimeField(unique=True, verbose_name=_("Forecast Effective Time"))
-    label = models.CharField(max_length=100, verbose_name=_("Label"))
     whole_day = models.BooleanField(default=False, verbose_name=_("Is Whole Day"))
+    forecast_effective_time = models.TimeField(verbose_name=_("Forecast Effective Time"))
+    label = models.CharField(max_length=100, verbose_name=_("Label"))
 
+    class Meta:
+        unique_together = ("whole_day", "forecast_effective_time")
+       
 
 class ForecastDataParameters(Orderable):
     PARAMETER_CHOICES = (
@@ -96,16 +99,16 @@ class ForecastDataParameters(Orderable):
     )
 
     PARAMETER_TYPE_CHOICES =(
-        ("text", _("Text")),
         ("numeric", _("Number")),
         ("time", _("Time")),
+        ("text", _("Text")),
     )
 
     parent = ParentalKey(ForecastSetting, on_delete=models.CASCADE, related_name="data_parameters")
     parameter = models.CharField(max_length=100, choices=PARAMETER_CHOICES, unique=True, verbose_name=_("Parameter"))
     name = models.CharField(max_length=100, verbose_name=_("Parameter Label"),
                             help_text=_("Parameter name as locally labelled"))
-    parameter_type = models.CharField(max_length=100, choices=PARAMETER_TYPE_CHOICES, verbose_name=_("Parameter Type"), default="text")
+    parameter_type = models.CharField(max_length=100, choices=PARAMETER_TYPE_CHOICES, verbose_name=_("Parameter Type"), default="numeric")
     parameter_unit = models.CharField(_("Unit of measurement"), max_length=100, null=True, blank=True, help_text="e.g °C, %, mm, hPa, etc ")
 
     def __str__(self):

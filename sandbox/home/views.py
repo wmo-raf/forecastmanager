@@ -3,7 +3,7 @@ from itertools import groupby
 from datetime import datetime, timedelta
 from django.shortcuts import render
 
-from forecastmanager.models import Forecast, DailyWeather
+from forecastmanager.models import Forecast, DailyWeather, City
 
 def list_forecasts(request):
 
@@ -44,10 +44,12 @@ def daily_weather(request):
     })
 
 
-def city_analysis(request, city_name):
+def city_analysis(request, city_id):
      
+     city_name = City.objects.get(pk=city_id).name
      context = {
-          'city_name':city_name
+          'city_name':city_name,
+          'city_id':city_id
      }
      
      return render(request, "integration/city_analysis.html", context)

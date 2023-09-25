@@ -1,4 +1,5 @@
 import json
+from datetime import date
 
 from django.core import serializers
 from django.http import JsonResponse
@@ -44,13 +45,16 @@ class ForecastListView(ListAPIView):
         start_date=self.request.query_params.get('start_date')
         end_date=self.request.query_params.get('end_date')
         
-        if start_date and end_date:
-            queryset = queryset.filter(forecast_date__gte=start_date, forecast_date__lte=end_date )
+        if start_date:
+            queryset = queryset.filter(forecast_date__gte=start_date)
+
+        if end_date:
+            queryset = queryset.filter(forecast_date__lte=end_date)
 
         if forecast_date:
             queryset = queryset.filter(forecast_date = forecast_date)
 
-        return queryset
+        return queryset.order_by('forecast_date', 'effective_period__forecast_effective_time')
 
 
 def add_forecast(request):
@@ -93,6 +97,7 @@ def save_forecast_data(request):
 
                     # Get city
                     city = City.objects.filter(pk=city_id)
+
                     if city.exists:
                         city = city.first()
                     else:
@@ -122,16 +127,17 @@ def save_forecast_data(request):
                         existing_record = Forecast.objects.filter(city=city, forecast_date=forecast_date,
                                                                   effective_period=effective_period)
                         
-                        if len(existing_record) > 0 and existing_record.exists:
+                        if len(existing_record) > 0 and existing_record.exists():
                             existing_record = existing_record.first()
+
                             record.update({"pk": existing_record.pk})
+                       
                             records_to_update.append(record)
                         else:
 
                             records_to_create.append(record)
 
             except Exception as e:
-                print(e)
                 return JsonResponse({'error': 'Error occurred'}, status=400, safe=False)
 
             # bulk create or update. Saves database round trips
@@ -148,7 +154,7 @@ def save_forecast_data(request):
                         ["condition", "data_value"],
                         batch_size=1000
                     )
-                    res_message = _("Data Successfully updated")
+                    res_message = "Data Successfully updated"
                     # return JsonResponse({'success': True, 'message':'Data Successfully updated'})
 
                 # create
@@ -157,19 +163,19 @@ def save_forecast_data(request):
                         [Forecast(**values) for values in records_to_create], batch_size=1000
                     )
 
-                    res_message = _("Data Successfully saved")
+                    res_message = "Data Successfully saved"
 
                 return JsonResponse({'success': True, 'message':res_message})
             except Exception as e:
                 return JsonResponse({'error': 'Error occurred'}, status=400, safe=False)
     else:
-        return JsonResponse({'error': _('Invalid request')}, status=400, safe=False)
+        return JsonResponse({'error': 'Invalid request'}, status=400, safe=False)
 
 
 def view_forecast(request):
     forecast_setting = ForecastSetting.for_request(request)
 
-    dates_ls = Forecast.objects.order_by('-forecast_date').values_list('forecast_date', flat=True).distinct()[:7]
+    dates_ls = Forecast.objects.filter(forecast_date__gte=date.today()).order_by('forecast_date').values_list('forecast_date', flat=True).distinct()
 
     return render(request, "forecastmanager/view_forecast.html", {
         'forecast_dates': dates_ls,

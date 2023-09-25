@@ -158,8 +158,14 @@
             forecasts.map(forecast => {
                 if(forecast.properties.city_name === '{{city_name}}'){
                     let forecast_date = forecast.properties.forecast_date.split('-')
-                    console.log(forecast_date)
-                    paramDates.push(Date.UTC(forecast_date[0], forecast_date[1], forecast_date[2]))
+                    let effective_time = forecast.properties.effective_period.time.split(':')
+               
+                    paramDates.push(Date.UTC(
+                        forecast_date[0], 
+                        forecast_date[1]-1, 
+                        forecast_date[2], 
+                        effective_time[0],
+                        effective_time[1]))
                 }
             })
                     
@@ -177,7 +183,6 @@
         let parsed_data = clean_data.vals
         let parsed_dates = clean_data.dates
 
-        console.log(parsed_dates)
         if(parsed_data.length > 1){
 
             let paramSeries = []
@@ -230,7 +235,7 @@
                       labels: {
                         rotation:0,
                         formatter: function () {
-                            return Highcharts.dateFormat('%b %Y', this.value); // Format to show Month and Year
+                            return Highcharts.dateFormat('%a. %d %b (%I:%M%p)', this.value); // Format to show Month and Year
                         }
 
                     }
@@ -274,12 +279,11 @@
         }
         
     }
-    
-    
+
     let query_params = {
         start_date:getCurrentDate(),
-        end_date:getSevenDaysFromToday(),
-        effective_period__whole_day:true
+        // end_date:getSevenDaysFromToday(),
+        effective_period__whole_day:false
     }
 
 
@@ -288,6 +292,7 @@
         method: "GET",
         data: query_params,
         success: function(data) {
+
 
             let chartConfigs = [
                 {
@@ -393,6 +398,7 @@
             ]
             
             if(data.length>0){
+
                 chartConfigs.map(chart =>{
                     createChart(chart.container, data, chart.params, chart.title)
                 })

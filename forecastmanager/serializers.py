@@ -57,6 +57,7 @@ class ForecastSerializer(serializers.ModelSerializer):
             "properties": {
                 'id': representation['id'],
                 'city_name': representation['city_detail']['name'],
+                'city_id':representation['city_detail']['id'],
                 'forecast_date': representation['forecast_date'],
                 'effective_period': representation['effective_period'],
                 'condition': representation['condition'],

@@ -17,7 +17,7 @@ urlpatterns = [
     path("search/", search_views.search, name="search"),
     path("forecasts/", list_forecasts, name="list_forecasts"),
     path("dailyweather/", daily_weather, name="daily_weather"),
-    path("city_analysis/<str:city_name>/", city_analysis, name="city_analysis"),
+    path("city_analysis/<uuid:city_id>/", city_analysis, name="city_analysis"),
     path("", include(forecastmanager_urls)),
 
 
