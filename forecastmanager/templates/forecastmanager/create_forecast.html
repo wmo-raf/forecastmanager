@@ -163,7 +163,7 @@
                 </div>
 
                     <li style="padding-top:1em">
-                        <button type="submit" id="submitForecast" class="button" disabled>{% trans 'Publish'%}</button>
+                        <button type="submit" id="submitForecast" class="button" >{% trans 'Publish'%}</button>
                     </li>
                 </ul>
             </form>
@@ -333,7 +333,7 @@
                                 const row = {
                                     'city': city_ls.find(city => city.fields.name === nonNullRows[i][0]).pk,
                                     ...dataParams.reduce((all, item, index) => {
-                                        all[item.parameter] = nonNullRows[i][index + 1]
+                                        all[item.parameter] = item.parameter_type === 'numeric' ? parseFloat(nonNullRows[i][index + 1]) : nonNullRows[i][index + 1]
                                         return all
                                     }, {}),
                                     'condition': nonNullRows[i][dataParams.length + 1],
