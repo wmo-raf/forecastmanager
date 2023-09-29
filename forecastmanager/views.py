@@ -28,7 +28,7 @@ class ForecastListView(ListAPIView):
     serializer_class = ForecastSerializer
     filter_backends = [DjangoFilterBackend]
     permission_classes = [IsAuthenticated|ReadOnly]
-    filterset_fields = ["forecast_date", "effective_period", "effective_period__whole_day" ]
+    filterset_fields = ["forecast_date", "effective_period", "effective_period__whole_day", "city__id" ]
 
     def get_serializer(self, *args, **kwargs):
         # Override the get_serializer method to handle list input
