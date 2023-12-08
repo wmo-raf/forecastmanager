@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from wagtail.admin.panels import FieldPanel, MultiFieldPanel
 from wagtail.fields import RichTextField, StreamField
 from wagtailgeowidget.helpers import geosgeometry_str_to_struct
-from wagtailgeowidget.panels import LeafletPanel,GeoAddressPanel
+from wagtailgeowidget.panels import LeafletPanel, GeoAddressPanel
 from wagtailgeowidget import geocoders
 
 from .blocks import ExtremeBlock
@@ -61,6 +61,7 @@ class City(models.Model):
     class Meta:
         verbose_name = _("City")
         verbose_name_plural = _("Cities")
+        ordering = ['name']
 
     def __str__(self) -> str:
         return self.name
@@ -92,12 +93,12 @@ class Forecast(models.Model):
         ('lightrain', _('Light Rain')),
         ('lightrainandthunder', _('Light Rain and Thunder')),
         ('lightrainshowers', _('Light Rain Showers')),
-        ('lightrainshowersandthunder',_('Light Rain Showers and Thunder')),
+        ('lightrainshowersandthunder', _('Light Rain Showers and Thunder')),
         ('lightsleet', _('Light Sleet')),
         ('lightsleetandthunder', _('Light Sleet and Thunder')),
-        ('lightsleetshowers',_('Light Sleet Showers')),
+        ('lightsleetshowers', _('Light Sleet Showers')),
         ('lightsleetshowersandthunder', _('Light Sleet Showers and Thunder')),
-        ('lightsnowshowersandthunder',_('Light Snow Showers and Thunder')),
+        ('lightsnowshowersandthunder', _('Light Snow Showers and Thunder')),
         ('partlycloudy', _('Partly Cloudy')),
         ('rain', _('Rain')),
         ('rainandthunder', _('Rain and Thunder')),
