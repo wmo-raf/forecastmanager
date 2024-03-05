@@ -1,5 +1,4 @@
 from django.db import models
-# import logging
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from modelcluster.fields import ParentalKey
@@ -12,10 +11,8 @@ from wagtail.admin.panels import (
 from wagtail.contrib.settings.models import BaseSiteSetting
 from wagtail.contrib.settings.registry import register_setting
 from wagtail.models import Orderable
-# from django.db.models.signals import post_save, post_delete
-# from django.dispatch import receiver
-# from wagtailcache.cache import clear_cache
-# from .models import City
+
+from forecastmanager.widgets import WeatherSymbolChooserWidget
 
 
 @register_setting
@@ -25,41 +22,25 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
         verbose_name=_('Enable automated forecasts')
     )
 
-    default_city = models.ForeignKey("City", on_delete=models.CASCADE, verbose_name=_("Default City"), null=True, blank=True, help_text="City will appear as first in homepage city forecasts" )
-
-    # TEMPERATURE_UNITS = (
-    #     ("celsius", "°C"),
-    #     ("fareinheit", "°F"),
-    #     ("kelvin", "K")
-    # )
-    # WIND_UNITS = (
-    #     ("knots", "knots"),
-    #     ("km_p_hr", "km/h"),
-    #     ("mtr_p_s", "m/s"),
-    #     ("mile_p_hr", "mph"),
-    #     ("feet_p_s", "ft/s")
-    # )
-    # temp_units = models.CharField(choices=TEMPERATURE_UNITS, default='celsius', max_length=255,
-    #                               verbose_name=_("Temperature"))
-    # wind_units = models.CharField(choices=WIND_UNITS, default='km_p_hr', max_length=255, verbose_name=_("Wind"))
+    default_city = models.ForeignKey("City", on_delete=models.CASCADE, verbose_name=_("Default City"), null=True,
+                                     blank=True, help_text="City will appear as first in homepage city forecasts")
 
     edit_handler = TabbedInterface([
-        ObjectList([
-            InlinePanel('data_parameters', heading=_("Data Parameters"), label=_("Data Parameter")),
-        ], heading=_("Forecast Data Parameters")),
         ObjectList([
             InlinePanel('periods', heading=_("Forecast Periods"), label=_("Forecast Period")),
         ], heading=_("Forecast Periods")),
         ObjectList([
+            InlinePanel('data_parameters', heading=_("Data Parameters"), label=_("Data Parameter")),
+        ], heading=_("Forecast Data Parameters")),
+        ObjectList([
+            InlinePanel('weather_conditions', heading=_("Weather Conditions"), label=_("Weather Condition")),
+        ], heading=_("Forecast Weather Conditions")),
+        ObjectList([
             FieldPanel('enable_auto_forecast'),
         ], heading=_("Forecast Source")),
-         ObjectList([
+        ObjectList([
             FieldPanel('default_city'),
         ], heading=_("Default City")),
-        # ObjectList([
-        #     FieldPanel("temp_units"),
-        #     FieldPanel("wind_units"),
-        # ], heading=_("Measurement Units")),
     ])
 
     @cached_property
@@ -67,8 +48,18 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
         data_parameters = self.data_parameters.all()
         params = []
         for param in data_parameters:
-            params.append({"parameter": param.parameter, "name": param.name, "parameter_type": param.parameter_type, "parameter_unit":param.parameter_unit if param.parameter_unit else " " })
+            params.append({"parameter": param.parameter, "name": param.name, "parameter_type": param.parameter_type,
+                           "parameter_unit": param.parameter_unit if param.parameter_unit else " "})
         return params
+
+    @property
+    def periods_as_choices(self):
+        return [(period.id, period.label) for period in self.periods.all()]
+
+    @property
+    def weather_conditions_list(self):
+        weather_conditions = self.weather_conditions.all()
+        return [c.alias if c.alias else c.label for c in weather_conditions]
 
 
 class ForecastPeriod(Orderable):
@@ -79,7 +70,10 @@ class ForecastPeriod(Orderable):
 
     class Meta:
         unique_together = ("whole_day", "forecast_effective_time")
-       
+
+    def __str__(self):
+        return self.label
+
 
 class ForecastDataParameters(Orderable):
     PARAMETER_CHOICES = (
@@ -98,7 +92,7 @@ class ForecastDataParameters(Orderable):
         ("moonset", _("Moonset")),
     )
 
-    PARAMETER_TYPE_CHOICES =(
+    PARAMETER_TYPE_CHOICES = (
         ("numeric", _("Number")),
         ("time", _("Time")),
         ("text", _("Text")),
@@ -108,15 +102,26 @@ class ForecastDataParameters(Orderable):
     parameter = models.CharField(max_length=100, choices=PARAMETER_CHOICES, unique=True, verbose_name=_("Parameter"))
     name = models.CharField(max_length=100, verbose_name=_("Parameter Label"),
                             help_text=_("Parameter name as locally labelled"))
-    parameter_type = models.CharField(max_length=100, choices=PARAMETER_TYPE_CHOICES, verbose_name=_("Parameter Type"), default="numeric")
-    parameter_unit = models.CharField(_("Unit of measurement"), max_length=100, null=True, blank=True, help_text="e.g °C, %, mm, hPa, etc ")
+    parameter_type = models.CharField(max_length=100, choices=PARAMETER_TYPE_CHOICES, verbose_name=_("Parameter Type"),
+                                      default="numeric")
+    parameter_unit = models.CharField(_("Unit of measurement"), max_length=100, null=True, blank=True,
+                                      help_text="e.g °C, %, mm, hPa, etc ")
 
     def __str__(self):
         return self.name
 
-# TODO: install wagtailcache
-# @receiver(post_save, sender=NavigatForecastSettingionSettings)
 
-# def handle_clear_wagtail_cache(sender, **kwargs):
-#     logging.info("[WAGTAIL_CACHE]: Clearing cache")
-#     clear_cache()
+class WeatherCondition(Orderable):
+    parent = ParentalKey(ForecastSetting, on_delete=models.CASCADE, related_name="weather_conditions")
+    symbol = models.CharField(max_length=100, verbose_name=_("Weather Symbol"))
+    label = models.CharField(max_length=100, unique=True, verbose_name=_("Label"))
+    alias = models.CharField(max_length=100, blank=True, null=True, unique=True, verbose_name=_("Alias"))
+
+    panels = [
+        FieldPanel('symbol', widget=WeatherSymbolChooserWidget),
+        FieldPanel('label'),
+        FieldPanel('alias'),
+    ]
+
+    def __str__(self):
+        return self.label

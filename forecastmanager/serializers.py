@@ -9,7 +9,7 @@ class CitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = City
-        fields = ('id','name', 'coordinates')
+        fields = ('id', 'name', 'coordinates')
 
     def get_coordinates(self, obj):
         # Implement the logic to compute the property value here
@@ -33,9 +33,9 @@ class ForecastSerializer(serializers.ModelSerializer):
     def get_effective_period(self, instance):
         return {
             "label": instance.effective_period.label,
-                "time": instance.effective_period.forecast_effective_time,
-                "whole_day": instance.effective_period.whole_day
-                }
+            "time": instance.effective_period.forecast_effective_time,
+            "whole_day": instance.effective_period.whole_day
+        }
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -57,7 +57,7 @@ class ForecastSerializer(serializers.ModelSerializer):
             "properties": {
                 'id': representation['id'],
                 'city_name': representation['city_detail']['name'],
-                'city_id':representation['city_detail']['id'],
+                'city_id': representation['city_detail']['id'],
                 'forecast_date': representation['forecast_date'],
                 'effective_period': representation['effective_period'],
                 'condition': representation['condition'],
@@ -71,4 +71,3 @@ class ForecastSerializer(serializers.ModelSerializer):
         }
 
         return {k: v for k, v in forecast_feature.items() if v or v == 0 or v is False}
-

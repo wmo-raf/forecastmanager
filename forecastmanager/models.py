@@ -2,14 +2,94 @@ import uuid
 
 from django.contrib.gis.db import models
 from django.utils.translation import gettext_lazy as _
-from wagtail.admin.panels import FieldPanel, MultiFieldPanel
+from modelcluster.fields import ParentalKey
+from modelcluster.models import ClusterableModel
+from wagtail.admin.panels import FieldPanel, MultiFieldPanel, InlinePanel
 from wagtail.fields import RichTextField, StreamField
+from wagtail.models import Orderable
+from wagtailgeowidget import geocoders
 from wagtailgeowidget.helpers import geosgeometry_str_to_struct
 from wagtailgeowidget.panels import LeafletPanel, GeoAddressPanel
-from wagtailgeowidget import geocoders
 
 from .blocks import ExtremeBlock
-from .site_settings import ForecastPeriod
+from .forms import ForecastForm
+from .site_settings import ForecastPeriod, WeatherCondition, ForecastDataParameters
+
+
+class City(models.Model):
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+        help_text=_("Unique UUID. Auto generated on creation."),
+    )
+    name = models.CharField(verbose_name=_("City Name"), max_length=255, null=True, blank=False, unique=True)
+    location = models.PointField(verbose_name=_("City Location (Lat, Lng)"))
+    panels = [
+        GeoAddressPanel("name", geocoder=geocoders.NOMINATIM),
+        LeafletPanel("location", address_field="name"),
+    ]
+
+    class Meta:
+        verbose_name = _("City")
+        verbose_name_plural = _("Cities")
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def coordinates(self):
+        location = geosgeometry_str_to_struct(str(self.location))
+        return [location['x'], location['y']]
+
+
+class Forecast(ClusterableModel):
+    base_form_class = ForecastForm
+
+    forecast_date = models.DateField(auto_now=False, auto_now_add=False, verbose_name=_("Forecasts Date"))
+    effective_period = models.ForeignKey(ForecastPeriod, on_delete=models.PROTECT, null=True)
+
+    class Meta:
+        unique_together = ("forecast_date", "effective_period")
+        verbose_name = _("Forecast")
+        verbose_name_plural = _("Forecasts")
+
+    panels = [
+        FieldPanel("forecast_date"),
+        FieldPanel("effective_period"),
+        # InlinePanel("city_forecasts", label=_("City Forecast Data")),
+    ]
+
+    def __str__(self):
+        return f"{self.forecast_date} - {self.effective_period.label}"
+
+
+class CityForecast(ClusterableModel, Orderable):
+    parent = ParentalKey(Forecast, on_delete=models.CASCADE, related_name="city_forecasts")
+    city = models.ForeignKey(City, on_delete=models.CASCADE, verbose_name=_("City"))
+    condition = models.ForeignKey(WeatherCondition, blank=True, null=True, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ("parent", "city")
+
+    panels = [
+        FieldPanel("city"),
+        FieldPanel("condition"),
+        InlinePanel("data_values", label=_("Forecast Data Values")),
+    ]
+
+    def __str__(self):
+        return f"{self.city.name}"
+
+
+class DataValue(ClusterableModel, Orderable):
+    parent = ParentalKey(CityForecast, on_delete=models.CASCADE, related_name="data_values")
+    parameter = models.ForeignKey(ForecastDataParameters, on_delete=models.CASCADE, related_name="data_values")
+    value = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Value"))
+
+    class Meta:
+        unique_together = ("parent", "parameter")
 
 
 class DailyWeather(models.Model):
@@ -36,93 +116,7 @@ class DailyWeather(models.Model):
             FieldPanel('extreme_date'),
             FieldPanel('extremes')
         ], heading="Extremes")
-
     ]
 
     def __str__(self) -> str:
         return f'Daily Weather - Issued on {self.issued_on.strftime("%Y-%m-%d")}'
-
-
-# Create your models here.
-class City(models.Model):
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False,
-        help_text=_("Unique UUID. Auto generated on creation."),
-    )
-    name = models.CharField(verbose_name=_("City Name"), max_length=255, null=True, blank=False, unique=True)
-    location = models.PointField(verbose_name=_("City Location (Lat, Lng)"))
-    panels = [
-        GeoAddressPanel("name", geocoder=geocoders.NOMINATIM),
-        LeafletPanel("location", address_field="name"),
-    ]
-
-    class Meta:
-        verbose_name = _("City")
-        verbose_name_plural = _("Cities")
-        ordering = ['name']
-
-    def __str__(self) -> str:
-        return self.name
-
-    @property
-    def coordinates(self):
-        location = geosgeometry_str_to_struct(str(self.location))
-        return [location['x'], location['y']]
-
-
-class Forecast(models.Model):
-    CONDITION_CHOICES = (
-        ('clearsky', _('Clear sky')),
-        ('cloudy', _('Cloudy')),
-        ('fair', _('Fair')),
-        ('fog', _('Fog')),
-        ('heavyrain', _('Heavy Rain')),
-        ('heavyrainandthunder', _('Heavy Rain and Thunder')),
-        ('heavyrainshowers', _('Heavy Rain Showers')),
-        ('heavyrainshowersandthunder', _('Heavy Rain Showers and Thunder')),
-        ('heavysleet', _('Heavy Sleet')),
-        ('heavysleetandthunder', _('Heavy Sleet and Thunder')),
-        ('heavysleetshowers', _('Heavy Sleet Showers')),
-        ('heavysleetshowersandthunder', _('Heavy Sleet Showers and Thunder')),
-        ('heavysnow', _('Heavy Snow')),
-        ('heavysnowandthunder', _('Heavy Snow and Thunder')),
-        ('heavysnowshowers', _('Heavy Snow Showers')),
-        ('heavysnowshowersandthunder', _('Heavy Snow Showers and Thunder')),
-        ('lightrain', _('Light Rain')),
-        ('lightrainandthunder', _('Light Rain and Thunder')),
-        ('lightrainshowers', _('Light Rain Showers')),
-        ('lightrainshowersandthunder', _('Light Rain Showers and Thunder')),
-        ('lightsleet', _('Light Sleet')),
-        ('lightsleetandthunder', _('Light Sleet and Thunder')),
-        ('lightsleetshowers', _('Light Sleet Showers')),
-        ('lightsleetshowersandthunder', _('Light Sleet Showers and Thunder')),
-        ('lightsnowshowersandthunder', _('Light Snow Showers and Thunder')),
-        ('partlycloudy', _('Partly Cloudy')),
-        ('rain', _('Rain')),
-        ('rainandthunder', _('Rain and Thunder')),
-        ('rainshowers', _('Rain showers')),
-        ('rainshowersandthunder', _('Rain Showes and Thunder')),
-        ('sleet', _('Sleet')),
-        ('sleetandthunder', _('Sleet and Thunder')),
-        ('sleetshowers', _('Sleet Showers')),
-        ('sleetshowersandthunder', _('Sleet Showes and Thunder')),
-        ('snow', _('Snow')),
-        ('snowandthunder', _('Snow and Thunder')),
-        ('snowshowers', _('Snow Showers')),
-        ('snowshowersandthunder', _('Snow Showers and Thunder')),
-
-    )
-
-    city = models.ForeignKey(City, on_delete=models.CASCADE, verbose_name=_("City"))
-    forecast_date = models.DateField(auto_now=False, auto_now_add=False, verbose_name=_("Forecasts Date"))
-    effective_period = models.ForeignKey(ForecastPeriod, on_delete=models.PROTECT, null=True)
-    condition = models.CharField(choices=CONDITION_CHOICES, verbose_name=_("General Weather Condition"),
-                                 help_text=_("E.g Light Showers"), null=True, max_length=255)
-    data_value = models.JSONField(null=True)
-
-    class Meta:
-        unique_together = ("city", "forecast_date", "effective_period")
-        verbose_name = _("Forecast")
-        verbose_name_plural = _("Forecasts")

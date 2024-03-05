@@ -1,0 +1,63 @@
+.w-dialog__content {
+    padding: 48px 40px;
+}
+
+.icon-selector-container {
+    margin-bottom: 30px;
+}
+
+.icon-selector {
+}
+
+.icon-button {
+    height: 50px;
+    padding: 10px;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    border-radius: 3px;
+}
+
+.icon-container {
+    display: flex;
+}
+
+.modal-icons-content {
+    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    height: 100%;
+    overflow: scroll;
+    justify-content: center;
+    max-height: 700px;
+}
+
+.symbol-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 130px;
+    overflow: hidden;
+    width: 100px;
+    margin: 20px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.icon-label {
+    height: 100%;
+    font-size: 12px;
+    word-break: break-word;
+    white-space: normal;
+}
+
+.icon-option {
+    height: 50px;
+    width: 50px;
+}
+
+.selected-icon {
+    height: 40px;
+    width: 40px;
+}
