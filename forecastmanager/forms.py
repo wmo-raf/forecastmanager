@@ -1,22 +1,50 @@
 from django import forms
 from django.db.models import Q
-from wagtail.admin.forms import WagtailAdminPageForm
+from django.utils.translation import gettext_lazy as _
+from wagtail.admin.forms import WagtailAdminModelForm
 
-from forecastmanager.site_settings import WeatherCondition, ForecastDataParameters
+from forecastmanager.forecast_settings import (
+    WeatherCondition,
+    ForecastDataParameters
+)
 
 
-class ForecastForm(WagtailAdminPageForm):
+class ForecastForm(WagtailAdminModelForm):
     data = forms.JSONField(widget=forms.HiddenInput)
+    replace_existing = forms.BooleanField(required=False, initial=True, label=_("Replace existing data if found"))
 
     def clean(self):
         cleaned_data = super().clean()
+        forecast_date = cleaned_data.get("forecast_date")
+        effective_period = cleaned_data.get("effective_period")
+        replace_existing = cleaned_data.get("replace_existing")
+
         data = cleaned_data.get("data")
+
         fields = data.get("fields")
         rows = data.get("rows")
 
         if not fields or not rows:
             self.add_error(None, "No data found in the table.")
             return cleaned_data
+
+        from forecastmanager.models import Forecast
+
+        existing_forecasts = Forecast.objects.filter(
+            forecast_date=forecast_date,
+            effective_period=effective_period
+        )
+
+        if existing_forecasts.exists():
+            # Check if user wants to overwrite
+            if not replace_existing:
+                self.add_error("forecast_date",
+                               "Forecast data already exists for the given date and effective period. "
+                               "To replace the existing data, check the 'Replace existing data if found' checkbox.")
+                return cleaned_data
+            else:
+                cleaned_data["existing_forecasts"] = existing_forecasts
+                self._validate_unique = False
 
         fields = data.get("fields")
         rows = data.get("rows")
@@ -84,10 +112,14 @@ class ForecastForm(WagtailAdminPageForm):
 
     def save(self, commit=True):
         forecast = super().save(commit=False)
+
         forecast_data = self.cleaned_data.get("data")
 
-        from forecastmanager.models import CityForecast
-        from forecastmanager.models import DataValue
+        from forecastmanager.models import CityForecast, DataValue
+
+        if self.cleaned_data.get("existing_forecasts"):
+            existing_forecasts = self.cleaned_data.get("existing_forecasts")
+            existing_forecasts.delete()
 
         for city_data in forecast_data:
             city = city_data.get("city")
@@ -102,3 +134,48 @@ class ForecastForm(WagtailAdminPageForm):
         if commit:
             forecast.save()
         return forecast
+
+
+class CityLoaderForm(forms.Form):
+    file = forms.FileField(label="File", required=True)
+    overwrite_existing = forms.BooleanField(label="Overwrite existing data", required=False)
+    data = forms.JSONField(widget=forms.HiddenInput)
+
+    # only allow csv files
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['file'].widget.attrs.update({'accept': '.csv'})
+
+    def clean(self):
+        cleaned_data = super().clean()
+        data = cleaned_data.get("data")
+        fields = data.get("fields")
+        rows = data.get("rows")
+
+        if not fields or not rows:
+            self.add_error(None, "No data found in the table.")
+            return cleaned_data
+
+        fields = data.get("fields")
+        rows = data.get("rows")
+
+        cities = []
+        added_cities = []
+        for row in rows:
+            data_dict = dict(zip(fields, row))
+            city = data_dict.get("City")
+            lat = data_dict.get("Latitude")
+            lon = data_dict.get("Longitude")
+
+            if city in added_cities:
+                self.add_error(None,
+                               f"Duplicate city found in table data: '{city}'. "
+                               f"Please remove the duplicate entry and try again.")
+                return cleaned_data
+
+            added_cities.append(city)
+            cities.append({"city": city, "lat": lat, "lon": lon})
+
+        cleaned_data["data"] = cities
+
+        return cleaned_data

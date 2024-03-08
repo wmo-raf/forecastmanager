@@ -1,0 +1,33 @@
+<footer class="card-footer widget-days carousel weather-days-carousel" id="carousel"
+        style="margin: 0 2em 1em; border-top:none;  border-bottom-right-radius:1.5em; border-bottom-left-radius:1.5em">
+    {% for item in forecasts.forecast_items %}
+        <div class="card-footer-item"
+             style="border-radius:0.5em; backdrop-filter: blur(10px); background-color: #ffffff20;">
+            <div>
+                {{ item.forecast_date }}
+            </div>
+            <div>
+                <img
+                        src="{% static 'forecastmanager/img/'|add:item.condition|add:'.png' %}"
+                        alt="{{ item.condition_display }}"
+                        title="{{ item.condition_display }}"
+                        style="height:35px">
+            </div>
+            <div>
+                <p>
+                    {% if item.data_value.air_temperature_max %}
+                        <span style="font-size:18px; font-weight:600">
+                            {{ item.data_value.air_temperature_max|floatformat:0 }} {{ settings.forecastmanager.ForecastSetting.get_temp_units_display }}</span>
+                    {% endif %}
+
+                    {% if item.data_value.air_temperature_min %}
+                        <span style="font-size:12px">
+                            {{ item.data_value.air_temperature_min|floatformat:0 }} {{ settings.forecastmanager.ForecastSetting.get_temp_units_display }}</span>
+                    {% endif %}
+
+                </p>
+            </div>
+        </div>
+    {% endfor %}
+
+</footer>

@@ -1,30 +1,41 @@
-from django.urls import path
-from django.urls import reverse
+from django.urls import reverse, path
 from django.utils.translation import gettext_lazy as _
 from wagtail import hooks
 from wagtail.admin.menu import MenuItem
 from wagtail.snippets.models import register_snippet
-from wagtail.snippets.views.snippets import SnippetViewSet, SnippetViewSetGroup, CreateView
+from wagtail.snippets.views.snippets import (
+    SnippetViewSet,
+    SnippetViewSetGroup,
+    CreateView,
+)
 
 from forecastmanager.forms import ForecastForm
 from forecastmanager.models import City, DailyWeather, Forecast
-from forecastmanager.site_settings import ForecastSetting
-from forecastmanager.views import add_forecast, view_forecast
+from forecastmanager.forecast_settings import ForecastSetting
+from forecastmanager.views import load_cities
 
 
-@hooks.register("register_admin_urls")
-def register_admin_urls():
-    """
-    Registers forecast urls in the wagtail admin.
-    """
+@hooks.register('register_admin_urls')
+def urlconf_forecastmanager():
     return [
-        path("view-forecast/", view_forecast, name="view_forecast"),
-        path("add-forecast/", add_forecast, name="add_forecast"),
+        path('load-cities/', load_cities, name='load_cities'),
     ]
+
+
+@hooks.register("register_icons")
+def register_icons(icons):
+    weather_parameter_icons = [
+        'wagtailfontawesomesvg/solid/temperature-high.svg',
+        'wagtailfontawesomesvg/solid/temperature-low.svg',
+    ]
+
+    return icons + weather_parameter_icons
 
 
 class CityViewSet(SnippetViewSet):
     model = City
+
+    index_template_name = "forecastmanager/city_index.html"
 
     icon = "globe"
     menu_label = _("Cities")

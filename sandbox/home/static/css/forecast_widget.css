@@ -1,0 +1,115 @@
+.weather-widget {
+    max-width: 600px;
+    padding: 20px;
+}
+
+.weather-widget .card {
+    text-align: center;
+    color: white;
+    background-color: #ffffff20;
+    backdrop-filter: blur(10px);
+    width: 100%
+}
+
+.weather-widget .slider-pagination {
+    bottom: -24px !important;
+}
+
+.weather-widget .widget-header .city-name {
+    font-weight: 600;
+    font-size: 26px;
+}
+
+.weather-widget .slider-navigation-next, .slider-navigation-previous {
+    background: none;
+    border-width: 2px;
+    height: 30px;
+    width: 30px;
+    border-radius: 50%;
+}
+
+.weather-widget .max-temp {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.weather-widget .min-temp {
+    font-size: 14px;
+}
+
+.weather-temperature {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.focused-temp {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.focused-temp .max-temp {
+    font-size: 40px;
+    font-weight: 400;
+}
+
+
+.focused-temp .min-temp {
+    font-size: 24px;
+    font-weight: 400;
+}
+
+.weather-widget .columns {
+    justify-content: center;
+}
+
+.weather-condition .condition-label {
+    font-weight: 600;
+}
+
+
+.weather-widget .card-footer {
+    padding: 20px;
+    border: none;
+    width: 100%;
+    overflow: hidden
+}
+
+.weather-widget .card-footer-item {
+    backdrop-filter: blur(10px);
+    background-color: #ffffff20;
+    display: flex;
+    flex-direction: column;
+    margin: 0 10px;
+    border: none;
+}
+
+.weather-widget .card-footer-item img {
+    height: 50px;
+    width: 50px
+}
+
+
+@media screen and (max-width: 768px) {
+
+    .weather-widget .card-content {
+        padding: 0;
+    }
+
+
+    .weather-temperature {
+        padding-bottom: 4px;
+    }
+
+    .weather-condition {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+
+    .weather-condition img {
+        height: 90px;
+        width: 90px;
+    }
+}

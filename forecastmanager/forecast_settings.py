@@ -1,4 +1,5 @@
 from django.db import models
+from django.templatetags.static import static
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from modelcluster.fields import ParentalKey
@@ -12,18 +13,15 @@ from wagtail.contrib.settings.models import BaseSiteSetting
 from wagtail.contrib.settings.registry import register_setting
 from wagtail.models import Orderable
 
+from forecastmanager.constants import WEATHER_PARAMETER_CHOICES, WEATHER_PARAMETERS_AS_DICT
 from forecastmanager.widgets import WeatherSymbolChooserWidget
 
 
 @register_setting
 class ForecastSetting(ClusterableModel, BaseSiteSetting):
-    enable_auto_forecast = models.BooleanField(
-        default=False,
-        verbose_name=_('Enable automated forecasts')
-    )
-
-    default_city = models.ForeignKey("City", on_delete=models.CASCADE, verbose_name=_("Default City"), null=True,
-                                     blank=True, help_text="City will appear as first in homepage city forecasts")
+    enable_auto_forecast = models.BooleanField(default=False, verbose_name=_('Enable automated forecasts'))
+    default_city = models.ForeignKey("City", blank=True, null=True, on_delete=models.CASCADE,
+                                     verbose_name=_("Default City"))
 
     edit_handler = TabbedInterface([
         ObjectList([
@@ -64,42 +62,37 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
 
 class ForecastPeriod(Orderable):
     parent = ParentalKey(ForecastSetting, on_delete=models.CASCADE, related_name="periods")
-    whole_day = models.BooleanField(default=False, verbose_name=_("Is Whole Day"))
+    default = models.BooleanField(default=False, verbose_name=_("Is default"))
     forecast_effective_time = models.TimeField(verbose_name=_("Forecast Effective Time"))
     label = models.CharField(max_length=100, verbose_name=_("Label"))
 
     class Meta:
-        unique_together = ("whole_day", "forecast_effective_time")
+        unique_together = ("default", "forecast_effective_time")
+
+    panels = [
+        FieldPanel('forecast_effective_time'),
+        FieldPanel('label'),
+        FieldPanel('default'),
+    ]
 
     def __str__(self):
         return self.label
 
+    def save(self, *args, **kwargs):
+        if self.default:
+            ForecastPeriod.objects.filter(default=True).update(default=False)
+        super().save(*args, **kwargs)
+
 
 class ForecastDataParameters(Orderable):
-    PARAMETER_CHOICES = (
-        ("air_temperature_max", _("Maximum Air Temperature")),
-        ("air_temperature_min", _("Minimum Air Temperature")),
-        ("air_temperature", _("Air Temperature")),
-        ("dew_point_temperature", _("Dew Point Temperature")),
-        ("precipitation_amount", _("Precipitation Amount")),
-        ("air_pressure_at_sea_level", _("Air Pressure (Sea level)")),
-        ("wind_speed", _("Wind Speed")),
-        ("wind_from_direction", _("Wind Direction")),
-        ("relative_humidity", _("Relative Humidity")),
-        ("sunrise", _("Sunrise")),
-        ("sunset", _("Sunset")),
-        ("moonrise", _("Moonrise")),
-        ("moonset", _("Moonset")),
-    )
-
     PARAMETER_TYPE_CHOICES = (
         ("numeric", _("Number")),
         ("time", _("Time")),
         ("text", _("Text")),
     )
-
     parent = ParentalKey(ForecastSetting, on_delete=models.CASCADE, related_name="data_parameters")
-    parameter = models.CharField(max_length=100, choices=PARAMETER_CHOICES, unique=True, verbose_name=_("Parameter"))
+    parameter = models.CharField(max_length=100, choices=WEATHER_PARAMETER_CHOICES, unique=True,
+                                 verbose_name=_("Parameter"))
     name = models.CharField(max_length=100, verbose_name=_("Parameter Label"),
                             help_text=_("Parameter name as locally labelled"))
     parameter_type = models.CharField(max_length=100, choices=PARAMETER_TYPE_CHOICES, verbose_name=_("Parameter Type"),
@@ -107,8 +100,28 @@ class ForecastDataParameters(Orderable):
     parameter_unit = models.CharField(_("Unit of measurement"), max_length=100, null=True, blank=True,
                                       help_text="e.g °C, %, mm, hPa, etc ")
 
+    panels = [
+        FieldPanel('parameter'),
+        FieldPanel('name'),
+    ]
+
     def __str__(self):
         return self.name
+
+    @property
+    def parameter_info(self):
+        return WEATHER_PARAMETERS_AS_DICT.get(self.parameter)
+
+    def parse_value(self, value):
+        info = self.parameter_info
+
+        if info.get("data_type"):
+            if info.get("data_type") == "int":
+                return int(value)
+            elif info.get("data_type") == "float":
+                return float(value)
+
+        return value
 
 
 class WeatherCondition(Orderable):
@@ -125,3 +138,7 @@ class WeatherCondition(Orderable):
 
     def __str__(self):
         return self.label
+
+    @property
+    def icon_url(self):
+        return static('forecastmanager/weathericons/{}.png'.format(self.symbol))

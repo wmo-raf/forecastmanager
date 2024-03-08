@@ -22,7 +22,7 @@ class WeatherSymbolChooserWidget(WidgetWithScript, widgets.TextInput):
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
-        context["widget"]["icon_url"] = static("forecastmanager/img/{0}.png".format(value))
+        context["widget"]["icon_url"] = static("forecastmanager/weathericons/{0}.png".format(value))
         return context
 
     def render_js_init(self, id_, name, value):
@@ -31,7 +31,7 @@ class WeatherSymbolChooserWidget(WidgetWithScript, widgets.TextInput):
             symbol_options.append({
                 "value": symbol[0],
                 "label": str(symbol[1]),
-                "icon_url": static("forecastmanager/img/{0}.png".format(symbol[0])),
+                "icon_url": static("forecastmanager/weathericons/{0}.png".format(symbol[0])),
             })
 
         return "$(document).ready(() => new WeatherSymbolChooserWidget({0},{1}));".format(json.dumps(id_),

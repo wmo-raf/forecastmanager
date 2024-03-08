@@ -56,6 +56,8 @@ INSTALLED_APPS = [
     "django_deep_translator",
     "background_task",
     "wagtail_modeladmin",
+    "wagtailfontawesomesvg",
+    "wagtail.contrib.routable_page",
 ]
 
 MIDDLEWARE = [

@@ -112,3 +112,80 @@ WEATHER_CONDITION_CHOICES = (
     ('lightsnow', _('Light Snow')),  # 49
     ('heavysnow', _('Heavy Snow')),  # 50
 )
+
+WEATHER_PARAMETERS = [
+    {
+        "name": "air_temperature_max",
+        "label": "Maximum Air Temperature",
+        "unit": "°C",
+        "data_type": "int"
+    },
+    {
+        "name": "air_temperature_min",
+        "label": "Minimum Air Temperature",
+        "unit": "°C",
+        "data_type": "int"
+    },
+    {
+        "name": "air_temperature",
+        "label": "Air Temperature",
+        "unit": "°C",
+        "data_type": "int"
+    },
+    {
+        "name": "dew_point_temperature",
+        "label": "Dew Point Temperature",
+        "unit": "°C",
+        "data_type": "int"
+    },
+    {
+        "name": "precipitation_amount",
+        "label": "Precipitation Amount",
+        "unit": "mm",
+        "data_type": "float"
+    },
+    {
+        "name": "air_pressure_at_sea_level",
+        "label": "Air Pressure (Sea level)",
+        "unit": "hPa",
+        "data_type": "int"
+    },
+    {
+        "name": "wind_speed",
+        "label": "Wind Speed",
+        "unit": "m/s",
+        "data_type": "int"
+    },
+    {
+        "name": "wind_from_direction",
+        "label": "Wind Direction",
+        "unit": "°",
+        "data_type": "int"
+    },
+    {
+        "name": "relative_humidity",
+        "label": "Relative Humidity",
+        "unit": "%",
+        "data_type": "int"
+    },
+    {
+        "name": "sunrise",
+        "label": "Sunrise",
+    },
+    {
+        "name": "sunset",
+        "label": "Sunset",
+    },
+    {
+        "name": "moonrise",
+        "label": "Moonrise",
+    },
+    {
+        "name": "moonset",
+        "label": "Moonset",
+    },
+]
+
+WEATHER_PARAMETER_CHOICES = [(param['name'], _(param['label'])) for param in WEATHER_PARAMETERS]
+
+WEATHER_PARAMETERS_AS_DICT = {param['name']: param for param in WEATHER_PARAMETERS}

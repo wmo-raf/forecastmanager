@@ -1,0 +1,82 @@
+{% load i18n %}
+
+<div class="weather-widget">
+    <div class="card py-4 elevation-0">
+        {% with default_city_forecasts|first as earliest %}
+            <div class="card-content">
+                <div class="widget-header">
+                    <div class="city-name">
+                        {{ earliest.city.name }}
+                    </div>
+                    <p>
+                        {{ earliest.forecast_date|date:"l, j M Y" }}
+                    </p>
+                </div>
+                <div class="columns is-multiline is-mobile">
+                    <div class="column weather-temperature is-one-third-desktop is-full-mobile">
+                        {% if earliest.data_values_dict.temperature %}
+                            <div class="focused-temp">
+                                {% if earliest.data_values_dict.temperature.temp %}
+                                    {{ earliest.data_values_dict.temperature.temp.value_with_units }}
+                                {% else %}
+                                    {% if earliest.data_values_dict.temperature.max_temp %}
+                                        <div class="max-temp">
+                                            {{ earliest.data_values_dict.temperature.max_temp.value_with_units }}
+                                        </div>
+                                    {% endif %}
+                                    {% if earliest.data_values_dict.temperature.min_temp %}
+                                        <div class="min-temp">
+                                            {{ earliest.data_values_dict.temperature.min_temp.value_with_units }}
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="column weather-condition is-one-third-desktop is-full-mobile">
+                        <img src="{{ earliest.condition.icon_url }}" alt="{{ earliest.condition.label }}">
+                        <p class="condition-label">{{ earliest.condition.label }}</p>
+                    </div>
+                </div>
+            </div>
+        {% endwith %}
+        {% if default_city_forecasts|length > 2 %}
+            <footer class="card-footer" id="forecast-carousel">
+                {% for forecast in default_city_forecasts %}
+                    {% if not forloop.first %}
+                        <div class="card-footer-item">
+                            <div>
+                                {{ forecast.forecast_date|date:"D, j M" }}
+                            </div>
+                            <img src="{{ forecast.condition.icon_url }}"
+                                 alt="{{ forecast.condition.label }}"
+                                 title="{{ item.condition.label }}">
+                            <div>
+                                {% if forecast.data_values_dict.temperature %}
+                                    {% if forecast.data_values_dict.temperature.temp %}
+                                        {{ forecast.data_values_dict.temperature.temp.value_with_units }}
+                                    {% else %}
+                                        {% if forecast.data_values_dict.temperature.max_temp %}
+                                            <span class="max-temp">
+                                                {{ forecast.data_values_dict.temperature.max_temp.value_with_units }}
+                                            </span>
+                                        {% endif %}
+                                        {% if forecast.data_values_dict.temperature.min_temp %}
+                                            <span class="min-temp">
+                                                {{ forecast.data_values_dict.temperature.min_temp.value_with_units }}
+                                            </span>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </footer>
+        {% endif %}
+    </div>
+</div>
+
+
+
+

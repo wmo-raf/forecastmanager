@@ -1,21 +1,37 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static wagtailimages_tags %}
 
-{% block body_class %}template-homepage{% endblock %}
+{% block body_class %}home{% endblock %}
 
 {% block extra_css %}
-
-{% comment %}
-Delete the line below if you're just getting started and want to remove the welcome screen!
-{% endcomment %}
-<link rel="stylesheet" href="{% static 'css/welcome_page.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bulma-carousel.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/forecast_widget.css' %}">
 {% endblock extra_css %}
 
 {% block content %}
 
-{% comment %}
-Delete the line below if you're just getting started and want to remove the welcome screen!
-{% endcomment %}
-{% include 'home/welcome_page.html' %}
+    {% image page.banner_image original as banner_image %}
+    <div style="background-image: url('{{ banner_image.url }}');background-position: center center; background-repeat: no-repeat;background-size: cover;padding: 120px 0">
+        <div class="container">
+            {% if default_city_forecasts %}
+                {% include "home/forecast_widget_include.html" %}
+            {% endif %}
+        </div>
+    </div>
 
 {% endblock content %}
+
+{% block extra_js %}
+    <script type="text/javascript" src="{% static 'js/bulma-carousel.min.js' %}"></script>
+    <script>
+        // Store the carousel HTML content
+        bulmaCarousel.attach("#forecast-carousel", {
+            slidesToScroll: 1,
+            slidesToShow: 3,
+            navigation: true,
+            loop: true
+        })
+
+    </script>
+{% endblock %}
+
