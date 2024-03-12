@@ -22,6 +22,7 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
     enable_auto_forecast = models.BooleanField(default=False, verbose_name=_('Enable automated forecasts'))
     default_city = models.ForeignKey("City", blank=True, null=True, on_delete=models.CASCADE,
                                      verbose_name=_("Default City"))
+    weather_detail_page = models.ForeignKey("wagtailcore.Page", blank=True, null=True, on_delete=models.SET_NULL, )
 
     edit_handler = TabbedInterface([
         ObjectList([
@@ -38,7 +39,8 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
         ], heading=_("Forecast Source")),
         ObjectList([
             FieldPanel('default_city'),
-        ], heading=_("Default City")),
+            FieldPanel('weather_detail_page'),
+        ], heading=_("City")),
     ])
 
     @cached_property
@@ -115,11 +117,16 @@ class ForecastDataParameters(Orderable):
     def parse_value(self, value):
         info = self.parameter_info
 
-        if info.get("data_type"):
+        if not info.get("data_type"):
+            return value
+
+        try:
             if info.get("data_type") == "int":
-                return int(value)
+                return int(float(value))
             elif info.get("data_type") == "float":
                 return float(value)
+        except ValueError:
+            pass
 
         return value
 

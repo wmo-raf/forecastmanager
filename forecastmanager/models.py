@@ -44,9 +44,21 @@ class City(models.Model):
         return self.name
 
     @property
+    def clean_name(self):
+        return self.name.replace(" ", "--")
+
+    @property
     def coordinates(self):
         location = geosgeometry_str_to_struct(str(self.location))
         return [float(location['x']), float(location['y'])]
+
+    @property
+    def x(self):
+        return self.coordinates[0]
+
+    @property
+    def y(self):
+        return self.coordinates[1]
 
 
 class Forecast(ClusterableModel):
@@ -118,10 +130,10 @@ class CityForecast(ClusterableModel, Orderable):
         data_values = {}
         for data_value in self.data_values.all():
             data_values[data_value.parameter.parameter] = {
-                "value": data_value.value,
+                "value": data_value.parsed_value,
                 "label": data_value.parameter.parameter_info.get("label"),
                 "units": data_value.parameter.parameter_info.get("unit"),
-                "value_with_units": f"{data_value.value}{data_value.parameter.parameter_info.get('unit')}",
+                "value_with_units": data_value.value_with_units,
             }
 
         # Group temperature values
@@ -177,6 +189,10 @@ class DataValue(ClusterableModel, Orderable):
     @property
     def parsed_value(self):
         return self.parameter.parse_value(self.value)
+
+    @property
+    def value_with_units(self):
+        return f"{self.parsed_value}{self.parameter.parameter_info.get('unit')}"
 
 
 class DailyWeather(models.Model):

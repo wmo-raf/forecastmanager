@@ -10,9 +10,9 @@ from rest_framework.generics import ListAPIView
 from rest_framework.permissions import BasePermission, IsAuthenticated, SAFE_METHODS
 
 from forecastmanager.models import City, Forecast
+from .forecast_settings import ForecastSetting
 from .forms import CityLoaderForm
 from .serializers import CitySerializer, ForecastSerializer
-from .forecast_settings import ForecastSetting
 
 
 class ReadOnly(BasePermission):
@@ -24,6 +24,13 @@ class CityListView(ListAPIView):
     queryset = City.objects.all()
     serializer_class = CitySerializer
     permission_classes = [IsAuthenticated | ReadOnly]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        name = self.request.query_params.get('name')
+        if name:
+            queryset = queryset.filter(name__icontains=name)
+        return queryset
 
 
 class ForecastListView(ListAPIView):

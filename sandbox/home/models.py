@@ -1,7 +1,9 @@
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from wagtail.admin.panels import FieldPanel
+from wagtail.api.v2.utils import get_full_url
 from wagtail.contrib.routable_page.models import RoutablePageMixin, path
 from wagtail.models import Page
 
@@ -20,6 +22,22 @@ class HomePage(Page):
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
         fm_settings = ForecastSetting.for_request(request)
+        city_detail_page = fm_settings.weather_detail_page
+        city_detail_page_url = None
+
+        if city_detail_page:
+            city_detail_page = city_detail_page.specific
+            city_detail_page_url = city_detail_page.get_full_url(request)
+            city_detail_page_url = city_detail_page_url + city_detail_page.reverse_subpage("forecast_for_city")
+            context.update({
+                "city_detail_page_url": city_detail_page_url,
+            })
+
+        city_search_url = get_full_url(request, reverse("cities-list"))
+        context.update({
+            "city_search_url": city_search_url,
+            "city_detail_page_url": city_detail_page_url
+        })
 
         default_city = fm_settings.default_city
         if not default_city:
@@ -45,6 +63,7 @@ class WeatherPage(RoutablePageMixin, Page):
     @path('daily-table/<str:city_name>/')
     def forecast_for_city(self, request, city_name=None):
         if city_name:
+            city_name = city_name.replace("--", " ")
             city = City.objects.filter(name__iexact=city_name).first()
             if city is None:
                 return self.render(request, context_overrides={

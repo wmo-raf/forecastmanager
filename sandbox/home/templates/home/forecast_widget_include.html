@@ -1,14 +1,37 @@
 {% load i18n %}
 
 <div class="weather-widget">
-    <div class="card py-4 elevation-0">
+    <div class="card elevation-0">
         {% with default_city_forecasts|first as earliest %}
+            <div class="dropdown city-search">
+                <div class="dropdown-trigger">
+                    <p class="control has-icons-left">
+                        <input id="prova" class="input is-small" type="text"
+                               placeholder="Search City"
+                               aria-haspopup="true"
+                               aria-controls="prova-menu"
+                               autocomplete="off"
+                        >
+                        <span class="icon is-small is-left">
+                            <i class="fas fa-search"></i>
+                        </span>
+                    </p>
+
+                </div>
+                <div class="dropdown-menu" id="prova-menu" role="menu">
+                </div>
+            </div>
             <div class="card-content">
                 <div class="widget-header">
                     <div class="city-name">
-                        {{ earliest.city.name }}
+                        <span class="icon is-small is-left">
+                            <i class="fas fa-location-dot"></i>
+                        </span>
+                        <p>
+                            {{ earliest.city.name }}
+                        </p>
                     </div>
-                    <p>
+                    <p class="date">
                         {{ earliest.forecast_date|date:"l, j M Y" }}
                     </p>
                 </div>

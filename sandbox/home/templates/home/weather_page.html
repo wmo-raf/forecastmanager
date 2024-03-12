@@ -38,7 +38,7 @@
                             {% for param in weather_parameters %}
                                 {% for data in forecast.data_values.all %}
                                     {% if data.parameter == param %}
-                                        <td>{{ data.value }} {{ data.parameter.parameter_info.unit }}</td>
+                                        <td>{{ data.value_with_units }}</td>
                                     {% endif %}
                                 {% endfor %}
                             {% endfor %}

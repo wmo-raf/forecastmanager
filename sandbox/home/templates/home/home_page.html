@@ -23,14 +23,51 @@
 
 {% block extra_js %}
     <script type="text/javascript" src="{% static 'js/bulma-carousel.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bulmahead.js' %}"></script>
     <script>
-        // Store the carousel HTML content
+
+
         bulmaCarousel.attach("#forecast-carousel", {
             slidesToScroll: 1,
             slidesToShow: 3,
             navigation: true,
             loop: true
         })
+
+        const citySearchUrl = "{{ city_search_url }}"
+        const cityDetailUrl = "{{ city_detail_page_url|default_if_none:"" }}"
+
+        const onSelect = ({label, value}) => {
+            if (cityDetailUrl) {
+                let url
+                // Check if the URL ends with a slash
+                if (cityDetailUrl.charAt(cityDetailUrl.length - 1) === '/') {
+                    // If it does, append the path without an extra slash
+                    url = cityDetailUrl + value;
+                } else {
+                    // If it doesn't, append the path with a leading slash
+                    url = cityDetailUrl + '/' + value;
+                }
+
+                window.location.href = url;
+            }
+        }
+
+
+        const getMatchingCity = (name) => {
+            return fetch(`${citySearchUrl}?name=${name}`)
+                .then(response => response.json())
+                .then(data => {
+                    return data.map(city => {
+                        return {
+                            label: city.name,
+                            value: city.clean_name
+                        }
+                    })
+                })
+        }
+
+        bulmaHead('prova', 'prova-menu', getMatchingCity, onSelect, 200, 0);
 
     </script>
 {% endblock %}

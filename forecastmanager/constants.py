@@ -1,117 +1,107 @@
 from django.utils.translation import gettext_lazy as _
 
 # extracted from https://nrkno.github.io/yr-weather-symbols/
-WEATHER_CONDITION_CHOICES = (
-    ('clearsky_day', _('Clear sky Day')),  # 01d
-    ('clearsky_night', _('Clear sky Night')),  # 01n
-    ('clearsky_polartwilight', _('Clear sky Polar Twilight')),  # 01m
+WEATHER_CONDITIONS = [
+    {'id': 'clearsky_day', 'name': 'Clear sky Day'},
+    {'id': 'clearsky_night', 'name': 'Clear sky Night'},
+    {'id': 'clearsky_polartwilight', 'name': 'Clear sky Polar Twilight'},
 
-    ('fair_day', _('Fair Day')),  # 02d
-    ('fair_night', _('Fair Night')),  # 02n
-    ('fair_polartwilight', _('Fair Polar Twilight')),  # 02m
+    {'id': 'fair_day', 'name': 'Fair Day'},
+    {'id': 'fair_night', 'name': 'Fair Night'},
+    {'id': 'fair_polartwilight', 'name': 'Fair Polar Twilight'},
 
-    ('partlycloudy_day', _('Partly Cloudy Day')),  # 03d
-    ('partlycloudy_night', _('Partly Cloudy Night')),  # 03n
-    ('partlycloudy_polartwilight', _('Partly Cloudy Polar Twilight')),
+    {'id': 'partlycloudy_day', 'name': 'Partly Cloudy Day'},
+    {'id': 'partlycloudy_night', 'name': 'Partly Cloudy Night'},
+    {'id': 'partlycloudy_polartwilight', 'name': 'Partly Cloudy Polar Twilight'},
 
-    ('cloudy', _('Cloudy')),  # 04
+    {'id': 'cloudy', 'name': 'Cloudy'},
 
-    ('rainshowers_day', _('Rain Showers Day')),  # 05d
-    ('rainshowers_night', _('Rain Showers Night')),  # 05n
-    ('rainshowers_polartwilight', _('Rain Showers Polar Twilight')),  # 05m
+    {'id': 'rainshowers_day', 'name': 'Rain Showers Day'},
+    {'id': 'rainshowers_night', 'name': 'Rain Showers Night'},
+    {'id': 'rainshowers_polartwilight', 'name': 'Rain Showers Polar Twilight'},
 
-    ('rainshowersandthunder_day', _('Rain Showers and Thunder Day')),  # 06d
-    ('rainshowersandthunder_night', _('Rain Showers and Thunder Night')),  # 06n
-    ('rainshowersandthunder_polartwilight', _('Rain Showers and Thunder Polar Twilight')),  # 06m
+    {'id': 'rainshowersandthunder_day', 'name': 'Rain Showers and Thunder Day'},
+    {'id': 'rainshowersandthunder_night', 'name': 'Rain Showers and Thunder Night'},
+    {'id': 'rainshowersandthunder_polartwilight', 'name': 'Rain Showers and Thunder Polar Twilight'},
 
-    ('sleetshowers_day', _('Sleet Showers Day')),  # 07d
-    ('sleetshowers_night', _('Sleet Showers Night')),  # 07n
-    ('sleetshowers_polartwilight', _('Sleet Showers Polar Twilight')),
+    {'id': 'sleetshowers_day', 'name': 'Sleet Showers Day'},
+    {'id': 'sleetshowers_night', 'name': 'Sleet Showers Night'},
+    {'id': 'sleetshowers_polartwilight', 'name': 'Sleet Showers Polar Twilight'},
 
-    ('snowshowers_day', _('Snow Showers Day')),  # 08d
-    ('snowshowers_night', _('Snow Showers Night')),  # 08n
-    ('snowshowers_polartwilight', _('Snow Showers Polar Twilight')),  # 08m
+    {'id': 'snowshowers_day', 'name': 'Snow Showers Day'},
+    {'id': 'snowshowers_night', 'name': 'Snow Showers Night'},
+    {'id': 'snowshowers_polartwilight', 'name': 'Snow Showers Polar Twilight'},
 
-    ('rain', _('Rain')),  # 09
-    ('heavyrain', _('Heavy Rain')),  # 10
-    ('heavyrainandthunder', _('Heavy Rain and Thunder')),  # 11
-    ('sleet', _('Sleet')),  # 12
-    ('snow', _('Snow')),  # 13
-    ('snowandthunder', _('Snow and Thunder')),  # 14
-    ('fog', _('Fog')),  # 15
+    {'id': 'rain', 'name': 'Rain'}, {'id': 'heavyrain', 'name': 'Heavy Rain'},
 
-    ('sleetshowersandthunder_day', _('Sleet Showers and Thunder Day')),  # 20d
-    ('sleetshowersandthunder_night', _('Sleet Showers and Thunder Night')),  # 20n
-    ('sleetshowersandthunder_polartwilight', _('Sleet Showers and Thunder Polar Twilight')),  # 20m
+    {'id': 'heavyrainandthunder', 'name': 'Heavy Rain and Thunder'}, {'id': 'sleet', 'name': 'Sleet'},
 
-    ('snowshowersandthunder_day', _('Snow Showers and Thunder Day')),  # 21d
-    ('snowshowersandthunder_night', _('Snow Showers and Thunder Night')),  # 21n
-    ('snowshowersandthunder_polartwilight', _('Snow Showers and Thunder Polar Twilight')),  # 21m
+    {'id': 'snow', 'name': 'Snow'}, {'id': 'snowandthunder', 'name': 'Snow and Thunder'},
 
-    ('rainandthunder', _('Rain and Thunder')),  # 22
-    ('sleetandthunder', _('Sleet and Thunder')),  # 23
+    {'id': 'fog', 'name': 'Fog'},
 
-    ('lightrainshowersandthunder_day', _('Light Rain Showers and Thunder Day')),  # 24d
-    ('lightrainshowersandthunder_night', _('Light Rain Showers and Thunder Night')),  # 24n
-    ('lightrainshowersandthunder_polartwilight', _('Light Rain Showers and Thunder Polar Twilight')),  # 24m
+    {'id': 'sleetshowersandthunder_day', 'name': 'Sleet Showers and Thunder Day'},
+    {'id': 'sleetshowersandthunder_night', 'name': 'Sleet Showers and Thunder Night'},
+    {'id': 'sleetshowersandthunder_polartwilight', 'name': 'Sleet Showers and Thunder Polar Twilight'},
 
-    ('heavyrainshowersandthunder_day', _('Heavy Rain Showers and Thunder Day')),  # 25d
-    ('heavyrainshowersandthunder_night', _('Heavy Rain Showers and Thunder Night')),  # 25n
-    ('heavyrainshowersandthunder_polartwilight', _('Heavy Rain Showers and Thunder Polar Twilight')),  # 25m
+    {'id': 'snowshowersandthunder_day', 'name': 'Snow Showers and Thunder Day'},
+    {'id': 'snowshowersandthunder_night', 'name': 'Snow Showers and Thunder Night'},
+    {'id': 'snowshowersandthunder_polartwilight', 'name': 'Snow Showers and Thunder Polar Twilight'},
 
-    ('lightsleetshowersandthunder_day', _('Light Sleet Showers and Thunder Day')),  # 26d
-    ('lightsleetshowersandthunder_night', _('Light Sleet Showers and Thunder Night')),  # 26n
-    ('lightsleetshowersandthunder_polartwilight', _('Light Sleet Showers and Thunder Polar Twilight')),  # 26m
+    {'id': 'rainandthunder', 'name': 'Rain and Thunder'},
 
-    ('heavysleetshowersandthunder_day', _('Heavy Sleet Showers and Thunder Day')),  # 27d
-    ('heavysleetshowersandthunder_night', _('Heavy Sleet Showers and Thunder Night')),  # 27n
-    ('heavysleetshowersandthunder_polartwilight', _('Heavy Sleet Showers and Thunder Polar Twilight')),  # 27m
+    {'id': 'sleetandthunder', 'name': 'Sleet and Thunder'},
 
-    ('lightsnowshowersandthunder_day', _('Light Snow Showers and Thunder Day')),  # 28d
-    ('lightsnowshowersandthunder_night', _('Light Snow Showers and Thunder Night')),  # 28n
-    ('lightsnowshowersandthunder_polartwilight', _('Light Snow Showers and Thunder Polar Twilight')),  # 28m
+    {'id': 'lightrainshowersandthunder_day', 'name': 'Light Rain Showers and Thunder Day'},
+    {'id': 'lightrainshowersandthunder_night', 'name': 'Light Rain Showers and Thunder Night'},
+    {'id': 'lightrainshowersandthunder_polartwilight', 'name': 'Light Rain Showers and Thunder Polar Twilight'},
 
-    ('heavysnowshowersandthunder_day', _('Heavy Snow Showers and Thunder Day')),  # 29d
-    ('heavysnowshowersandthunder_night', _('Heavy Snow Showers and Thunder Night')),  # 29n
-    ('heavysnowshowersandthunder_polartwilight', _('Heavy Snow Showers and Thunder Polar Twilight')),  # 29m
+    {'id': 'heavyrainshowersandthunder_day', 'name': 'Heavy Rain Showers and Thunder Day'},
+    {'id': 'heavyrainshowersandthunder_night', 'name': 'Heavy Rain Showers and Thunder Night'},
+    {'id': 'heavyrainshowersandthunder_polartwilight', 'name': 'Heavy Rain Showers and Thunder Polar Twilight'},
 
-    ('lightrainandthunder', _('Light Rain and Thunder')),  # 30
-    ('lightsleetandthunder', _('Light Sleet and Thunder')),  # 31
+    {'id': 'lightsleetshowersandthunder_day', 'name': 'Light Sleet Showers and Thunder Day'},
+    {'id': 'lightsleetshowersandthunder_night', 'name': 'Light Sleet Showers and Thunder Night'},
+    {'id': 'lightsleetshowersandthunder_polartwilight', 'name': 'Light Sleet Showers and Thunder Polar Twilight'},
 
-    ('heavysleetandthunder', _('Heavy Sleet and Thunder')),  # 32
-    ('lightsnowandthunder', _('Light Snow and Thunder')),  # 33
-    ('heavysnowandthunder', _('Heavy Snow and Thunder')),  # 34
+    {'id': 'heavysleetshowersandthunder_day', 'name': 'Heavy Sleet Showers and Thunder Day'},
+    {'id': 'heavysleetshowersandthunder_night', 'name': 'Heavy Sleet Showers and Thunder Night'},
+    {'id': 'heavysleetshowersandthunder_polartwilight', 'name': 'Heavy Sleet Showers and Thunder Polar Twilight'},
 
-    ('lightrainshowers_day', _('Light Rain Showers Day')),  # 40d
-    ('lightrainshowers_night', _('Light Rain Showers Night')),  # 40n
-    ('lightrainshowers_polartwilight', _('Light Rain Showers Polar Twilight')),  # 40m
+    {'id': 'lightsnowshowersandthunder_day', 'name': 'Light Snow Showers and Thunder Day'},
+    {'id': 'lightsnowshowersandthunder_night', 'name': 'Light Snow Showers and Thunder Night'},
+    {'id': 'lightsnowshowersandthunder_polartwilight', 'name': 'Light Snow Showers and Thunder Polar Twilight'},
 
-    ('heavyrainshowers_day', _('Heavy Rain Showers Day')),  # 41d
-    ('heavyrainshowers_night', _('Heavy Rain Showers Night')),  # 41n
-    ('heavyrainshowers_polartwilight', _('Heavy Rain Showers Polar Twilight')),  # 41m
+    {'id': 'heavysnowshowersandthunder_day', 'name': 'Heavy Snow Showers and Thunder Day'},
+    {'id': 'heavysnowshowersandthunder_night', 'name': 'Heavy Snow Showers and Thunder Night'},
+    {'id': 'heavysnowshowersandthunder_polartwilight', 'name': 'Heavy Snow Showers and Thunder Polar Twilight'},
 
-    ('lightsleetshowers_day', _('Light Sleet Showers Day')),  # 42d
-    ('lightsleetshowers_night', _('Light Sleet Showers Night')),  # 42n
-    ('lightsleetshowers_polartwilight', _('Light Sleet Showers Polar Twilight')),  # 42m
-
-    ('heavysleetshowers_day', _('Heavy Sleet Showers Day')),  # 43d
-    ('heavysleetshowers_night', _('Heavy Sleet Showers Night')),  # 43n
-    ('heavysleetshowers_polartwilight', _('Heavy Sleet Showers Polar Twilight')),  # 43m
-
-    ('lightsnowshowers_day', _('Light Snow Showers Day')),  # 44d
-    ('lightsnowshowers_night', _('Light Snow Showers Night')),  # 44n
-    ('lightsnowshowers_polartwilight', _('Light Snow Showers Polar Twilight')),  # 44m
-
-    ('heavysnowshowers_day', _('Heavy Snow Showers Day')),  # 45d
-    ('heavysnowshowers_night', _('Heavy Snow Showers Night')),  # 45n
-    ('heavysnowshowers_polartwilight', _('Heavy Snow Showers Polar Twilight')),  # 45m
-
-    ('lightrain', _('Light Rain')),  # 46
-    ('lightsleet', _('Light Sleet')),  # 47
-    ('heavysleet', _('Heavy Sleet')),  # 48
-    ('lightsnow', _('Light Snow')),  # 49
-    ('heavysnow', _('Heavy Snow')),  # 50
-)
+    {'id': 'lightrainandthunder', 'name': 'Light Rain and Thunder'},
+    {'id': 'lightsleetandthunder', 'name': 'Light Sleet and Thunder'},
+    {'id': 'heavysleetandthunder', 'name': 'Heavy Sleet and Thunder'},
+    {'id': 'lightsnowandthunder', 'name': 'Light Snow and Thunder'},
+    {'id': 'heavysnowandthunder', 'name': 'Heavy Snow and Thunder'},
+    {'id': 'lightrainshowers_day', 'name': 'Light Rain Showers Day'},
+    {'id': 'lightrainshowers_night', 'name': 'Light Rain Showers Night'},
+    {'id': 'lightrainshowers_polartwilight', 'name': 'Light Rain Showers Polar Twilight'},
+    {'id': 'heavyrainshowers_day', 'name': 'Heavy Rain Showers Day'},
+    {'id': 'heavyrainshowers_night', 'name': 'Heavy Rain Showers Night'},
+    {'id': 'heavyrainshowers_polartwilight', 'name': 'Heavy Rain Showers Polar Twilight'},
+    {'id': 'lightsleetshowers_day', 'name': 'Light Sleet Showers Day'},
+    {'id': 'lightsleetshowers_night', 'name': 'Light Sleet Showers Night'},
+    {'id': 'lightsleetshowers_polartwilight', 'name': 'Light Sleet Showers Polar Twilight'},
+    {'id': 'heavysleetshowers_day', 'name': 'Heavy Sleet Showers Day'},
+    {'id': 'heavysleetshowers_night', 'name': 'Heavy Sleet Showers Night'},
+    {'id': 'heavysleetshowers_polartwilight', 'name': 'Heavy Sleet Showers Polar Twilight'},
+    {'id': 'lightsnowshowers_day', 'name': 'Light Snow Showers Day'},
+    {'id': 'lightsnowshowers_night', 'name': 'Light Snow Showers Night'},
+    {'id': 'lightsnowshowers_polartwilight', 'name': 'Light Snow Showers Polar Twilight'},
+    {'id': 'heavysnowshowers_day', 'name': 'Heavy Snow Showers Day'},
+    {'id': 'heavysnowshowers_night', 'name': 'Heavy Snow Showers Night'},
+    {'id': 'heavysnowshowers_polartwilight', 'name': 'Heavy Snow Showers Polar Twilight'},
+    {'id': 'lightrain', 'name': 'Light Rain'}, {'id': 'lightsleet', 'name': 'Light Sleet'},
+    {'id': 'heavysleet', 'name': 'Heavy Sleet'}, {'id': 'lightsnow', 'name': 'Light Snow'},
+    {'id': 'heavysnow', 'name': 'Heavy Snow'}]
 
 WEATHER_PARAMETERS = [
     {
@@ -189,3 +179,7 @@ WEATHER_PARAMETERS = [
 WEATHER_PARAMETER_CHOICES = [(param['name'], _(param['label'])) for param in WEATHER_PARAMETERS]
 
 WEATHER_PARAMETERS_AS_DICT = {param['name']: param for param in WEATHER_PARAMETERS}
+
+WEATHER_CONDITION_CHOICES = [(condition['id'], _(condition['name'])) for condition in WEATHER_CONDITIONS]
+
+WEATHER_CONDITIONS_AS_DICT = {condition['id']: condition for condition in WEATHER_CONDITIONS}

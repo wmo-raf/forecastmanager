@@ -9,9 +9,9 @@ from wagtail.snippets.views.snippets import (
     CreateView,
 )
 
+from forecastmanager.forecast_settings import ForecastSetting
 from forecastmanager.forms import ForecastForm
 from forecastmanager.models import City, DailyWeather, Forecast
-from forecastmanager.forecast_settings import ForecastSetting
 from forecastmanager.views import load_cities
 
 
@@ -34,11 +34,21 @@ def register_icons(icons):
 
 class CityViewSet(SnippetViewSet):
     model = City
+    list_filter = {"name": ["icontains"]}
 
     index_template_name = "forecastmanager/city_index.html"
 
     icon = "globe"
     menu_label = _("Cities")
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+
+        name = request.GET.get("name")
+
+        print(name)
+
+        return queryset
 
 
 class DailyWeatherViewSet(SnippetViewSet):
