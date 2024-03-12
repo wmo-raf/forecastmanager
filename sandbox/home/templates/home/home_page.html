@@ -1,21 +1,74 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static wagtailimages_tags %}
 
-{% block body_class %}template-homepage{% endblock %}
+{% block body_class %}home{% endblock %}
 
 {% block extra_css %}
-
-{% comment %}
-Delete the line below if you're just getting started and want to remove the welcome screen!
-{% endcomment %}
-<link rel="stylesheet" href="{% static 'css/welcome_page.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bulma-carousel.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/forecast_widget.css' %}">
 {% endblock extra_css %}
 
 {% block content %}
 
-{% comment %}
-Delete the line below if you're just getting started and want to remove the welcome screen!
-{% endcomment %}
-{% include 'home/welcome_page.html' %}
+    {% image page.banner_image original as banner_image %}
+    <div style="background-image: url('{{ banner_image.url }}');background-position: center center; background-repeat: no-repeat;background-size: cover;padding: 120px 0">
+        <div class="container">
+            {% if default_city_forecasts %}
+                {% include "home/forecast_widget_include.html" %}
+            {% endif %}
+        </div>
+    </div>
 
 {% endblock content %}
+
+{% block extra_js %}
+    <script type="text/javascript" src="{% static 'js/bulma-carousel.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bulmahead.js' %}"></script>
+    <script>
+
+
+        bulmaCarousel.attach("#forecast-carousel", {
+            slidesToScroll: 1,
+            slidesToShow: 3,
+            navigation: true,
+            loop: true
+        })
+
+        const citySearchUrl = "{{ city_search_url }}"
+        const cityDetailUrl = "{{ city_detail_page_url|default_if_none:"" }}"
+
+        const onSelect = ({label, value}) => {
+            if (cityDetailUrl) {
+                let url
+                // Check if the URL ends with a slash
+                if (cityDetailUrl.charAt(cityDetailUrl.length - 1) === '/') {
+                    // If it does, append the path without an extra slash
+                    url = cityDetailUrl + value;
+                } else {
+                    // If it doesn't, append the path with a leading slash
+                    url = cityDetailUrl + '/' + value;
+                }
+
+                window.location.href = url;
+            }
+        }
+
+
+        const getMatchingCity = (name) => {
+            return fetch(`${citySearchUrl}?name=${name}`)
+                .then(response => response.json())
+                .then(data => {
+                    return data.map(city => {
+                        return {
+                            label: city.name,
+                            value: city.clean_name
+                        }
+                    })
+                })
+        }
+
+        bulmaHead('prova', 'prova-menu', getMatchingCity, onSelect, 200, 0);
+
+    </script>
+{% endblock %}
+

@@ -1,97 +1,127 @@
-from django.urls import path
-from django.urls import reverse
+from django.urls import reverse, path
 from django.utils.translation import gettext_lazy as _
 from wagtail import hooks
 from wagtail.admin.menu import MenuItem
-from wagtail.contrib.modeladmin.options import (
-    ModelAdmin,
-    modeladmin_register,
-    ModelAdminGroup
+from wagtail.snippets.models import register_snippet
+from wagtail.snippets.views.snippets import (
+    SnippetViewSet,
+    SnippetViewSetGroup,
+    CreateView,
 )
 
-from forecastmanager.models import City, DailyWeather
-from forecastmanager.site_settings import ForecastSetting
-from forecastmanager.views import add_forecast, view_forecast
+from forecastmanager.forecast_settings import ForecastSetting
+from forecastmanager.forms import ForecastForm
+from forecastmanager.models import City, DailyWeather, Forecast
+from forecastmanager.views import load_cities
 
 
-@hooks.register("register_admin_urls")
-def register_admin_urls():
-    """
-    Registers forecast urls in the wagtail admin.
-    """
+@hooks.register('register_admin_urls')
+def urlconf_forecastmanager():
     return [
-        path("view-forecast/", view_forecast, name="view_forecast"),
-        path("add-forecast/", add_forecast, name="add_forecast"),
+        path('load-cities/', load_cities, name='load_cities'),
     ]
 
 
-class ForecastSettingAdmin(ModelAdmin):
-    model = ForecastSetting
-    menu_label = _('Settings')
-    menu_icon = 'cog'
-    add_to_settings_menu = False
-    exclude_from_explorer = False
+@hooks.register("register_icons")
+def register_icons(icons):
+    weather_parameter_icons = [
+        'wagtailfontawesomesvg/solid/temperature-high.svg',
+        'wagtailfontawesomesvg/solid/temperature-low.svg',
+    ]
+
+    return icons + weather_parameter_icons
 
 
-class CitiesAdmin(ModelAdmin):
+class CityViewSet(SnippetViewSet):
     model = City
-    menu_label = _('Cities')
-    menu_icon = 'site'
-    add_to_settings_menu = False
-    exclude_from_explorer = False
+    list_filter = {"name": ["icontains"]}
+
+    index_template_name = "forecastmanager/city_index.html"
+
+    icon = "globe"
+    menu_label = _("Cities")
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+
+        name = request.GET.get("name")
+
+        print(name)
+
+        return queryset
 
 
-class DailyWeatherAdmin(ModelAdmin):
+class DailyWeatherViewSet(SnippetViewSet):
     model = DailyWeather
+
+    icon = 'site'
     menu_label = _('Daily Weather')
-    menu_icon = 'site'
-    add_to_settings_menu = False
-    exclude_from_explorer = False
 
 
-# class ConditionCategoryAdmin(ModelAdmin):
-#     model = ConditionCategory
-#     menu_label = 'Weather Conditions'
-#     menu_icon = 'cog'
-#     add_to_settings_menu = False
-#     exclude_from_explorer = False
+class ForecastCreateView(CreateView):
+    form_class = ForecastForm
+    template_name = "forecastmanager/create_forecast.html"
 
-class CityForecastGroup(ModelAdminGroup):
-    menu_label = _('City Forecast')
-    menu_icon = 'table'  # change as required
-    menu_order = 200  # will put in 3rd place (000 being 1st, 100 2nd)
-    items = (CitiesAdmin, DailyWeatherAdmin)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        fm_settings = ForecastSetting.for_request(self.request)
+
+        parameters = fm_settings.data_parameter_values
+        cities = City.objects.all()
+        cities_list = []
+        for city in cities:
+            cities_list.append({
+                "id": str(city.id),
+                "name": city.name,
+            })
+
+        weather_conditions_list = fm_settings.weather_conditions_list
+
+        context.update({
+            "cities": cities_list,
+            "parameters": parameters,
+            "weather_conditions": weather_conditions_list,
+        })
+
+        return context
+
+
+class ForecastViewSet(SnippetViewSet):
+    model = Forecast
+
+    add_view_class = ForecastCreateView
+    create_template_name = "forecastmanager/create_forecast.html"
+
+    icon = 'table'
+    menu_label = _('Daily Forecast')
+
+
+class ForecastViewSetGroup(SnippetViewSetGroup):
+    items = (CityViewSet, ForecastViewSet, DailyWeatherViewSet)
+    menu_icon = "table"
+    menu_label = _("City Forecast")
+    menu_name = "city_forecast"
 
     def get_submenu_items(self):
-        menu_items = []
-        item_order = 1
-        for modeladmin in self.modeladmin_instances:
-            menu_items.append(modeladmin.get_menu_item(order=item_order))
-            item_order += 1
-
-            # append raster upload link
-        add_forecast_item = MenuItem(label=_("Add Forecasts"), url=reverse("add_forecast"), icon_name="plus")
-        load_forecast_item = MenuItem(label=_("View Forecasts"), url=reverse("view_forecast"), icon_name="view")
-
-        menu_items.append(add_forecast_item)
-        menu_items.append(load_forecast_item)
+        menu_items = super().get_submenu_items()
 
         try:
             settings_url = reverse(
                 "wagtailsettings:edit",
                 args=[ForecastSetting._meta.app_label, ForecastSetting._meta.model_name, ],
             )
-            gm_settings_menu = MenuItem(label=_("Settings"), url=settings_url, icon_name="cog")
-            menu_items.append(gm_settings_menu)
+            fm_settings_menu = MenuItem(label=_("Settings"), url=settings_url, icon_name="cog")
+            menu_items.append(fm_settings_menu)
         except Exception:
             pass
 
         return menu_items
 
 
-modeladmin_register(CityForecastGroup)
+register_snippet(ForecastViewSetGroup)
 
 
+#
 @hooks.register('construct_settings_menu')
 def hide_settings_menu_item(request, menu_items):
     # hide forecast setting from setting menu items.

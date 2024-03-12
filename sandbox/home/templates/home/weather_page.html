@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static wagtailimages_tags %}
+
+{% block body_class %}weather{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/weather_page.css' %}">
+{% endblock extra_css %}
+
+{% block content %}
+
+    <div class="container weather-detail" style="margin-top: 100px">
+
+        {% if city %}
+            <h1 class="title is-1">{{ city.name }}</h1>
+        {% endif %}
+
+        {% for day, forecast in city_forecasts_by_date.items %}
+            <div class="forecast-day-item" style="padding: 20px 0;">
+                <h2 style="padding-bottom: 20px;font-weight: bold">{{ day|date:"l j F" }}</h2>
+                <table class="table is-fullwidth">
+                    <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Weather</th>
+                        {% for param in weather_parameters %}
+                            <th>{{ param.name }}</th>
+                        {% endfor %}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for forecast in forecast %}
+                        <tr>
+                            <td>{{ forecast.effective_period }}</td>
+                            <td>
+                                <img style="height:50px;width: 50px" src="{{ forecast.condition.icon_url }}" alt="">
+                            </td>
+                            {% for param in weather_parameters %}
+                                {% for data in forecast.data_values.all %}
+                                    {% if data.parameter == param %}
+                                        <td>{{ data.value_with_units }}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endfor %}
+
+    </div>
+
+{% endblock content %}
+
+{% block extra_js %}
+{% endblock %}
+

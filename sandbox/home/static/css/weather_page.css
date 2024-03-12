@@ -1,0 +1,8 @@
+.weather-detail .table thead th {
+    border-width: 0 0 1px;
+    font-weight: 400;
+}
+
+.weather-detail .table td, .weather-detail .table th {
+    padding: 8px 0;
+}

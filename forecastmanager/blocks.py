@@ -1,5 +1,4 @@
 from wagtail import blocks
-from django.utils.translation import gettext_lazy as _
 
 
 class ExtremeMeasurementBlock(blocks.StructBlock):
@@ -13,7 +12,7 @@ class ExtremeMeasurementBlock(blocks.StructBlock):
 class ExtremeBlock(blocks.StructBlock):
     title = blocks.CharBlock(required=True)
     measurements = blocks.StreamBlock([
-        ('measurements',ExtremeMeasurementBlock() )
+        ('measurements', ExtremeMeasurementBlock())
     ])
 
     class Meta:

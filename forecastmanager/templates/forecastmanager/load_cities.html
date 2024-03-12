@@ -1,0 +1,231 @@
+{% extends "wagtailadmin/base.html" %}
+{% load i18n %}
+{% load l10n %}
+{% load wagtailadmin_tags wagtailimages_tags static %}
+{% block titletag %}{% blocktrans with title=page.get_admin_display_title %}Cities Loader {{ title }}
+{% endblocktrans %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    {{ form_media.css }}
+    <link rel="stylesheet" type="text/css" href="{% static 'forecastmanager/css/handsontable.full.min.css' %}">
+
+    <style>
+        select {
+            font-size: 14px
+        }
+
+        .param-selectors {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 0;
+
+        }
+
+        .param-selectors .selector {
+            list-style: none;
+            width: 200px;
+            padding-bottom: 20px
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    {% trans "Cities Loader" as header_str %}
+    {% include "wagtailadmin/shared/header.html" with title=header_str icon="upload" %}
+    <div class="nice-padding">
+        <div class="row row-flush" style="padding-top:1rem">
+            <div class="col5">
+                <form action="{% url 'load_cities' %}" method="POST"
+                      enctype="multipart/form-data">
+                    {% if form.non_field_errors %}
+                        <div class="non-field_errors" style="margin-bottom: 20px">
+                            {% include "wagtailadmin/shared/non_field_errors.html" with form=form %}
+                        </div>
+                    {% endif %}
+                    <ul class="fields">
+                        {% csrf_token %}
+                        {% for field in form %}
+                            {% if field.is_hidden %}
+                                {{ field }}
+                            {% else %}
+                                {% include "wagtailadmin/shared/field_as_li.html" %}
+                            {% endif %}
+                        {% endfor %}
+                        <li>
+                            <button type="submit" class="button"> {% trans 'Upload' %}</button>
+                        </li>
+                    </ul>
+                </form>
+            </div>
+            <div class="col7">
+                <div class="right-panel"
+                     style="margin-right: 40px;">
+                    <div id="match-fields" style="display: none">
+                        <h2>Match Fields</h2>
+                        <div class="help-block help-info">
+                            <svg class="icon icon-warning icon" aria-hidden="true">
+                                <use href="#icon-info-circle"></use>
+                            </svg>
+                            <div>
+                                {% trans 'Verify that all columns match correctly' %}
+                            </div>
+                        </div>
+                        <ul class="param-selectors">
+                            <li class="selector">
+                                <label for="city" class="w-field__label">{% trans 'City' %}:</label>
+                                <div class="w-field w-field--file_field w-field--file_input">
+                                    <div class="w-field__input" data-field-input="">
+                                        <select id="city">
+                                        </select>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="selector">
+                                <label for="latitude" class="w-field__label">{% trans 'Latitude' %}: </label>
+                                <div class="w-field w-field--file_field w-field--file_input">
+                                    <div class="w-field__input" data-field-input="">
+                                        <select id="latitude">
+                                        </select>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="selector">
+                                <label for="longitude" class="w-field__label">{% trans 'Longitude' %}: </label>
+                                <div class="w-field w-field--file_field w-field--file_input">
+                                    <div class="w-field__input" data-field-input="">
+                                        <select id="longitude">
+                                        </select>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div id="table-container" class="hot handsontable"></div>
+                </div>
+                <div id="table-container" class="hot handsontable"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    {{ form_media.js }}
+
+    <script src="{% static 'forecastmanager/js/handsontable.full.min.js' %}"></script>
+    <script src="{% static 'forecastmanager/js/data-utils.js' %}"></script>
+    <script src="{% static 'forecastmanager/js/helpers.js' %}"></script>
+
+    <script>
+        $(document).ready(function () {
+            const $fileInput = $("#id_file")
+            const container = document.querySelector('#table-container');
+            const $matchFields = $('#match-fields')
+            const $submitBtn = $("form button[type='submit']")
+
+            // Disable submit button by default
+            $submitBtn.prop('disabled', true)
+
+            let hot = {}
+
+            hot = new Handsontable(container, {
+                autoWrapRow: true,
+                autoWrapCol: true,
+                rowHeaders: true,
+                colHeaders: [
+                    'City',
+                    "Latitude",
+                    "Longitude",
+                ],
+                columns: [
+                    {type: 'text', allowEmpty: false, allowInvalid: false},
+                    {type: 'numeric', allowEmpty: false, allowInvalid: false},
+                    {type: 'numeric', allowEmpty: false, allowInvalid: false},
+                ],
+                contextMenu: true,
+                licenseKey: 'non-commercial-and-evaluation',
+                minSpareRows: 0
+            });
+
+            hot.addHook('afterChange', function (changes) {
+                onChange()
+            });
+
+            hot.addHook("afterRemoveRow", function () {
+                onChange()
+            });
+
+
+            const onChange = () => {
+                const colHeader = hot.getColHeader();
+                const data = hot.getData();
+
+
+                const $dataInput = $("#id_data")
+
+                const tableData = {
+                    fields: colHeader,
+                    rows: data
+                }
+
+                $dataInput.val(JSON.stringify(tableData))
+            }
+
+            const columnSelectors = [
+                {dom_id: 'city', index: 0},
+                {dom_id: 'latitude', index: 1},
+                {dom_id: 'longitude', index: 2},
+            ]
+
+            const onValidate = (isValid) => {
+                if (isValid) {
+                    $submitBtn.prop('disabled', false)
+                } else {
+                    $submitBtn.prop('disabled', true)
+                }
+            }
+
+            $fileInput.on('change', function (e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.readAsText(file);
+
+                reader.onload = function (event) {
+                    DataUtils.parseCSV(event.target.result).then(parsedData => {
+
+                        const data = parsedData.rows
+                        hot.loadData(data);
+                        hot.validateCells(onValidate)
+
+                        const columnHeaders = parsedData.fields.map(field => field.name);
+
+                        columnSelectors.forEach(column => {
+                            // pre-populate select with options by order
+                            generateSelectInput(column.dom_id, columnHeaders, column.index)
+                            document.getElementById(column.dom_id).addEventListener('change', function (e) {
+                                const table_data = hot.getData()
+
+                                const column_arr = data.map(arr => {
+                                    return arr[e.target.value]
+                                })
+
+                                table_data.replace_data(column.index, column_arr)
+
+                                hot.updateData(table_data)
+
+                                hot.validateCells(onValidate)
+                            })
+                            return column
+                        })
+
+                        $matchFields.show()
+                    });
+                };
+            });
+        })
+    </script>
+
+{% endblock %}
+
+

@@ -33,7 +33,6 @@ INSTALLED_APPS = [
     "wagtail.contrib.styleguide",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
-    'wagtail.contrib.modeladmin',
     "wagtail.embeds",
     "wagtail.sites",
     "wagtail.users",
@@ -55,7 +54,10 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_filters",
     "django_deep_translator",
-    "background_task"
+    "background_task",
+    "wagtail_modeladmin",
+    "wagtailfontawesomesvg",
+    "wagtail.contrib.routable_page",
 ]
 
 MIDDLEWARE = [
@@ -69,7 +71,6 @@ MIDDLEWARE = [
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
 ]
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 
 LOCALE_PATHS = [
     'forecastmanager/locale'

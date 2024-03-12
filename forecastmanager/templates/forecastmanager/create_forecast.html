@@ -1,11 +1,119 @@
-{% extends 'forecastmanager/forecast_base.html' %}
+{% extends "wagtailadmin/base.html" %}
+{% load i18n wagtailadmin_tags static %}
+{% block titletag %}{% blocktrans trimmed with snippet_type_name=model_opts.verbose_name %}New  {{ snippet_type_name }}
+{% endblocktrans %}{% endblock %}
+{% block content %}
+    {% include 'wagtailadmin/shared/headers/slim_header.html' %}
 
-{% load wagtailsettings_tags %}
-{% get_settings use_default_site=True %}
-{% load wagtailadmin_tags i18n static %}
+    {% trans "New" as new_str %}
+    {% include "wagtailadmin/shared/header.html" with title=new_str subtitle=model_opts.verbose_name icon=header_icon merged=1 only %}
+
+
+    <div class="nice-padding">
+        <div class="help-block help-info">
+            <svg class="icon icon-warning icon" aria-hidden="true">
+                <use href="#icon-info-circle"></use>
+            </svg>
+            <div>
+                {% trans 'You can' %}
+                <a href="{% url 'download-forecast-template' %}">
+                    <b>{% trans 'download a template' %}</b>
+                </a>
+                {% trans 'of the CSV for offline editing and upload it here. The template comes prepopulated with all pre-exisiting cities.' %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row row-flush" style="padding-top:1rem">
+        <div class="col5">
+            <form action="{{ action_url }}" method="POST" novalidate{% if form.is_multipart %}
+                  enctype="multipart/form-data"{% endif %} data-edit-form>
+                {% csrf_token %}
+
+                <div class="nice-padding">
+                    {{ panel.render_form_content }}
+                </div>
+
+                <footer class="footer">
+                    <nav aria-label="{% trans 'Actions' %}">
+                        <ul>
+                            <li class="actions actions--primary footer__container">
+                                <div class="dropdown dropup dropdown-button match-width">
+                                    {{ action_menu.render_html }}
+                                </div>
+                            </li>
+                        </ul>
+                    </nav>
+                </footer>
+            </form>
+            <div class="nice-padding">
+                {% include "forecastmanager/file_input_include.html" %}
+            </div>
+        </div>
+        <div class="col7">
+            <div class="right-panel"
+                 style="margin-right: 40px;">
+                <div id="match-fields" style="display: none">
+                    <h2>Match Fields</h2>
+                    <div class="help-block help-info">
+                        <svg class="icon icon-warning icon" aria-hidden="true">
+                            <use href="#icon-info-circle"></use>
+                        </svg>
+                        <div>
+                            {% trans 'Verify that all columns match correctly' %}
+                        </div>
+                    </div>
+                    <ul class="param-selectors">
+                        <li class="selector">
+                            <label for="city" class="w-field__label">{% trans 'City' %}:</label>
+                            <div class="w-field w-field--file_field w-field--file_input">
+                                <div class="w-field__input" data-field-input="">
+                                    <select id="city">
+                                    </select>
+                                </div>
+                            </div>
+                        </li>
+                        {% for param in parameters %}
+                            <li class="selector">
+                                <label for="{{ param.parameter }}" class="w-field__label">{{ param.name }}:
+                                </label>
+                                <div class="w-field w-field--file_field w-field--file_input">
+                                    <div class="w-field__input" data-field-input="">
+                                        <select id="{{ param.parameter }}">
+                                        </select>
+                                    </div>
+                                </div>
+                            </li>
+                        {% endfor %}
+                        <li class="selector">
+                            <label for="condition" class="w-field__label">{% trans 'Condition' %}: </label>
+                            <div class="w-field w-field--file_field w-field--file_input">
+                                <div class="w-field__input" data-field-input="">
+                                    <select id="condition">
+                                    </select>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div id="table-container" class="hot handsontable"></div>
+            </div>
+        </div>
+
+    </div>
+
+
+
+
+
+{% endblock %}
 
 {% block extra_css %}
     {{ block.super }}
+    {{ media.css }}
+
+    <link rel="stylesheet" type="text/css" href="{% static 'forecastmanager/css/handsontable.full.min.css' %}">
+
     <style>
         .forecast,
         select {
@@ -13,481 +121,170 @@
         }
 
         .param-selectors {
-            display:flex;
+            display: flex;
             flex-wrap: wrap;
+            padding: 0;
+
         }
 
-        .param-selectors .selector{
-            width:50%;
-            box-sizing: border-box;
-            padding-bottom:1em
+        .param-selectors .selector {
+            list-style: none;
+            width: 200px;
+            padding-bottom: 20px
         }
-
-        
 
 
     </style>
 
-{% endblock extra_css %}
-{% block forecast %}
-
-    <h2 class="w-panel__heading">{% trans 'Add forecast' %}</h2>
-
-    <div class="row row-flush" style="padding-top:1rem">
-
-        <div class="col5">
-            <form enctype="multipart/form-data" id="forecast_form" method='post'>
-                {% csrf_token %}
-                <div class="help-block help-info">
-                    <svg class="icon icon-warning icon" aria-hidden="true">
-                        <use href="#icon-info-circle"></use>
-                    </svg>
-                    <div>
-                        {% trans 'You can' %} <a style="cursor:pointer"><b id="exportTable">{% trans 'download a template' %}</b></a> {% trans 'of the CSV for offline editing and upload it here. The template comes prepopulated with all pre-exisiting cities.' %}
-                    </div>
-                </div>
-                <ul class="fields forecast">
-                    <div class="forecast-date-input">
-                    <li>
-                        <div class="w-field__wrapper" data-field-wrapper="">
-                            <label class="w-field__label" for="id_forecast_date" id="id_forecast_date-label">
-                                {% trans 'Forecast Date' %}
-                                <span class="w-required-mark">*</span>
-                            </label>
-                            <div class="w-field__help" data-field-help="">
-                                <div class="help">{% trans 'Date of forecast' %}</div>
-                            </div>
-                            <div class="w-field w-field--date_field w-field--admin_date_input" data-field=""
-                                 data-contentpath="date">
-                                <div class="w-field__errors" data-field-errors=""></div>
-                                <div class="w-field__input" data-field-input="">
-                                    <input type="text" name="forecast_date" autocomplete="off" required
-                                           id="id_forecast_date"/>
-                                    <script>
-                                        initDateChooser("id_forecast_date", {
-                                            "dayOfWeekStart": 0,
-                                            "format": "Y-m-d"
-                                        });
-                                    </script>
-                                </div>
-                                <div data-field-help=""></div>
-                            </div>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="w-field__wrapper " data-field-wrapper="">
-                            <label class="w-field__label" for="id_forecast_effective_period"
-                                   id="id_forecast_effective_period-label">
-                                   {% trans 'Forecast effective period' %}<span class="w-required-mark">*</span>
-                            </label>
-                            <div class="w-field w-field--choice_field w-field--select" data-field=""
-                                 data-contentpath="select">
-                                <div class="w-field__errors" data-field-errors="">
-                                </div>
-                                <div class="w-field__help" data-field-help="">
-                                </div>
-                                <div class="w-field__input" data-field-input="">
-                                    <select name="select" id="id_forecast_effective_period">
-                                        {% for period in forecast_periods.all %}
-                                            <option value="{{ period.id }}">{{ period.label }} </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </li>
-
-                </div>
-                    <li>
-                        <div class="w-field__wrapper" data-field-wrapper="">
-                            <label class="w-field__label" for="id_csv" id="id_csv-label">
-                                {% trans 'Forecast Upload' %}
-                            </label>
-                            <div class="w-field w-field--file_field w-field--file_input" data-field=""
-                                 data-contentpath="csv">
-                                <div class="w-field__errors" data-field-errors="">
-                                </div>
-                                <div class="w-field__help" data-field-help="">
-                                    <div class="help">{% trans 'The uploaded file should be a CSV, similar to the table on the right' %}
-                                    </div>
-                                </div>
-                                <div class="w-field__input" data-field-input="">
-                                    <input type="file" name="csv" accept=".csv" id="id_csv_data">
-                                </div>
-                            </div>
-                        </div>
-                    </li>
-
-                    <div style="display:none" id="header_section">
-                        <hr>
-                        <div class="help-block help-info">
-                            <svg class="icon icon-warning icon" aria-hidden="true">
-                                <use href="#icon-info-circle"></use>
-                            </svg>
-                            <div>
-                                {% trans 'Verify that all columns match correctly' %}
-                            </div>
-                        </div>
-                    </div>
-                    <div class ="param-selectors">
-                    <li class="selector">
-                        <label for="city" class="w-field__label">{% trans 'City'%}:</label>
-                        <div class="w-field w-field--file_field w-field--file_input">
-                            <div class="w-field__input" data-field-input="">
-                                <select id="city">
-                                </select>
-                            </div>
-                        </div>
-                    </li>
-                    {% for param in data_parameter_values %}
-                        <li class="selector">
-                            <label for="{{ param.parameter }}" class="w-field__label">{{ param.name }}:
-                            </label>
-                            <div class="w-field w-field--file_field w-field--file_input">
-                                <div class="w-field__input" data-field-input="">
-                                    <select id="{{ param.parameter }}">
-                                    </select>
-                                </div>
-                            </div>
-                        </li>
-                    {% endfor %}
-                    <li class="selector">
-                        <label for="condition" class="w-field__label">{% trans 'Condition'%}: </label>
-                        <div class="w-field w-field--file_field w-field--file_input">
-                            <div class="w-field__input" data-field-input="">
-                                <select id="condition">
-                                </select>
-                            </div>
-                        </div>
-                    </li>
-                </div>
-
-                    <li style="padding-top:1em">
-                        <button type="submit" id="submitForecast" class="button" >{% trans 'Publish'%}</button>
-                    </li>
-                </ul>
-            </form>
-        </div>
-        <div class="col7">
-            <div id="createTable" style=z-index:1></div>
-            <div id="exportTemplate" style="display: none;"></div>
-        </div>
-    </div>
 
 
 {% endblock %}
-
 {% block extra_js %}
     {{ block.super }}
-    
-    <script src="{% versioned_static 'wagtailadmin/js/date-time-chooser.js' %}"></script>
+    {% include "wagtailadmin/pages/_editor_js.html" %}
+    {{ media.js }}
+
+    <script src="{% static 'forecastmanager/js/handsontable.full.min.js' %}"></script>
+    <script src="{% static 'forecastmanager/js/data-utils.js' %}"></script>
     <script src="{% static 'forecastmanager/js/helpers.js' %}"></script>
 
-    {% include "wagtailadmin/pages/_editor_js.html" %} {{ form.media.js }}
     <script>
-        const dataParams = {{ data_parameter_values|safe|default_if_none:"" }};
+        const parameters = {{parameters|safe}};
+        const weather_conditions = {{weather_conditions|safe}};
+        const cities = {{cities|safe}};
 
         $(document).ready(function () {
 
-            const weather_condition_ls = {{weather_condition_ls|safe}};
-            const city_ls = {{city_ls|safe}};
+            const $fileInput = $("#id_file")
+            const container = document.querySelector('#table-container');
+            const $matchFields = $('#match-fields')
+            const $submitBtn = $("form button[type='submit']")
 
-            const container = document.querySelector('#createTable');
-            const static_path = '{% static "forecastmanager/img/" %}'
+            // Disable submit button by default
+            $submitBtn.prop('disabled', true)
 
-            const $csvFileInput = $("#id_csv_data")
-            const $forecastForm = $("#forecast_form")
-            const $creatError = $('#creatError')
-            const $creatErrorMessage = $('#creatError .errorMessage')
-            const $creatSuccess = $('#creatSuccess')
-            const $creatSuccessMessage = $('#creatSuccess .successMessage')
-            const $submitBtn = $("#submitForecast")
-            const $forecastEffectivePeriodInput = $("#id_forecast_effective_period")
-            const $forecastDateInput = $("#id_forecast_date")
+            let hot = {}
 
-
-            const hot = new Handsontable(container, {
-                width: '100%',
+            hot = new Handsontable(container, {
+                autoWrapRow: true,
+                autoWrapCol: true,
                 rowHeaders: true,
                 colHeaders: [
                     'City',
-                    ...dataParams.map(p => p.name),
+                    ...parameters.map(p => p.name),
                     'Condition'
                 ],
                 columns: [
                     {
                         type: 'dropdown',
-                        source: city_ls.map(city => city.fields.name),
+                        source: cities.map(city => city.name),
                         allowEmpty: false,
+                        allowInvalid: false,
                     },
-                  
-                    ...dataParams.map((p) => ({
+                    ...parameters.map((p) => ({
                         type: p.parameter_type,
-                        timeFormat: 'HH:mm',
                         allowEmpty: false,
+                        allowInvalid: false,
                         correctFormat: true,
                     })),
                     {
                         type: 'dropdown',
-                        source: weather_condition_ls,
+                        source: weather_conditions,
                         allowEmpty: false,
+                        allowInvalid: false,
                     },
                 ],
-                data: [],
-                multiColumnSorting: true,
-                allowInvalid: true,
-                minSpareRows: 20,
-                height: 'auto',
-                stretchH: "all",
-                licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
+                contextMenu: true,
+                licenseKey: 'non-commercial-and-evaluation',
+                minSpareRows: 0
+            });
+
+            hot.addHook('afterChange', function (changes) {
+                onChange()
+            });
+
+            hot.addHook("afterRemoveRow", function () {
+                onChange()
             });
 
 
+            const onChange = () => {
+                const colHeader = hot.getColHeader();
+                const data = hot.getData();
 
-            const column_selectors = [
+
+                const $dataInput = $("#id_data")
+
+                const tableData = {
+                    fields: colHeader,
+                    rows: data
+                }
+
+                $dataInput.val(JSON.stringify(tableData))
+            }
+
+            const columnSelectors = [
                 {dom_id: 'city', index: 0},
-                ...dataParams.map((p, i) => ({
+                ...parameters.map((p, i) => ({
                     dom_id: p.parameter,
                     index: i + 1
                 })),
-                {dom_id: 'condition', index: dataParams.length + 1},
+                {dom_id: 'condition', index: parameters.length + 1},
             ]
 
-            $csvFileInput.on('change', function (e) {
+            const onValidate = (isValid) => {
+                if (isValid) {
+                    $submitBtn.prop('disabled', false)
+                } else {
+                    $submitBtn.prop('disabled', true)
+                }
+            }
+
+            $fileInput.on('change', function (e) {
                 const file = e.target.files[0];
                 const reader = new FileReader();
                 reader.readAsText(file);
 
                 reader.onload = function (event) {
-                    const csvData = event.target.result;
-                    const lines = csvData.split('\n');
-                    const columnHeaders = lines[0].split(',');
-                    $('#header_section').show()
+                    DataUtils.parseCSV(event.target.result).then(parsedData => {
 
-                    const contents = event.target.result;
-                    const data = parseCSV(contents);
+                        const data = parsedData.rows
+                        hot.loadData(data);
+                        hot.validateCells(onValidate)
 
-                    hot.updateData(data)
+                        const columnHeaders = parsedData.fields.map(field => field.name);
 
-                    column_selectors.map(column => {
-                        // pre-populate select with options by order
-                        generateSelectInput(column.dom_id, columnHeaders, column.index)
-                        document.getElementById(column.dom_id).addEventListener('change', function (e) {
+                        columnSelectors.forEach(column => {
+                            // pre-populate select with options by order
+                            generateSelectInput(column.dom_id, columnHeaders, column.index)
+                            document.getElementById(column.dom_id).addEventListener('change', function (e) {
+                                const table_data = hot.getData()
 
-                            const table_data = hot.getData()
+                                const column_arr = data.map(arr => {
+                                    return arr[e.target.value]
+                                })
 
-                            const column_arr = []
-                            const rearrangedArr = data.map(arr => {
-                                column_arr.push(arr[e.target.value])
+                                table_data.replace_data(column.index, column_arr)
+
+                                hot.updateData(table_data)
+
+                                hot.validateCells(onValidate)
                             })
-
-                            table_data.replace_data(column.index, column_arr)
-
-                            hot.updateData(table_data)
-
+                            return column
                         })
-                        return column
-                    })
-                };
 
-                $submitBtn.prop('disabled', false);
-            });
-
-            $forecastForm.on('submit', function (e) {
-                e.preventDefault();
-                
-
-                
-                let dataHasErrors = validateData()
-
-                const data = hot.getData();
-                
-
-                // Filter out rows that have all values null or undefined
-                const nonNullRows = data.filter(function (row) {
-                    return row.some(function (cell) {
-                        return cell !== null && cell !== undefined && cell !== '';
+                        $matchFields.show()
                     });
-                });
-
-                hot.addHook('afterValidate', (isValid, value, row, prop) => {
-                    if (value === '' || value === null) {
-                        return true
-                      }
-                    if (!isValid && (value !== ''|| value !== null)){
-                        dataHasErrors = true
-                    } 
-                
-                });
-
-                // Perform the validation
-                hot.validateCells((valid) => {
-                    $creatError.hide('slow')
-                    if (!dataHasErrors) {
-                        // Validation successful with no invalid inputs
-                        // Create an array of objects with the column names as keys
-                        if (nonNullRows.length > 0) {
-                            const postData = [];
-    
-                            for (let i = 0; i < nonNullRows.length; i++) {
-                                const row = {
-                                    'city': city_ls.find(city => city.fields.name === nonNullRows[i][0]).pk,
-                                    ...dataParams.reduce((all, item, index) => {
-                                        all[item.parameter] = item.parameter_type === 'numeric' ? parseFloat(nonNullRows[i][index + 1]) : nonNullRows[i][index + 1]
-                                        return all
-                                    }, {}),
-                                    'condition': nonNullRows[i][dataParams.length + 1],
-                                    'forecast_date': $forecastDateInput.val(),
-                                    'effective_period': $forecastEffectivePeriodInput.val(),
-                                };
-                                postData.push(row);
-                            }
-    
-                            $creatError.hide('slow')
-
-                            submitData(postData)
-    
-                        } else {
-                            $creatError.show('slow')
-                            $creatErrorMessage.html('{% trans "The table is empty. Please input data" %}')
-                            
-                        }
-                    } else {
-                        // Validation failed or invalid input encountered
-                        $creatError.show('slow')
-                        $creatErrorMessage.html('{% trans "Table contains invalid inputs" %}')
-                            
-                    }
-                });
-
-               
-            })
-
-            const submitData = (data) => {
-                $.ajax({
-                    url: `{% url 'save-forecast-data' %}`,
-                    type: 'POST',
-                    headers: {
-                        "X-Requested-With": "XMLHttpRequest",
-                        'X-CSRFToken': '{{ csrf_token }}',  // Replace with the actual CSRF token value
-                    },
-                    data: JSON.stringify(data),
-                    contentType: 'application/json',
-                    success: function (response) {
-                        // Clear the Handsontable table
-                        $creatSuccess.show('slow')
-                        $creatSuccessMessage.html(response.message)
-                        setTimeout(function () {
-                            $creatSuccess.hide('slow')
-                        }, 5000)
-
-
-                        //clear table on successful submission
-                        // hot.updateData([])
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        if (errorThrown) {
-                            $creatError.show('slow')
-                            $creatErrorMessage.html(JSON.parse(jqXHR.responseText).error)
-
-                            setTimeout(function () {
-                                $creatError.hide('slow')
-                            }, 5000)
-                        }
-                    }
-                })
-            }
-
-
-            const validateData = () => {
-                const instance = hot.getInstance();
-                let hasError = false; // Assume no errors initially
-                // verify no validation errors remaining  after checking for empty
-                
-            
-
-                for (let i = 0; i < instance.countRows(); i++) {
-                    let rowHasValue = false; // Assume the row is empty initially
-
-                    for (let j = 0; j < instance.countCols(); j++) {
-                        const cellData = instance.getDataAtCell(i, j);
-
-                        // Check if the cell is not null or empty string
-                        if (cellData !== null && cellData !== '') {
-                            rowHasValue = true; // Mark the row as non-empty
-
-                            instance.setCellMeta(i, j, 'valid', true);
-                            instance.setCellMeta(i, j, 'comment', '');
-                        } else {
-                            instance.setCellMeta(i, j, 'valid', true);
-                            instance.setCellMeta(i, j, 'comment', '');
-                        }
-                    }
-
-                    // Only validate the row if it has at least one non-empty cell
-                    if (rowHasValue) {
-                        instance.validateRows([i]);
-                        if (instance.getCellMeta(i, 0).valid === false) {
-                            hasError = true; // Mark that there is an error
-                            
-                        }
-
-                    }
-                    
-                }
-                // Re-render the table to display the validation feedback
-                instance.render();
-                return hasError
-
-            }
-
-
-            const exportTemplate = new Handsontable(document.getElementById('exportTemplate'), {
-                colHeaders: [
-                    'City',
-                    ...dataParams.map(p => p.name),
-                    'Condition'],
-                columns: [
-                    {
-                        type: 'dropdown',
-                    },
-                    ...dataParams.map((p) => ({
-                        type: p.parameter_type,
-                    })),
-                    {
-                        type: 'dropdown',
-
-                    },
-                ],
-                data: [],
-                // dropdownMenu: true,
-                // filters: true,
-                minSpareRows: 10,
-                licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
+                };
             });
-
-            const exportPlugin = exportTemplate.getPlugin('exportFile');
-
-            document.getElementById('exportTable').addEventListener('click', function () {
-                const export_cities = []
-
-                city_ls.map(city => export_cities.push([city.fields.name]))
-
-                exportTemplate.loadData(export_cities)
-                exportPlugin.downloadFile('csv', {
-                    bom: false,
-                    columnDelimiter: ',',
-                    columnHeaders: true,
-                    exportHiddenColumns: true,
-                    exportHiddenRows: true,
-                    fileExtension: 'csv',
-                    filename: 'city_forecasts_template',
-                    mimeType: 'text/csv',
-                    rowDelimiter: '\n',
-                    rowHeaders: false
-                });
-            })
         })
     </script>
-
+    <script>
+        // Set wagtailConfig.ACTIVE_CONTENT_LOCALE if this is a translated page
+        // This value may be used by JS widgets on the form
+        {% if locale %}
+            window.wagtailConfig = window.wagtailConfig || {};
+            window.wagtailConfig.ACTIVE_CONTENT_LOCALE = '{{ locale.language_code|escapejs }}';
+        {% endif %}
+    </script>
 {% endblock %}

@@ -1,122 +1,154 @@
 import logging
-from django.core.management.base import BaseCommand
 
-import pandas as pd
-import numpy as np
 import requests
+from dateutil.parser import parse
+from django.core.management.base import BaseCommand
+from wagtail.models import Site
 
-from wagtailgeowidget.helpers import geosgeometry_str_to_struct
-from forecastmanager.models import City,Forecast
-from forecastmanager.site_settings import ForecastSetting,ForecastPeriod
-from forecastmanager.tasks import generate_forecasts
-from datetime import timedelta
-
-# Define the base URL for the Met Norway API
-BASE_URL = "https://api.met.no/weatherapi/locationforecast/2.0/complete"
-headers = {
-  'User-Agent':'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Mobile Safari/537.36'
-}
+from forecastmanager.forecast_settings import ForecastSetting, WeatherCondition, ForecastPeriod
+from forecastmanager.models import City, CityForecast, DataValue, Forecast
+from forecastmanager.constants import WEATHER_CONDITIONS_AS_DICT
 
 logger = logging.getLogger(__name__)
 
-default_options = () if not hasattr(BaseCommand, 'option_list') \
-    else BaseCommand.option_list
+# Define the base URL for the Met Norway API
+BASE_URL = "https://www.yr.no/api/v0/locations"
 
 
 class Command(BaseCommand):
-    help = ('autotranslate all the message files that have been generated '
-            'using the `makemessages` command.')
+    help = ('Get the weather forecast for the next 7 days from Yr.no '
+            'for all cities in the database and save it to the database.')
 
     def handle(self, *args, **options):
+        print("Getting 7 Day Forecast from Yr.no...")
 
-        # generate_forecasts(repeat=timedelta(hours=3).seconds, verbose_name="generate_forecasts")
+        cities = City.objects.all()
+        if not cities:
+            logger.error("No cities found")
+            return
 
-        # self.stdout.write(self.style.SUCCESS("Successfully submitted City Forecasts download task"))
-        print("ATTEMPTING TO AUTOGENERATE 7 DAY FORECAST...")
-           
-        cities_ls = list(City.objects.all().values())
+        site = Site.objects.get(is_default_site=True)
 
-        forecast_setting = ForecastSetting.objects.all().first()
-        parameters = forecast_setting.data_parameter_values
+        if not site:
+            logger.error("No default site found")
+            return
 
-        if forecast_setting.enable_auto_forecast:
-            for city in cities_ls:
+        forecast_setting = ForecastSetting.for_site(site)
 
-                location = geosgeometry_str_to_struct(str(city['location']))
-                lat = location['y']
-                lon = location['x']
+        user_agent = f"{site.site_name} (WMO NMHSs Website Template) {site.root_url}"
+        user_agent = user_agent.strip()
 
-                # Construct the API URL for this location
-                url = f"{BASE_URL}?lat={lat}&lon={lon}"
-                
-                # Send a GET request to the API
-                response = requests.get(url, headers=headers)
-                
-                # Check if the request was successful
-                if response.status_code == 200:
-                    # Get the weather data from the response
-                    weather_data = response.json()
-                    data = weather_data['properties']['timeseries']
+        if not forecast_setting.enable_auto_forecast:
+            logger.error("Auto forecast is disabled")
+            return
 
-                    df = pd.json_normalize(data)
+        conditions = forecast_setting.weather_conditions.all()
+        conditions_by_symbol = {condition.symbol: condition for condition in conditions}
 
-                    # convert the 'time' column to a datetime object and set it as the index
-                    df['time'] = pd.to_datetime(df['time'])
-                    df.set_index('time', inplace=True)
+        parameters = forecast_setting.data_parameters.all()
+        parameters_dict = {parameter.parameter: parameter for parameter in parameters}
 
+        forecast_periods = forecast_setting.periods.all()
+        if not forecast_periods.exists():
+            # create default forecast period
+            ForecastPeriod.objects.create(parent=forecast_setting,
+                                          label="Whole Day",
+                                          forecast_effective_time="00:00:00",
+                                          default=True)
 
-                    # Define a function to extract the required values from a group
-                    def extract_values(group, params):
-                        # Extract the minimum and maximum values of air temperature, wind speed, and wind direction
-        
-                        param_val = {}
-                        for param in params:
-                        
-                            if param["parameter"] == 'air_temperature_max' or param["parameter"] =='air_temperature_min' or param["parameter"]  =='precipitation_amount':
-                                param_val[f'{param["parameter"]}'] =round(group[f'data.next_6_hours.details.{param["parameter"]}'].mean(),1)
-                                
-                            else:
-                                if f'data.instant.details.{param["parameter"]}' in group.columns:
-                                    param_val[f'{param["parameter"]}'] = round(group[f'data.instant.details.{param["parameter"]}'].mean(),1)
+        forecast_period = forecast_periods.filter(default=True).first()
+        if not forecast_period:
+            # pick first one if no default
+            forecast_period = forecast_periods.first()
 
-                                else:
-                                    param_val[f'{param["parameter"]}'] = None
+        cities_data = {}
 
-                        param_val['condition'] = group['data.next_6_hours.summary.symbol_code'].iloc[0]
+        for city in cities:
+            print(f"Getting forecast for {city.name}...")
 
-                        
-                        return pd.Series(param_val)
+            lon = city.x
+            lat = city.y
 
-                    # Group the DataFrame by date and apply the extract_values() function to each group
-                    grouped = df.groupby(pd.Grouper(freq='D')).apply(extract_values, parameters)
-                    grouped = grouped.dropna(how="all")
-                    grouped = grouped.replace({np.nan: None})
+            url = f"{BASE_URL}/{lat},{lon}/forecast"
 
-                    # Get the name of the parent from the first column
-                    parent_name = city['name']
-                    # Try to get an existing parent with the same name, or create a new one
-                    city = City.objects.get(name=parent_name)
-                    print("City:", parent_name )
+            # Send a GET request to the API
+            response = requests.get(url, headers={"User-Agent": user_agent})
 
-                    for index, row in grouped.iterrows():
-                        time = index.to_pydatetime()
-                        
-                        # use update_or_create to update existing data
-                        # and create new ones if the data does not exist
-                        obj, created = Forecast.objects.update_or_create(
-                            forecast_date=time,
-                            city=city, 
-                            defaults={
-                                'condition':row['condition'].split('_')[0] if row['condition'] else row['condition'],
-                                'effective_period':ForecastPeriod.objects.get(pk=1),
-                                'data_value':row.to_dict()
-                                }
-                        )
+            if response.status_code >= 400:
+                logger.error(
+                    f"Failed to get forecast for {city.name}. Status code: {response.status_code}")
+                continue
 
-            print("SUCCESSFULLY ADDED 7 DAY FORECAST")
+            # Get the weather data from the response
+            data = response.json()
 
-        else:
-            print("AUTOMATED FORECASTING DISABLED")
+            day_intervals = data['dayIntervals']
+            for day in day_intervals[:8]:
+                date = parse(day.get("start"))
+                condition = day.get("twentyFourHourSymbol")
+                temperature_data = day.get("temperature")
+                air_temperature_max = temperature_data.get("max")
+                air_temperature_min = temperature_data.get("min")
 
-            
+                wind_data = day.get("wind")
+                wind_speed = wind_data.get("max")
 
+                precipitation_data = day.get("precipitation")
+                precipitation = precipitation_data.get("value")
+
+                data_values = {
+                    "date": date,
+                    "condition": condition,
+                    "parameters": {
+                        "air_temperature_max": air_temperature_max,
+                        "air_temperature_min": air_temperature_min,
+                        "wind_speed": wind_speed,
+                        "precipitation_amount": precipitation
+                    }
+                }
+
+                condition = data_values.get('condition')
+
+                if conditions_by_symbol.get(condition) is None:
+                    condition_info = WEATHER_CONDITIONS_AS_DICT.get(condition)
+
+                    if condition_info is None:
+                        continue
+
+                    label = condition_info.get('name')
+                    created_condition = WeatherCondition.objects.create(parent=forecast_setting, symbol=condition,
+                                                                        label=label)
+                    conditions_by_symbol[created_condition.symbol] = created_condition
+
+                condition_obj = conditions_by_symbol.get(condition)
+
+                if condition_obj is None:
+                    logger.warning(f"Cannot find or create condition for symbol code: {condition}")
+                    continue
+
+                city_forecast = CityForecast(city=city, condition=condition_obj)
+                for key, value in data_values.get("parameters", {}).items():
+                    if parameters_dict.get(key) is None:
+                        logger.warning(f"parameter: {key} not mapped set in Forecast Settings")
+                        continue
+
+                    parameter = parameters_dict[key]
+                    data_value = DataValue(parameter=parameter, value=value)
+                    city_forecast.data_values.add(data_value)
+
+                if date in cities_data:
+                    cities_data[date].append(city_forecast)
+                else:
+                    cities_data[date] = [city_forecast]
+
+        for time, city_forecasts in cities_data.items():
+            forecast = Forecast.objects.filter(forecast_date=time, effective_period=forecast_period)
+            if forecast.exists():
+                forecast.delete()
+
+            forecast = Forecast(forecast_date=time, effective_period=forecast_period, source="yr")
+
+            for city_forecast in city_forecasts:
+                forecast.city_forecasts.add(city_forecast)
+
+            forecast.save()
