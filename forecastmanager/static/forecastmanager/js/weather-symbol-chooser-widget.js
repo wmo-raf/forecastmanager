@@ -105,12 +105,10 @@ WeatherSymbolChooserWidget.prototype.createIconOptions = function () {
     this.symbolOptions.forEach((symbol) => {
         const $container = $("<div class='symbol-container'>")
         $container.on("click", () => that.onIconSelect(symbol))
-        $(`<div class="icon icon-option" aria-hidden="true"><img alt="${symbol.label}" src="${symbol.icon_url}"/></div>`).appendTo($container)
-        $(`<div class="icon-label">${symbol.label}</div>`).appendTo($container)
+        $(`<div class="icon icon-option" aria-hidden="true"><img alt="${symbol.name}" src="${symbol.icon_url}"/></div>`).appendTo($container)
+        $(`<div class="icon-label">${symbol.name}</div>`).appendTo($container)
         $container.appendTo(that.modalIconsContent)
-
     });
-
 
     this.iconModalFilter = $("#id_icon_modal_filter")
     this.iconModalFilter.on('keyup', this.handleIconListFilter.bind(this));
