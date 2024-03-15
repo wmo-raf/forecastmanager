@@ -3,13 +3,16 @@ from datetime import date
 
 from django.contrib.gis.geos import Point
 from django.http import HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import BasePermission, IsAuthenticated, SAFE_METHODS
+from wagtail.api.v2.utils import get_full_url
 
 from forecastmanager.models import City, Forecast
+from .constants import WEATHER_CONDITION_ICONS
 from .forecast_settings import ForecastSetting
 from .forms import CityLoaderForm
 from .serializers import CitySerializer, ForecastSerializer
@@ -46,6 +49,12 @@ class ForecastListView(ListAPIView):
 
         start_date = self.request.query_params.get('start_date')
         end_date = self.request.query_params.get('end_date')
+        effective_time = self.request.query_params.get('effective_time')
+
+        if effective_time:
+            queryset = queryset.filter(effective_period__forecast_effective_time=effective_time)
+        else:
+            queryset = queryset.filter(effective_period__default=True)
 
         if start_date:
             queryset = queryset.filter(forecast_date__gte=start_date)
@@ -129,3 +138,22 @@ def load_cities(request):
     context.update({"form": form})
 
     return render(request, template_name=template, context=context)
+
+
+def forecast_settings(request):
+    context = {}
+
+    fm_settings = ForecastSetting.for_request(request)
+    data_parameters = fm_settings.data_parameter_values
+    effective_periods = fm_settings.effective_periods
+
+    context.update({"parameters": data_parameters, "periods": effective_periods})
+
+    return JsonResponse(context)
+
+
+def weather_icons(request):
+    options = WEATHER_CONDITION_ICONS
+    icons = [{"id": icon["id"], "name": icon["name"], "url": get_full_url(request, icon["icon_url"])} for icon in
+             options]
+    return JsonResponse(icons, safe=False)

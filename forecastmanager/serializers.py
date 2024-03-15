@@ -5,17 +5,13 @@ from .models import City, Forecast
 
 class CitySerializer(serializers.ModelSerializer):
     coordinates = serializers.SerializerMethodField()
-    clean_name = serializers.SerializerMethodField()
 
     class Meta:
         model = City
-        fields = ('id', 'name', 'coordinates', "clean_name")
+        fields = ('id', 'name', 'coordinates', "slug")
 
     def get_coordinates(self, obj):
         return obj.coordinates
-
-    def get_clean_name(self, obj):
-        return obj.clean_name
 
 
 class ForecastSerializer(serializers.ModelSerializer):

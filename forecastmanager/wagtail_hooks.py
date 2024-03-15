@@ -6,12 +6,12 @@ from wagtail.snippets.models import register_snippet
 from wagtail.snippets.views.snippets import (
     SnippetViewSet,
     SnippetViewSetGroup,
-    CreateView,
+    CreateView, EditView,
 )
 
 from forecastmanager.forecast_settings import ForecastSetting
-from forecastmanager.forms import ForecastForm
-from forecastmanager.models import City, DailyWeather, Forecast
+from forecastmanager.forms import ForecastCreateForm, ForecastEditForm
+from forecastmanager.models import City, Forecast
 from forecastmanager.views import load_cities
 
 
@@ -41,25 +41,9 @@ class CityViewSet(SnippetViewSet):
     icon = "globe"
     menu_label = _("Cities")
 
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-
-        name = request.GET.get("name")
-
-        print(name)
-
-        return queryset
-
-
-class DailyWeatherViewSet(SnippetViewSet):
-    model = DailyWeather
-
-    icon = 'site'
-    menu_label = _('Daily Weather')
-
 
 class ForecastCreateView(CreateView):
-    form_class = ForecastForm
+    form_class = ForecastCreateForm
     template_name = "forecastmanager/create_forecast.html"
 
     def get_context_data(self, **kwargs):
@@ -86,21 +70,42 @@ class ForecastCreateView(CreateView):
         return context
 
 
+class ForecastEditView(EditView):
+    form_class = ForecastEditForm
+    template_name = "forecastmanager/edit_forecast.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        fm_settings = ForecastSetting.for_request(self.request)
+
+        weather_parameters = fm_settings.data_parameter_values
+        context.update({
+            "weather_parameters": weather_parameters,
+        })
+
+        return context
+
+
 class ForecastViewSet(SnippetViewSet):
     model = Forecast
 
+    list_filter = ["forecast_date", "effective_period"]
+
     add_view_class = ForecastCreateView
+    edit_view_class = ForecastEditView
     create_template_name = "forecastmanager/create_forecast.html"
+    edit_template_name = "forecastmanager/edit_forecast.html"
 
     icon = 'table'
-    menu_label = _('Daily Forecast')
+    menu_label = _('Forecasts')
 
 
 class ForecastViewSetGroup(SnippetViewSetGroup):
-    items = (CityViewSet, ForecastViewSet, DailyWeatherViewSet)
+    items = (CityViewSet, ForecastViewSet)
     menu_icon = "table"
     menu_label = _("City Forecast")
     menu_name = "city_forecast"
+    menu_order = 200
 
     def get_submenu_items(self):
         menu_items = super().get_submenu_items()

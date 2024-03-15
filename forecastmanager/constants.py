@@ -1,3 +1,4 @@
+from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
 
 # extracted from https://nrkno.github.io/yr-weather-symbols/
@@ -183,3 +184,9 @@ WEATHER_PARAMETERS_AS_DICT = {param['name']: param for param in WEATHER_PARAMETE
 WEATHER_CONDITION_CHOICES = [(condition['id'], _(condition['name'])) for condition in WEATHER_CONDITIONS]
 
 WEATHER_CONDITIONS_AS_DICT = {condition['id']: condition for condition in WEATHER_CONDITIONS}
+
+WEATHER_CONDITION_ICONS = [
+    {"value": condition["id"], **condition,
+     'icon_url': static("forecastmanager/weathericons/{0}.png".format(condition["id"]))} for condition in
+    WEATHER_CONDITIONS
+]

@@ -2,23 +2,22 @@ import uuid
 
 from django.contrib.gis.db import models
 from django.utils.translation import gettext_lazy as _
+from django_extensions.db.fields import AutoSlugField
 from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
-from wagtail.admin.panels import FieldPanel, MultiFieldPanel, InlinePanel
+from wagtail.admin.panels import FieldPanel, InlinePanel
 from wagtail.api.v2.utils import get_full_url
-from wagtail.fields import RichTextField, StreamField
 from wagtail.models import Orderable
 from wagtailgeowidget import geocoders
 from wagtailgeowidget.helpers import geosgeometry_str_to_struct
 from wagtailgeowidget.panels import LeafletPanel, GeoAddressPanel
 
-from .blocks import ExtremeBlock
 from .forecast_settings import (
     ForecastPeriod,
     WeatherCondition,
     ForecastDataParameters
 )
-from .forms import ForecastForm
+from .forms import ForecastCreateForm
 
 
 class City(models.Model):
@@ -29,6 +28,7 @@ class City(models.Model):
         help_text=_("Unique UUID. Auto generated on creation."),
     )
     name = models.CharField(verbose_name=_("City Name"), max_length=255, null=True, blank=False, unique=True)
+    slug = AutoSlugField(populate_from='name', null=True, unique=True, default=None, editable=False)
     location = models.PointField(verbose_name=_("City Location (Lat, Lng)"))
     panels = [
         GeoAddressPanel("name", geocoder=geocoders.NOMINATIM),
@@ -42,10 +42,6 @@ class City(models.Model):
 
     def __str__(self):
         return self.name
-
-    @property
-    def clean_name(self):
-        return self.name.replace(" ", "--")
 
     @property
     def coordinates(self):
@@ -62,7 +58,7 @@ class City(models.Model):
 
 
 class Forecast(ClusterableModel):
-    base_form_class = ForecastForm
+    base_form_class = ForecastCreateForm
 
     FORECAST_SOURCE_CHOICES = [
         ("local", _("NMHSs Forecast")),
@@ -95,6 +91,7 @@ class Forecast(ClusterableModel):
             features.append(city_forecast.get_geojson_feature(request))
         return {
             "type": "FeatureCollection",
+            "date": self.forecast_date,
             "features": features,
         }
 
@@ -193,33 +190,3 @@ class DataValue(ClusterableModel, Orderable):
     @property
     def value_with_units(self):
         return f"{self.parsed_value}{self.parameter.parameter_info.get('unit')}"
-
-
-class DailyWeather(models.Model):
-    issued_on = models.DateField(auto_now_add=True, null=True)
-    forecast_date = models.DateField(_("Forecast Date"), auto_now=False, auto_now_add=False)
-    forecast_desc = RichTextField(verbose_name=_('Weather Forecast Description'))
-    summary_date = models.DateField(_("Summary Date"), auto_now=False, auto_now_add=False)
-    summary_desc = RichTextField(verbose_name=_('Weather Summary Description'))
-    extreme_date = models.DateField(_("Extreme Date"), auto_now=False, auto_now_add=False, null=True, blank=True)
-    extremes = StreamField([
-        ('extremes', ExtremeBlock())
-    ], use_json_field=True)
-
-    panels = [
-        MultiFieldPanel([
-            FieldPanel('summary_date'),
-            FieldPanel('summary_desc'),
-        ], heading="Weather Summary"),
-        MultiFieldPanel([
-            FieldPanel('forecast_date'),
-            FieldPanel('forecast_desc'),
-        ], heading="Weather Forecast"),
-        MultiFieldPanel([
-            FieldPanel('extreme_date'),
-            FieldPanel('extremes')
-        ], heading="Extremes")
-    ]
-
-    def __str__(self):
-        return f'Daily Weather - Issued on {self.issued_on.strftime("%Y-%m-%d")}'
