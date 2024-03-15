@@ -129,7 +129,6 @@ class Command(BaseCommand):
                 city_forecast = CityForecast(city=city, condition=condition_obj)
                 for key, value in data_values.get("parameters", {}).items():
                     if parameters_dict.get(key) is None:
-                        logger.warning(f"parameter: {key} not mapped set in Forecast Settings")
                         continue
 
                     parameter = parameters_dict[key]

@@ -1,0 +1,99 @@
+{% extends "wagtailadmin/base.html" %}
+{% load i18n wagtailadmin_tags static i18n %}
+{% block titletag %}{% blocktrans trimmed with snippet_type_name=model_opts.verbose_name %}View  {{ snippet_type_name }}
+{% endblocktrans %}{% endblock %}
+{% block content %}
+    {% include 'wagtailadmin/shared/headers/slim_header.html' %}
+
+    {% trans "View" as new_str %}
+    {% include "wagtailadmin/shared/header.html" with title=new_str subtitle=model_opts.verbose_name icon=header_icon merged=1 only %}
+
+
+    <div class="nice-padding">
+        <div class="forecast-day-table">
+
+
+            <h1 class="title">
+                {{ object.forecast_date|date:"l j F" }} - {{ object.effective_period.label }}
+            </h1>
+
+
+            <div class="w-field__input" data-field-input=""
+                 style="padding: 40px 0;display: flex;flex-direction: column; justify-content: center">
+                <label for="city_filter" style="margin-bottom: 20px;font-weight: bold;font-size: 16px">
+                    {% trans "Filter by City name" %}
+                </label>
+                <input type="text" id="city_filter">
+            </div>
+
+            <div class="table-wrapper">
+                <table class="listing" id="forecast-table">
+                    <thead>
+                    <tr>
+                        <th>{% trans "City" %} </th>
+                        <th>{% trans "Condition" %} </th>
+                        {% for param in weather_parameters %}
+                            <th>{{ param.name }}</th>
+                        {% endfor %}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for city_forecast in object.city_forecasts.all %}
+                        <tr>
+                            <td class="title city-name">
+                                <h2>{{ city_forecast.city.name }}</h2>
+                            </td>
+                            <td class="weather-condition">
+                                <img style="height: 70px;width: 70px" src="{{ city_forecast.condition.icon_url }}"
+                                     alt="">
+                            </td>
+                            {% for param in weather_parameters %}
+                                {% for data in city_forecast.data_values.all %}
+                                    {% if data.parameter.parameter == param.parameter %}
+                                        <td>{{ data.value_with_units }}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+
+{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    {{ media.css }}
+
+    <style>
+        .forecast-day-table .listing thead th {
+            font-size: 18px;
+            font-weight: 600
+        }
+
+    </style>
+
+{% endblock %}
+{% block extra_js %}
+    {{ block.super }}
+    {% include "wagtailadmin/pages/_editor_js.html" %}
+    {{ media.js }}
+
+    <script>
+        $(document).ready(function () {
+            $("#city_filter").on("keyup", function () {
+                const value = $(this).val().toLowerCase();
+                $("#forecast-table tbody tr").filter(function () {
+                    $(this).toggle($(this).find(".city-name").text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+        });
+    </script>
+
+
+{% endblock %}

@@ -9,7 +9,7 @@ from forecastmanager.forecast_settings import (
 )
 
 
-class ForecastForm(WagtailAdminModelForm):
+class ForecastCreateForm(WagtailAdminModelForm):
     data = forms.JSONField(widget=forms.HiddenInput)
     replace_existing = forms.BooleanField(required=False, initial=True, label=_("Replace existing data if found"))
 
@@ -179,3 +179,7 @@ class CityLoaderForm(forms.Form):
         cleaned_data["data"] = cities
 
         return cleaned_data
+
+
+class ForecastEditForm(WagtailAdminModelForm):
+    pass

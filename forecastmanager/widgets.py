@@ -6,7 +6,7 @@ from wagtail.telepath import register
 from wagtail.utils.widgets import WidgetWithScript
 from wagtail.widget_adapters import WidgetAdapter
 
-from forecastmanager.constants import WEATHER_CONDITION_CHOICES
+from forecastmanager.constants import WEATHER_CONDITION_CHOICES, WEATHER_CONDITION_ICONS
 
 
 class WeatherSymbolChooserWidget(WidgetWithScript, widgets.TextInput):
@@ -26,16 +26,9 @@ class WeatherSymbolChooserWidget(WidgetWithScript, widgets.TextInput):
         return context
 
     def render_js_init(self, id_, name, value):
-        symbol_options = []
-        for symbol in WEATHER_CONDITION_CHOICES:
-            symbol_options.append({
-                "value": symbol[0],
-                "label": str(symbol[1]),
-                "icon_url": static("forecastmanager/weathericons/{0}.png".format(symbol[0])),
-            })
-
+        options = WEATHER_CONDITION_ICONS
         return "$(document).ready(() => new WeatherSymbolChooserWidget({0},{1}));".format(json.dumps(id_),
-                                                                                          json.dumps(symbol_options))
+                                                                                          json.dumps(options))
 
     class Media:
         css = {
