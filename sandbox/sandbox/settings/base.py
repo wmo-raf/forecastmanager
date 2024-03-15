@@ -58,6 +58,8 @@ INSTALLED_APPS = [
     "wagtail_modeladmin",
     "wagtailfontawesomesvg",
     "wagtail.contrib.routable_page",
+    'django_extensions',
+
 ]
 
 MIDDLEWARE = [
