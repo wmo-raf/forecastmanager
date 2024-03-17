@@ -26,8 +26,13 @@
 
     <div class="row row-flush" style="padding-top:1rem">
         <div class="col5">
-            <form action="{{ action_url }}" method="POST" novalidate{% if form.is_multipart %}
-                  enctype="multipart/form-data"{% endif %} data-edit-form>
+            <form id="forecast-form"
+                  action="{{ action_url }}"
+                  method="POST"
+                  novalidate{% if form.is_multipart %}
+                  enctype="multipart/form-data"{% endif %}
+                  data-edit-form
+            >
                 {% csrf_token %}
 
                 <div class="nice-padding">
@@ -153,25 +158,36 @@
         const weather_conditions = {{weather_conditions|safe}};
         const cities = {{cities|safe}};
 
-        $(document).ready(function () {
 
-            const $fileInput = $("#id_file")
-            const container = document.querySelector('#table-container');
-            const $matchFields = $('#match-fields')
-            const $submitBtn = $("form button[type='submit']")
+        function HotLoader(options) {
+            const {
+                tableContainerId,
+                fileInputId,
+                matchFieldsId,
+                submitButton,
+                parameters,
+                dataInputId,
+                cities,
+                weatherConditions
+            } = options;
 
-            // Disable submit button by default
-            $submitBtn.prop('disabled', true)
 
-            let hot = {}
+            const tableContainer = document.getElementById(tableContainerId);
+            this.fileInput = document.getElementById(fileInputId);
+            this.matchFields = document.getElementById(matchFieldsId);
+            this.dataInput = document.getElementById(dataInputId);
+            this.submitBtn = submitButton;
 
-            hot = new Handsontable(container, {
+            this.parameters = parameters;
+
+
+            this.hot = new Handsontable(tableContainer, {
                 autoWrapRow: true,
                 autoWrapCol: true,
                 rowHeaders: true,
                 colHeaders: [
                     'City',
-                    ...parameters.map(p => p.name),
+                    ...this.parameters.map(p => p.name),
                     'Condition'
                 ],
                 columns: [
@@ -181,104 +197,145 @@
                         allowEmpty: false,
                         allowInvalid: false,
                     },
-                    ...parameters.map((p) => ({
+                    ...this.parameters.map((p) => ({
                         type: p.parameter_type,
                         allowEmpty: false,
                         allowInvalid: false,
-                        correctFormat: true,
                     })),
                     {
                         type: 'dropdown',
-                        source: weather_conditions,
+                        source: weatherConditions,
                         allowEmpty: false,
                         allowInvalid: false,
                     },
                 ],
                 contextMenu: true,
                 licenseKey: 'non-commercial-and-evaluation',
-                minSpareRows: 0,
                 height: 500,
-            });
+                startRows: 1,
+                afterRemoveRow: (index, amount) => {
+                    this.hot.validateCells(this.onValidate.bind(this));
+                },
 
-            hot.addHook('afterChange', function (changes) {
-                onChange()
-            });
-
-            hot.addHook("afterRemoveRow", function () {
-                onChange()
-            });
-
-
-            const onChange = () => {
-                const colHeader = hot.getColHeader();
-                const data = hot.getData();
-
-
-                const $dataInput = $("#id_data")
-
-                const tableData = {
-                    fields: colHeader,
-                    rows: data
+                afterChange: (changes, source) => {
+                    this.onChange();
                 }
+            });
 
-                $dataInput.val(JSON.stringify(tableData))
-            }
 
-            const columnSelectors = [
-                {dom_id: 'city', index: 0},
-                ...parameters.map((p, i) => ({
+            this.columnSelectors = [
+                {
+                    dom_id: 'city',
+                    index: 0
+                },
+                ...this.parameters.map((p, i) => ({
                     dom_id: p.parameter,
                     index: i + 1
                 })),
-                {dom_id: 'condition', index: parameters.length + 1},
+                {
+                    dom_id: 'condition',
+                    index: this.parameters.length + 1
+                },
             ]
 
-            const onValidate = (isValid) => {
-                if (isValid) {
-                    $submitBtn.prop('disabled', false)
-                } else {
-                    $submitBtn.prop('disabled', true)
-                }
+            this.fileInput.addEventListener('change', this.onFileChange.bind(this));
+        }
+
+
+        HotLoader.prototype.onFileChange = function (e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.readAsText(file);
+
+            const that = this
+
+            reader.onload = function (event) {
+                DataUtils.parseCSV(event.target.result).then(parsedData => {
+                    const initialData = parsedData.rows
+
+                    that.hot.updateData(initialData);
+
+                    const columnHeaders = parsedData.fields.map(field => field.name);
+
+                    that.columnSelectors.forEach(column => {
+                        generateSelectInput(column.dom_id, columnHeaders, column.index)
+                        document.getElementById(column.dom_id).addEventListener('change', that.onColumnDataSwap.bind(that, column, initialData))
+                        return column
+                    })
+
+                    that.matchFields.style.display = 'block'
+                });
+            };
+        };
+
+        HotLoader.prototype.onColumnDataSwap = function (column, initialData, e) {
+            const tableData = this.hot.getData();
+
+            const columnArray = initialData.map(arr => {
+                return arr[e.target.value]
+            })
+
+            tableData.replace_data(column.index, columnArray)
+
+            this.hot.updateData(tableData)
+        }
+
+        HotLoader.prototype.onChange = function () {
+            if (!this.hot) {
+                return
             }
 
-            $fileInput.on('change', function (e) {
-                const file = e.target.files[0];
-                const reader = new FileReader();
-                reader.readAsText(file);
+            this.hot.validateCells(this.onValidate.bind(this));
+        }
 
-                reader.onload = function (event) {
-                    DataUtils.parseCSV(event.target.result).then(parsedData => {
+        HotLoader.prototype.onValidate = function (isValid) {
 
-                        const data = parsedData.rows
-                        hot.loadData(data);
-                        hot.validateCells(onValidate)
+            if (!isValid) {
+                this.submitBtn.disabled = true;
+                return
+            }
 
-                        const columnHeaders = parsedData.fields.map(field => field.name);
+            const colHeader = this.hot.getColHeader();
+            const data = this.hot.getData();
 
-                        columnSelectors.forEach(column => {
-                            // pre-populate select with options by order
-                            generateSelectInput(column.dom_id, columnHeaders, column.index)
-                            document.getElementById(column.dom_id).addEventListener('change', function (e) {
-                                const table_data = hot.getData()
+            const tableData = {
+                fields: colHeader,
+                rows: data
+            }
 
-                                const column_arr = data.map(arr => {
-                                    return arr[e.target.value]
-                                })
+            if (data && data.length === 0) {
+                this.submitBtn.disabled = true;
+                return
+            }
 
-                                table_data.replace_data(column.index, column_arr)
+            this.dataInput.value = JSON.stringify(tableData)
+            this.submitBtn.disabled = false;
+        }
 
-                                hot.updateData(table_data)
+        $(document).ready(function () {
+            const parameters = {{parameters|safe}};
+            const weatherConditions = {{weather_conditions|safe}};
+            const cities = {{cities|safe}};
 
-                                hot.validateCells(onValidate)
-                            })
-                            return column
-                        })
 
-                        $matchFields.show()
-                    });
-                };
+            const submitBtnSelector = "#forecast-form button[type='submit']";
+            const submitBtn = document.querySelector(submitBtnSelector);
+            // disable submit button by default
+            submitBtn.disabled = true;
+
+            const hotLoader = new HotLoader({
+                tableContainerId: 'table-container',
+                fileInputId: 'id_file',
+                matchFieldsId: 'match-fields',
+                parameters,
+                dataInputId: 'id_data',
+                cities,
+                weatherConditions,
+                submitButton: submitBtn
             });
-        })
+
+
+        });
     </script>
     <script>
         // Set wagtailConfig.ACTIVE_CONTENT_LOCALE if this is a translated page
@@ -289,3 +346,4 @@
         {% endif %}
     </script>
 {% endblock %}
+
