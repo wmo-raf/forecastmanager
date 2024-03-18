@@ -160,6 +160,7 @@ class CityForecast(ClusterableModel, Orderable):
                 "effective_period_time": self.parent.effective_period.forecast_effective_time,
                 "effective_period_label": self.parent.effective_period.label,
                 "city": self.city.name,
+                "city_slug": self.city.slug,
                 "condition": self.condition.symbol,
                 "condition_label": self.condition.label,
                 "condition_symbol_url": condition_symbol_url
