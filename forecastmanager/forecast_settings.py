@@ -23,6 +23,8 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
     default_city = models.ForeignKey("City", blank=True, null=True, on_delete=models.CASCADE,
                                      verbose_name=_("Default City"))
     weather_detail_page = models.ForeignKey("wagtailcore.Page", blank=True, null=True, on_delete=models.SET_NULL, )
+    weather_reports_page = models.ForeignKey("wagtailcore.Page", blank=True, null=True, on_delete=models.SET_NULL,
+                                             related_name="weather_reports_page")
 
     edit_handler = TabbedInterface([
         ObjectList([
@@ -40,7 +42,8 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
         ObjectList([
             FieldPanel('default_city'),
             FieldPanel('weather_detail_page'),
-        ], heading=_("City")),
+            FieldPanel('weather_reports_page'),
+        ], heading=_("Other Settings")),
     ])
 
     @cached_property

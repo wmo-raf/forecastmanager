@@ -109,71 +109,84 @@ WEATHER_PARAMETERS = [
         "name": "air_temperature_max",
         "label": "Maximum Air Temperature",
         "unit": "°C",
-        "data_type": "int"
+        "data_type": "int",
+        "icon": "temperature-high"
     },
     {
         "name": "air_temperature_min",
         "label": "Minimum Air Temperature",
         "unit": "°C",
-        "data_type": "int"
+        "data_type": "int",
+        "icon": "temperature-low"
     },
     {
         "name": "air_temperature",
         "label": "Air Temperature",
         "unit": "°C",
-        "data_type": "int"
+        "data_type": "int",
+        "icon": "temperature-half"
     },
     {
         "name": "dew_point_temperature",
         "label": "Dew Point Temperature",
         "unit": "°C",
-        "data_type": "int"
+        "data_type": "int",
+        "icon": "droplet-degree"
     },
     {
         "name": "precipitation_amount",
         "label": "Precipitation Amount",
         "unit": "mm",
-        "data_type": "float"
+        "data_type": "float",
+        "icon": "umbrella-simple"
     },
     {
         "name": "air_pressure_at_sea_level",
         "label": "Air Pressure (Sea level)",
         "unit": "hPa",
-        "data_type": "int"
+        "data_type": "int",
+        "icon": "pressure-gauge"
     },
     {
         "name": "wind_speed",
         "label": "Wind Speed",
         "unit": "m/s",
-        "data_type": "int"
+        "data_type": "int",
+        "icon": "wind"
     },
     {
         "name": "wind_from_direction",
         "label": "Wind Direction",
         "unit": "°",
-        "data_type": "int"
+        "data_type": "int",
+        "icon": "direction"
     },
     {
         "name": "relative_humidity",
         "label": "Relative Humidity",
         "unit": "%",
-        "data_type": "int"
+        "data_type": "int",
+        "icon": "droplet-percent"
     },
     {
         "name": "sunrise",
         "label": "Sunrise",
+        "icon": "sunrise"
     },
     {
         "name": "sunset",
         "label": "Sunset",
+        "icon": "sunset"
     },
     {
         "name": "moonrise",
         "label": "Moonrise",
+        "icon": "moonrise"
     },
     {
         "name": "moonset",
         "label": "Moonset",
+        "icon": "moonset"
     },
 ]
 
@@ -189,4 +202,21 @@ WEATHER_CONDITION_ICONS = [
     {"value": condition["id"], **condition,
      'icon_url': static("forecastmanager/weathericons/{0}.png".format(condition["id"]))} for condition in
     WEATHER_CONDITIONS
+]
+
+WEATHER_PARAMETERS_ICON_LIST = [
+    "direction",
+    "droplet-degree",
+    "droplet-percent",
+    "moonrise",
+    "moonset",
+    "pressure-gauge",
+    "sunrise",
+    "sunset",
+    "temperature-half",
+    "temperature-high",
+    "temperature-low",
+    "umbrella-simple",
+    "wind",
+    "wind-sock",
 ]
