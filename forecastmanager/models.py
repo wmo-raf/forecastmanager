@@ -137,10 +137,19 @@ class CityForecast(ClusterableModel, Orderable):
         temperature = {}
         if "air_temperature_max" in data_values:
             temperature["max_temp"] = data_values.get("air_temperature_max")
+            # remove air_temperature_max from data_values
+            data_values.pop("air_temperature_max")
+
         if "air_temperature_min" in data_values:
             temperature["min_temp"] = data_values.get("air_temperature_min")
+            # remove air_temperature_max from data_values
+            data_values.pop("air_temperature_min")
+
         if "air_temperature" in data_values:
             temperature["temp"] = data_values.get("air_temperature")
+            # remove air_temperature_max from data_values
+            data_values.pop("air_temperature")
+
         if temperature:
             data_values["temperature"] = temperature
 
