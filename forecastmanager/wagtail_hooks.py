@@ -9,6 +9,7 @@ from wagtail.snippets.views.snippets import (
     CreateView, EditView,
 )
 
+from forecastmanager.constants import WEATHER_PARAMETERS_ICON_LIST
 from forecastmanager.forecast_settings import ForecastSetting
 from forecastmanager.forms import ForecastCreateForm, ForecastEditForm
 from forecastmanager.models import City, Forecast
@@ -24,10 +25,10 @@ def urlconf_forecastmanager():
 
 @hooks.register("register_icons")
 def register_icons(icons):
-    weather_parameter_icons = [
-        'wagtailfontawesomesvg/solid/temperature-high.svg',
-        'wagtailfontawesomesvg/solid/temperature-low.svg',
-    ]
+    weather_parameter_icons = []
+
+    for icon in WEATHER_PARAMETERS_ICON_LIST:
+        weather_parameter_icons.append("forecastmanager/icons/{}.svg".format(icon))
 
     return icons + weather_parameter_icons
 
@@ -101,7 +102,7 @@ class ForecastViewSet(SnippetViewSet):
 
 
 class ForecastViewSetGroup(SnippetViewSetGroup):
-    items = (CityViewSet, ForecastViewSet)
+    items = (ForecastViewSet, CityViewSet)
     menu_icon = "table"
     menu_label = _("City Forecast")
     menu_name = "city_forecast"

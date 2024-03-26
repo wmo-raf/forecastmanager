@@ -128,9 +128,11 @@ class CityForecast(ClusterableModel, Orderable):
         for data_value in self.data_values.all():
             data_values[data_value.parameter.parameter] = {
                 "value": data_value.parsed_value,
+                "name": data_value.parameter.name,
                 "label": data_value.parameter.parameter_info.get("label"),
                 "units": data_value.parameter.parameter_info.get("unit"),
                 "value_with_units": data_value.value_with_units,
+                "icon": data_value.parameter.parameter_info.get("icon"),
             }
 
         # Group temperature values
