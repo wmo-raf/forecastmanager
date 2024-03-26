@@ -5,7 +5,7 @@ from dateutil.parser import parse
 from django.core.management.base import BaseCommand
 from wagtail.models import Site
 
-from forecastmanager.forecast_settings import ForecastSetting, WeatherCondition, ForecastPeriod
+from forecastmanager.forecast_settings import ForecastSetting, WeatherCondition, ForecastPeriod, ForecastDataParameters
 from forecastmanager.models import City, CityForecast, DataValue, Forecast
 from forecastmanager.constants import WEATHER_CONDITIONS_AS_DICT
 
@@ -46,6 +46,20 @@ class Command(BaseCommand):
         conditions_by_symbol = {condition.symbol: condition for condition in conditions}
 
         parameters = forecast_setting.data_parameters.all()
+        if not parameters.exists():
+            # create default forecast parameters
+            default_parameters = [
+                {"parameter": "air_temperature_max", "name": "Maximum Air Temperature", "parameter_unit": "°C"},
+                {"parameter": "air_temperature_min", "name": "Minimum Air Temperature", "parameter_unit": "°C"},
+                {"parameter": "wind_speed", "name": "Wind Speed", "parameter_unit": "m/s"},
+                {"parameter": "precipitation_amount", "name": "Precipitation Amount", "parameter_unit": "mm"}
+            ]
+
+            for default_parameter in default_parameters:
+                ForecastDataParameters.objects.create(parent=forecast_setting, **default_parameter)
+
+            parameters = forecast_setting.data_parameters.all()
+
         parameters_dict = {parameter.parameter: parameter for parameter in parameters}
 
         forecast_periods = forecast_setting.periods.all()
@@ -83,6 +97,7 @@ class Command(BaseCommand):
             data = response.json()
 
             day_intervals = data['dayIntervals']
+
             for day in day_intervals[:8]:
                 date = parse(day.get("start"))
                 condition = day.get("twentyFourHourSymbol")
