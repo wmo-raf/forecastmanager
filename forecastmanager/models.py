@@ -201,4 +201,4 @@ class DataValue(ClusterableModel, Orderable):
 
     @property
     def value_with_units(self):
-        return f"{self.parsed_value}{self.parameter.parameter_info.get('unit')}"
+        return f"{self.parsed_value}{self.parameter.units}"
