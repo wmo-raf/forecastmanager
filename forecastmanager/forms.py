@@ -97,12 +97,13 @@ class ForecastCreateForm(WagtailAdminModelForm):
 
             # check parameters
             for param, value in params_data.items():
-                param = ForecastDataParameters.objects.filter(name=param).first()
-                if not param:
-                    self.add_error(None, f"Unknown parameter found in table data: {param}")
-                    return cleaned_data
+                if value:
+                    param = ForecastDataParameters.objects.filter(name=param).first()
+                    if not param:
+                        self.add_error(None, f"Unknown parameter found in table data: {param}")
+                        return cleaned_data
 
-                city_data["data_values"].append({"parameter": param, "value": value})
+                    city_data["data_values"].append({"parameter": param, "value": value})
 
             forecast_data.append(city_data)
             added_cities.append(city.id)

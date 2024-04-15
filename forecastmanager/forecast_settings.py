@@ -13,14 +13,14 @@ from wagtail.contrib.settings.models import BaseSiteSetting
 from wagtail.contrib.settings.registry import register_setting
 from wagtail.models import Orderable
 
-from forecastmanager.constants import WEATHER_PARAMETER_CHOICES, WEATHER_PARAMETERS_AS_DICT
-from forecastmanager.widgets import WeatherSymbolChooserWidget
+from forecastmanager.constants import WEATHER_PARAMETERS_AS_DICT
+from forecastmanager.widgets import WeatherSymbolChooserWidget, DataParameterWidget
 
 
 @register_setting
 class ForecastSetting(ClusterableModel, BaseSiteSetting):
     enable_auto_forecast = models.BooleanField(default=False, verbose_name=_('Enable automated forecasts'))
-    default_city = models.ForeignKey("City", blank=True, null=True, on_delete=models.CASCADE,
+    default_city = models.ForeignKey("City", blank=True, null=True, on_delete=models.SET_NULL,
                                      verbose_name=_("Default City"))
     weather_detail_page = models.ForeignKey("wagtailcore.Page", blank=True, null=True, on_delete=models.SET_NULL, )
     weather_reports_page = models.ForeignKey("wagtailcore.Page", blank=True, null=True, on_delete=models.SET_NULL,
@@ -98,12 +98,11 @@ class ForecastPeriod(Orderable):
 class ForecastDataParameters(Orderable):
     PARAMETER_TYPE_CHOICES = (
         ("numeric", _("Number")),
-        ("time", _("Time")),
         ("text", _("Text")),
     )
     parent = ParentalKey(ForecastSetting, on_delete=models.CASCADE, related_name="data_parameters")
-    parameter = models.CharField(max_length=100, choices=WEATHER_PARAMETER_CHOICES, unique=True,
-                                 verbose_name=_("Parameter"))
+    use_known_parameters = models.BooleanField(default=True, verbose_name=_("Use predefined parameters"))
+    parameter = models.CharField(max_length=100, unique=True, verbose_name=_("Parameter"))
     name = models.CharField(max_length=100, verbose_name=_("Parameter Label"),
                             help_text=_("Parameter name as locally labelled"))
     parameter_type = models.CharField(max_length=100, choices=PARAMETER_TYPE_CHOICES, verbose_name=_("Parameter Type"),
@@ -112,31 +111,32 @@ class ForecastDataParameters(Orderable):
                                       help_text="e.g °C, %, mm, hPa, etc ")
 
     panels = [
-        FieldPanel('parameter'),
+        FieldPanel('use_known_parameters'),
+        FieldPanel('parameter', widget=DataParameterWidget),
         FieldPanel('name'),
+        FieldPanel('parameter_type'),
+        FieldPanel('parameter_unit'),
     ]
 
     def __str__(self):
         return self.name
 
     @property
+    def units(self):
+        if self.parameter_unit:
+            return self.parameter_unit
+
+        if self.parameter_info:
+            return self.parameter_info.get("units")
+
+        return None
+
+    @property
     def parameter_info(self):
         return WEATHER_PARAMETERS_AS_DICT.get(self.parameter)
 
     def parse_value(self, value):
-        info = self.parameter_info
-
-        if not info.get("data_type"):
-            return value
-
-        try:
-            if info.get("data_type") == "int":
-                return int(float(value))
-            elif info.get("data_type") == "float":
-                return float(value)
-        except ValueError:
-            pass
-
+        # TODO: Implement parsing for different parameter types
         return value
 
 
