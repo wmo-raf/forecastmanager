@@ -13,8 +13,8 @@ from wagtail.contrib.settings.models import BaseSiteSetting
 from wagtail.contrib.settings.registry import register_setting
 from wagtail.models import Orderable
 
-from forecastmanager.constants import WEATHER_PARAMETER_CHOICES, WEATHER_PARAMETERS_AS_DICT
-from forecastmanager.widgets import WeatherSymbolChooserWidget
+from forecastmanager.constants import WEATHER_PARAMETERS_AS_DICT
+from forecastmanager.widgets import WeatherSymbolChooserWidget, DataParameterWidget
 
 
 @register_setting
@@ -101,8 +101,8 @@ class ForecastDataParameters(Orderable):
         ("text", _("Text")),
     )
     parent = ParentalKey(ForecastSetting, on_delete=models.CASCADE, related_name="data_parameters")
-    parameter = models.CharField(max_length=100, choices=WEATHER_PARAMETER_CHOICES, unique=True,
-                                 verbose_name=_("Parameter"))
+    use_known_parameters = models.BooleanField(default=True, verbose_name=_("Use predefined parameters"))
+    parameter = models.CharField(max_length=100, unique=True, verbose_name=_("Parameter"))
     name = models.CharField(max_length=100, verbose_name=_("Parameter Label"),
                             help_text=_("Parameter name as locally labelled"))
     parameter_type = models.CharField(max_length=100, choices=PARAMETER_TYPE_CHOICES, verbose_name=_("Parameter Type"),
@@ -111,7 +111,8 @@ class ForecastDataParameters(Orderable):
                                       help_text="e.g °C, %, mm, hPa, etc ")
 
     panels = [
-        FieldPanel('parameter'),
+        FieldPanel('use_known_parameters'),
+        FieldPanel('parameter', widget=DataParameterWidget),
         FieldPanel('name'),
         FieldPanel('parameter_type'),
         FieldPanel('parameter_unit'),

@@ -73,7 +73,7 @@ class Forecast(ClusterableModel):
         unique_together = ("forecast_date", "effective_period")
         verbose_name = _("Forecast")
         verbose_name_plural = _("Forecasts")
-        ordering = ["forecast_date", "effective_period"]
+        ordering = ["-forecast_date", "effective_period"]
 
     panels = [
         FieldPanel("forecast_date"),
@@ -126,14 +126,21 @@ class CityForecast(ClusterableModel, Orderable):
     def data_values_dict(self):
         data_values = {}
         for data_value in self.data_values.all():
-            data_values[data_value.parameter.parameter] = {
+            parameter_info = data_value.parameter.parameter_info
+            val = {
                 "value": data_value.parsed_value,
                 "name": data_value.parameter.name,
-                "label": data_value.parameter.parameter_info.get("label"),
-                "units": data_value.parameter.parameter_info.get("unit"),
+                "label": data_value.parameter.name,
+                "units": data_value.parameter.units,
                 "value_with_units": data_value.value_with_units,
-                "icon": data_value.parameter.parameter_info.get("icon"),
             }
+
+            if parameter_info:
+                val.update({
+                    "icon": data_value.parameter.parameter_info.get("icon"),
+                })
+
+            data_values[data_value.parameter.parameter] = val
 
         # Group temperature values
         temperature = {}
@@ -201,4 +208,10 @@ class DataValue(ClusterableModel, Orderable):
 
     @property
     def value_with_units(self):
-        return f"{self.parsed_value}{self.parameter.units}"
+        if not self.parsed_value:
+            return None
+
+        if not self.parameter.units:
+            return self.parsed_value
+
+        return f"{self.parsed_value} {self.parameter.units}"

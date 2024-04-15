@@ -48,11 +48,13 @@
                                      alt="">
                             </td>
                             {% for param in weather_parameters %}
-                                {% for data in city_forecast.data_values.all %}
-                                    {% if data.parameter.parameter == param.parameter %}
-                                        <td>{{ data.value_with_units }}</td>
-                                    {% endif %}
-                                {% endfor %}
+                                <td>
+                                    {% for data in city_forecast.data_values.all %}
+                                        {% if data.parameter.parameter == param.parameter %}
+                                            {{ data.value_with_units }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
                             {% endfor %}
                         </tr>
                     {% endfor %}
