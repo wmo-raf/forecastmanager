@@ -99,6 +99,7 @@ class Forecast(ClusterableModel):
         return {
             "type": "FeatureCollection",
             "date": self.forecast_date,
+            "datetime": self.datetime,
             "features": features,
         }
 
@@ -167,7 +168,7 @@ class CityForecast(ClusterableModel, Orderable):
                 "coordinates": self.city.coordinates,
             },
             "properties": {
-                "date": self.parent.forecast_date,
+                "date": self.parent.datetime,
                 "effective_period_time": self.parent.effective_period.forecast_effective_time,
                 "effective_period_label": self.parent.effective_period.label,
                 "city": self.city.name,
