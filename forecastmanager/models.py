@@ -1,6 +1,9 @@
 import uuid
+from datetime import datetime
 
 from django.contrib.gis.db import models
+from django.utils import timezone
+from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from django_extensions.db.fields import AutoSlugField
 from modelcluster.fields import ParentalKey
@@ -73,7 +76,7 @@ class Forecast(ClusterableModel):
         unique_together = ("forecast_date", "effective_period")
         verbose_name = _("Forecast")
         verbose_name_plural = _("Forecasts")
-        ordering = ["-forecast_date", "effective_period"]
+        ordering = ["forecast_date", "effective_period"]
 
     panels = [
         FieldPanel("forecast_date"),
@@ -85,6 +88,10 @@ class Forecast(ClusterableModel):
     def __str__(self):
         return f"{self.forecast_date} - {self.effective_period.label}"
 
+    @property
+    def datetime(self):
+        return datetime.combine(self.forecast_date, self.effective_period.forecast_effective_time)
+
     def get_geojson(self, request=None):
         features = []
         for city_forecast in self.city_forecasts.all():
@@ -92,6 +99,7 @@ class Forecast(ClusterableModel):
         return {
             "type": "FeatureCollection",
             "date": self.forecast_date,
+            "datetime": self.datetime,
             "features": features,
         }
 
@@ -122,6 +130,12 @@ class CityForecast(ClusterableModel, Orderable):
     def effective_period(self):
         return self.parent.effective_period
 
+    @cached_property
+    def datetime(self):
+        effective_period_time = self.effective_period.forecast_effective_time
+        date = datetime.combine(self.forecast_date, effective_period_time)
+        return timezone.make_aware(date)
+
     @property
     def data_values_dict(self):
         data_values = {}
@@ -142,26 +156,6 @@ class CityForecast(ClusterableModel, Orderable):
 
             data_values[data_value.parameter.parameter] = val
 
-        # Group temperature values
-        temperature = {}
-        if "air_temperature_max" in data_values:
-            temperature["max_temp"] = data_values.get("air_temperature_max")
-            # remove air_temperature_max from data_values
-            data_values.pop("air_temperature_max")
-
-        if "air_temperature_min" in data_values:
-            temperature["min_temp"] = data_values.get("air_temperature_min")
-            # remove air_temperature_max from data_values
-            data_values.pop("air_temperature_min")
-
-        if "air_temperature" in data_values:
-            temperature["temp"] = data_values.get("air_temperature")
-            # remove air_temperature_max from data_values
-            data_values.pop("air_temperature")
-
-        if temperature:
-            data_values["temperature"] = temperature
-
         return data_values
 
     def get_geojson_feature(self, request=None):
@@ -174,7 +168,7 @@ class CityForecast(ClusterableModel, Orderable):
                 "coordinates": self.city.coordinates,
             },
             "properties": {
-                "date": self.parent.forecast_date,
+                "date": self.parent.datetime,
                 "effective_period_time": self.parent.effective_period.forecast_effective_time,
                 "effective_period_label": self.parent.effective_period.label,
                 "city": self.city.name,
@@ -208,7 +202,7 @@ class DataValue(ClusterableModel, Orderable):
 
     @property
     def value_with_units(self):
-        if not self.parsed_value:
+        if self.parsed_value is None:
             return None
 
         if not self.parameter.units:

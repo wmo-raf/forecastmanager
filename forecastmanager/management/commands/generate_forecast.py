@@ -3,16 +3,42 @@ import logging
 import requests
 from dateutil.parser import parse
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 from wagtail.models import Site
 
-from forecastmanager.forecast_settings import ForecastSetting, WeatherCondition, ForecastPeriod, ForecastDataParameters
-from forecastmanager.models import City, CityForecast, DataValue, Forecast
 from forecastmanager.constants import WEATHER_CONDITIONS_AS_DICT
+from forecastmanager.forecast_settings import (
+    ForecastSetting,
+    WeatherCondition,
+    ForecastPeriod,
+    ForecastDataParameters
+)
+from forecastmanager.models import (
+    City,
+    CityForecast,
+    DataValue,
+    Forecast
+)
 
 logger = logging.getLogger(__name__)
 
 # Define the base URL for the Met Norway API
-BASE_URL = "https://www.yr.no/api/v0/locations"
+BASE_URL = "https://api.met.no/weatherapi/locationforecast/2.0/complete"
+
+DEFAULT_INSTANT_DATA_PARAMETERS = [
+    {"parameter": "air_pressure_at_sea_level", "name": "Air Pressure (Sea level)", "parameter_unit": "hPa"},
+    {"parameter": "air_temperature", "name": "Minimum Air Temperature", "parameter_unit": "°C"},
+    {"parameter": "wind_speed", "name": "Wind Speed", "parameter_unit": "m/s"},
+    {"parameter": "wind_from_direction", "name": "Wind Direction ", "parameter_unit": "degrees"}
+]
+
+DEFAULT_NEXT_HOURS_DATA_PARAMETERS = [
+    {"parameter": "air_temperature_min", "name": "Minimum Air Temperature", "parameter_unit": "°C"},
+    {"parameter": "air_temperature_max", "name": "Maximum Air Temperature", "parameter_unit": "°C"},
+    {"parameter": "precipitation_amount", "name": "Precipitation Amount", "parameter_unit": "mm"},
+]
+
+DEFAULT_PARAMETERS = DEFAULT_INSTANT_DATA_PARAMETERS + DEFAULT_NEXT_HOURS_DATA_PARAMETERS
 
 
 class Command(BaseCommand):
@@ -20,7 +46,7 @@ class Command(BaseCommand):
             'for all cities in the database and save it to the database.')
 
     def handle(self, *args, **options):
-        print("Getting 7 Day Forecast from Yr.no...")
+        logger.info("Getting 7 Day Forecast from Yr.no...")
 
         cities = City.objects.all()
         if not cities:
@@ -35,7 +61,13 @@ class Command(BaseCommand):
 
         forecast_setting = ForecastSetting.for_site(site)
 
-        user_agent = f"{site.site_name} (WMO NMHSs Website Template) {site.root_url}"
+        site_name = site.site_name
+        root_url = site.root_url
+
+        user_agent = f"ClimWeb {root_url}"
+        if site_name:
+            user_agent = f"{site_name}/{user_agent}"
+
         user_agent = user_agent.strip()
 
         if not forecast_setting.enable_auto_forecast:
@@ -46,83 +78,60 @@ class Command(BaseCommand):
         conditions_by_symbol = {condition.symbol: condition for condition in conditions}
 
         parameters = forecast_setting.data_parameters.all()
+
         if not parameters.exists():
             # create default forecast parameters
-            default_parameters = [
-                {"parameter": "air_temperature_max", "name": "Maximum Air Temperature", "parameter_unit": "°C"},
-                {"parameter": "air_temperature_min", "name": "Minimum Air Temperature", "parameter_unit": "°C"},
-                {"parameter": "wind_speed", "name": "Wind Speed", "parameter_unit": "m/s"},
-                {"parameter": "precipitation_amount", "name": "Precipitation Amount", "parameter_unit": "mm"}
-            ]
-
-            for default_parameter in default_parameters:
+            for default_parameter in DEFAULT_PARAMETERS:
                 ForecastDataParameters.objects.create(parent=forecast_setting, **default_parameter)
 
             parameters = forecast_setting.data_parameters.all()
 
         parameters_dict = {parameter.parameter: parameter for parameter in parameters}
 
-        forecast_periods = forecast_setting.periods.all()
-        if not forecast_periods.exists():
-            # create default forecast period
-            ForecastPeriod.objects.create(parent=forecast_setting,
-                                          label="Whole Day",
-                                          forecast_effective_time="00:00:00",
-                                          default=True)
-
-        forecast_period = forecast_periods.filter(default=True).first()
-        if not forecast_period:
-            # pick first one if no default
-            forecast_period = forecast_periods.first()
-
         cities_data = {}
 
         for city in cities:
-            print(f"Getting forecast for {city.name}...")
+            logger.info(f"Getting forecast for {city.name}...")
 
             lon = city.x
             lat = city.y
 
-            url = f"{BASE_URL}/{lat},{lon}/forecast"
+            url = f"{BASE_URL}?lat={lat}&lon={lon}"
 
             # Send a GET request to the API
             response = requests.get(url, headers={"User-Agent": user_agent})
 
             if response.status_code >= 400:
-                logger.error(
-                    f"Failed to get forecast for {city.name}. Status code: {response.status_code}")
+                logger.error(f"Failed to get forecast for {city.name}. Status code: {response.status_code}")
                 continue
 
             # Get the weather data from the response
             data = response.json()
 
-            day_intervals = data['dayIntervals']
+            # Get the timeseries data from the response
+            timeseries = data.get('properties', {}).get('timeseries')
 
-            for day in day_intervals[:8]:
-                date = parse(day.get("start"))
-                condition = day.get("twentyFourHourSymbol")
-                temperature_data = day.get("temperature")
-                air_temperature_max = temperature_data.get("max")
-                air_temperature_min = temperature_data.get("min")
+            # Get the first and last datetime for the forecast
+            first_datetime = timezone.localtime().replace(hour=0, minute=0, second=0, microsecond=0)
+            max_days = 6
+            last_datetime = (first_datetime + timezone.timedelta(days=max_days)).replace(hour=23, minute=59, second=59)
 
-                wind_data = day.get("wind")
-                wind_speed = wind_data.get("max")
+            # Create a forecast for the city
+            for time_data in timeseries:
+                time = time_data.get("time")
+                utc_date = parse(time)
+                timezone_date = timezone.localtime(utc_date)
 
-                precipitation_data = day.get("precipitation")
-                precipitation = precipitation_data.get("value")
+                # Check if the forecast is within the next 7 days
+                if timezone_date < first_datetime or timezone_date > last_datetime:
+                    continue
 
-                data_values = {
-                    "date": date,
-                    "condition": condition,
-                    "parameters": {
-                        "air_temperature_max": air_temperature_max,
-                        "air_temperature_min": air_temperature_min,
-                        "wind_speed": wind_speed,
-                        "precipitation_amount": precipitation
-                    }
-                }
+                data_values = time_data.get("data", {})
 
-                condition = data_values.get('condition')
+                # Get the weather condition for the forecast
+                condition = data_values.get("next_1_hours", {}).get("summary", {}).get("symbol_code")
+                if condition is None:
+                    condition = data_values.get("next_6_hours", {}).get("summary", {}).get("symbol_code")
 
                 if conditions_by_symbol.get(condition) is None:
                     condition_info = WEATHER_CONDITIONS_AS_DICT.get(condition)
@@ -142,7 +151,10 @@ class Command(BaseCommand):
                     continue
 
                 city_forecast = CityForecast(city=city, condition=condition_obj)
-                for key, value in data_values.get("parameters", {}).items():
+
+                instant_data = data_values.get("instant", {}).get("details", {})
+                # Add the instant data values to the forecast
+                for key, value in instant_data.items():
                     if parameters_dict.get(key) is None:
                         continue
 
@@ -150,17 +162,47 @@ class Command(BaseCommand):
                     data_value = DataValue(parameter=parameter, value=value)
                     city_forecast.data_values.add(data_value)
 
-                if date in cities_data:
-                    cities_data[date].append(city_forecast)
-                else:
-                    cities_data[date] = [city_forecast]
+                # Add the next hours data values to the forecast
+                for param in DEFAULT_NEXT_HOURS_DATA_PARAMETERS:
+                    param_key = param.get("parameter")
+                    if parameters_dict.get(param_key) is None:
+                        continue
 
-        for time, city_forecasts in cities_data.items():
-            forecast = Forecast.objects.filter(forecast_date=time, effective_period=forecast_period)
+                    next_1_hours_data = data_values.get("next_1_hours", {}).get("details", {})
+                    next_6_hours_data = data_values.get("next_6_hours", {}).get("details", {})
+
+                    next_data_value = None
+                    if param_key in next_1_hours_data:
+                        next_data_value = DataValue(parameter=parameters_dict[param_key],
+                                                    value=next_1_hours_data[param_key])
+                    elif param_key in next_6_hours_data:
+                        next_data_value = DataValue(parameter=parameters_dict[param_key],
+                                                    value=next_6_hours_data[param_key])
+
+                    if next_data_value is not None:
+                        city_forecast.data_values.add(next_data_value)
+
+                # Add the forecast to the cities data
+                if timezone_date in cities_data:
+                    cities_data[timezone_date].append(city_forecast)
+                else:
+                    cities_data[timezone_date] = [city_forecast]
+
+        # Create the forecast for the cities
+        for forecast_date, city_forecasts in cities_data.items():
+            effective_time = f"{forecast_date.hour}:00"
+
+            forecast_period = ForecastPeriod.objects.filter(forecast_effective_time=effective_time).first()
+            if forecast_period is None:
+                forecast_period = ForecastPeriod.objects.create(parent=forecast_setting,
+                                                                forecast_effective_time=effective_time,
+                                                                label=effective_time)
+
+            forecast = Forecast.objects.filter(forecast_date=forecast_date, effective_period=forecast_period)
             if forecast.exists():
                 forecast.delete()
 
-            forecast = Forecast(forecast_date=time, effective_period=forecast_period, source="yr")
+            forecast = Forecast(forecast_date=forecast_date, effective_period=forecast_period, source="yr")
 
             for city_forecast in city_forecasts:
                 forecast.city_forecasts.add(city_forecast)

@@ -1,11 +1,11 @@
 import csv
-from datetime import date
 
 from django.contrib.gis.geos import Point
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import BasePermission, IsAuthenticated, SAFE_METHODS
@@ -45,29 +45,8 @@ class ForecastListView(ListAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        forecast_date = self.request.query_params.get('forecast_date')
-
-        start_date = self.request.query_params.get('start_date')
-        end_date = self.request.query_params.get('end_date')
-        effective_time = self.request.query_params.get('effective_time')
-
-        if effective_time:
-            queryset = queryset.filter(effective_period__forecast_effective_time=effective_time)
-        else:
-            queryset = queryset.filter(effective_period__default=True)
-
-        if start_date:
-            queryset = queryset.filter(forecast_date__gte=start_date)
-        else:
-            queryset = queryset.filter(forecast_date__gte=date.today())
-
-        if end_date:
-            queryset = queryset.filter(forecast_date__lte=end_date)
-
-        if forecast_date:
-            queryset = queryset.filter(forecast_date=forecast_date)
-
-        return queryset.order_by('forecast_date', 'effective_period__forecast_effective_time')
+        queryset.filter(forecast_date__gte=timezone.localtime().date())
+        return queryset
 
 
 def download_forecast_template(request):
