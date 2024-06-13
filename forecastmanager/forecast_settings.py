@@ -62,7 +62,7 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
     @property
     def effective_periods(self):
         return [
-            {"label": period.label, "time": period.forecast_effective_time, "default": period.default}
+            {"label": period.label, "time": period.forecast_effective_time}
             for period in self.periods.all()]
 
     @property
@@ -73,26 +73,19 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
 
 class ForecastPeriod(Orderable):
     parent = ParentalKey(ForecastSetting, on_delete=models.CASCADE, related_name="periods")
-    default = models.BooleanField(default=False, verbose_name=_("Is default"))
-    forecast_effective_time = models.TimeField(verbose_name=_("Forecast Effective Time"))
+    forecast_effective_time = models.TimeField(verbose_name=_("Forecast Effective Time"), unique=True)
     label = models.CharField(max_length=100, verbose_name=_("Label"))
 
     class Meta:
-        unique_together = ("default", "forecast_effective_time")
+        ordering = ["forecast_effective_time"]
 
     panels = [
         FieldPanel('forecast_effective_time'),
         FieldPanel('label'),
-        FieldPanel('default'),
     ]
 
     def __str__(self):
         return self.label
-
-    def save(self, *args, **kwargs):
-        if self.default:
-            ForecastPeriod.objects.filter(default=True).update(default=False)
-        super().save(*args, **kwargs)
 
 
 class ForecastDataParameters(Orderable):
@@ -136,7 +129,8 @@ class ForecastDataParameters(Orderable):
         return WEATHER_PARAMETERS_AS_DICT.get(self.parameter)
 
     def parse_value(self, value):
-        # TODO: Implement parsing for different parameter types
+        if self.parameter_type == "numeric":
+            return float(value)
         return value
 
 

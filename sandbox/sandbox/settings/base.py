@@ -165,7 +165,7 @@ WAGTAILADMIN_PERMITTED_LANGUAGES = [
     # ('am', 'Amharic'),
 
 ]
-TIME_ZONE = "UTC"
+TIME_ZONE = "Africa/Nairobi"
 
 USE_I18N = True
 
@@ -212,3 +212,43 @@ WAGTAILSEARCH_BACKENDS = {
 # e.g. in notification emails. Don't include '/admin' or a trailing slash
 WAGTAILADMIN_BASE_URL = "http://example.com"
 # FORCE_SCRIPT_NAME='/cms'
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        # Send logs with at least INFO level to the console.
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "formatters": {
+        "verbose": {
+            "format": "[%(asctime)s][%(process)d][%(levelname)s][%(name)s] %(message)s"
+        },
+    },
+    "loggers": {
+        "": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "wagtail": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "django.security": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+    },
+}

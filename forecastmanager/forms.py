@@ -97,7 +97,7 @@ class ForecastCreateForm(WagtailAdminModelForm):
 
             # check parameters
             for param, value in params_data.items():
-                if value:
+                if value is not None and value != "":
                     param = ForecastDataParameters.objects.filter(name=param).first()
                     if not param:
                         self.add_error(None, f"Unknown parameter found in table data: {param}")
