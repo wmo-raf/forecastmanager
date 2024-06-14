@@ -4,6 +4,7 @@ import requests
 from dateutil.parser import parse
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+from wagtail import hooks
 from wagtail.models import Site
 
 from forecastmanager.constants import WEATHER_CONDITIONS_AS_DICT
@@ -188,6 +189,8 @@ class Command(BaseCommand):
                 else:
                     cities_data[timezone_date] = [city_forecast]
 
+        created_forecast_pks = []
+
         # Create the forecast for the cities
         for forecast_date, city_forecasts in cities_data.items():
             effective_time = f"{forecast_date.hour}:00"
@@ -208,3 +211,9 @@ class Command(BaseCommand):
                 forecast.city_forecasts.add(city_forecast)
 
             forecast.save()
+
+            # Add the forecast to the list of created forecasts
+            created_forecast_pks.append(forecast.pk)
+
+        for fn in hooks.get_hooks("after_generate_forecast"):
+            fn(created_forecast_pks)
