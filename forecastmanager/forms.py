@@ -1,6 +1,7 @@
 from django import forms
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
+from wagtail import hooks
 from wagtail.admin.forms import WagtailAdminModelForm
 
 from forecastmanager.forecast_settings import (
@@ -134,6 +135,10 @@ class ForecastCreateForm(WagtailAdminModelForm):
 
         if commit:
             forecast.save()
+
+            for fn in hooks.get_hooks("after_forecast_add_from_form"):
+                fn()
+
         return forecast
 
 

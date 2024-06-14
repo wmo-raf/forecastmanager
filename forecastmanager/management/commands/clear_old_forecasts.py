@@ -2,6 +2,7 @@ import logging
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+from wagtail import hooks
 
 from forecastmanager.models import Forecast
 
@@ -28,3 +29,6 @@ class Command(BaseCommand):
         old_forecasts.delete()
 
         logger.info("Old forecasts deleted successfully.")
+
+        for fn in hooks.get_hooks("after_clear_old_forecasts"):
+            fn()
