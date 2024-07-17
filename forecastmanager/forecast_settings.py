@@ -102,6 +102,7 @@ class ForecastDataParameters(Orderable):
                                       default="numeric")
     parameter_unit = models.CharField(_("Unit of measurement"), max_length=100, null=True, blank=True,
                                       help_text="e.g °C, %, mm, hPa, etc ")
+    show_on_home_widget = models.BooleanField(default=True, verbose_name=_("Show on Home Widget"))
 
     panels = [
         FieldPanel('use_known_parameters'),
@@ -109,6 +110,7 @@ class ForecastDataParameters(Orderable):
         FieldPanel('name'),
         FieldPanel('parameter_type'),
         FieldPanel('parameter_unit'),
+        FieldPanel('show_on_home_widget'),
     ]
 
     def __str__(self):
