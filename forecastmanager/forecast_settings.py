@@ -25,6 +25,8 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
     weather_detail_page = models.ForeignKey("wagtailcore.Page", blank=True, null=True, on_delete=models.SET_NULL, )
     weather_reports_page = models.ForeignKey("wagtailcore.Page", blank=True, null=True, on_delete=models.SET_NULL,
                                              related_name="weather_reports_page")
+    show_conditions_label_on_widget = models.BooleanField(default=True,
+                                                          verbose_name=_("Show conditions label on widget"))
 
     edit_handler = TabbedInterface([
         ObjectList([
@@ -43,6 +45,7 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
             FieldPanel('default_city'),
             FieldPanel('weather_detail_page'),
             FieldPanel('weather_reports_page'),
+            FieldPanel('show_conditions_label_on_widget'),
         ], heading=_("Other Settings")),
     ])
 
