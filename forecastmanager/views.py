@@ -12,10 +12,10 @@ from rest_framework.permissions import BasePermission, IsAuthenticated, SAFE_MET
 from wagtail.api.v2.utils import get_full_url
 
 from forecastmanager.models import City, Forecast
-from .constants import WEATHER_CONDITION_ICONS
 from .forecast_settings import ForecastSetting
 from .forms import CityLoaderForm
 from .serializers import CitySerializer, ForecastSerializer
+from .utils import get_weather_condition_icons
 
 
 class ReadOnly(BasePermission):
@@ -132,7 +132,7 @@ def forecast_settings(request):
 
 
 def weather_icons(request):
-    options = WEATHER_CONDITION_ICONS
+    options = get_weather_condition_icons()
     icons = [{"id": icon["id"], "name": icon["name"], "url": get_full_url(request, icon["icon_url"])} for icon in
              options]
     return JsonResponse(icons, safe=False)
