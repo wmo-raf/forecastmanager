@@ -2,9 +2,9 @@
 
 <div class="icon-chooser-widget">
     <div class="icon-selector">
-        <!--        {% include "django/forms/widgets/text.html" %}-->
         <input type="hidden" name="{{ widget.name }}" {% if widget.value != None %}
-               value="{{ widget.value|stringformat:'s' }}" {% endif %} id="{{ widget.attrs.id }}">
+               value="{{ widget.value|stringformat:'s' }}" {% endif %}
+               id="{{ widget.attrs.id }}" {% include "django/forms/widgets/attrs.html" %}>
         <div style="display: flex;align-items: center">
             <button type="button" id="{{ widget.attrs.id }}-modal-trigger" class="icon-button button button-secondary">
                 <span id="{{ widget.attrs.id }}-icon-container" class="icon-container">
