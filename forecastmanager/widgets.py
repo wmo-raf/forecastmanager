@@ -101,6 +101,7 @@ class DataParameterWidget(TextInput):
     def media(self):
         js = [
             "forecastmanager/js/data-parameter-widget.js",
+            "forecastmanager/js/data-parameter-widget-controller.js",
         ]
         
         return Media(js=js)
