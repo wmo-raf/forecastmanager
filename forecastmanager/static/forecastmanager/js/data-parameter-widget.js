@@ -1,6 +1,4 @@
 function DataParameterWidget(id, initialValue) {
-    console.log("HELLO WORLD")
-
     const inputId = '#' + id
     this.input = $(inputId);
 
