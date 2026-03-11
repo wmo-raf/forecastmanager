@@ -1,0 +1,519 @@
+{% load static forecastmanager_tags i18n wagtailiconchooser_tags %}
+{% if city_forecasts_by_date %}
+    <style>
+        .forecast-widget {
+            color: #fff;
+            position: relative;
+        }
+
+        .forecast-widget .loader-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            opacity: 0;
+            z-index: -1;
+        }
+
+        .forecast-widget .loader {
+            width: 50px;
+            height: 50px;
+        }
+
+        .forecast-widget .loader-wrapper.is-active {
+            opacity: 1;
+            z-index: 9999;
+        }
+
+        .forecast-widget .loader.is-loading {
+            position: absolute;
+        }
+
+
+        .forecast-widget .city-search {
+            margin-right: 20px;
+            flex: 1;
+            width: 100%;
+        }
+
+        .forecast-widget .city-search .search-icon {
+            height: 16px;
+            top: 12px;
+        }
+
+        .forecast-widget .city-search .search-icon svg {
+            fill: #fff;
+        }
+
+
+        .forecast-widget .city-search .dropdown-trigger {
+            width: 100%;
+        }
+
+        .forecast-widget .city-search input {
+            background-color: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            width: 100%;
+            border: none;
+            color: #fff;
+
+        }
+
+        .forecast-widget .city-search input::placeholder {
+            color: #fff;
+            opacity: 1; /* Firefox */
+        }
+
+        .forecast-widget .detail-link {
+            color: #fff;
+            text-decoration: underline;
+        }
+
+        .forecast-widget .dropdown-menu {
+            z-index: 99999;
+        }
+
+        .forecast-widget .city-name {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            font-size: 24px;
+            color: #fff;
+            margin-right: 20px;
+            text-shadow: 0px 1px 10px #333;
+
+        }
+
+        .forecast-widget .city-name .icon {
+            margin-right: 8px;
+            height: 20px;
+        }
+
+        .forecast-content {
+            background-color: #ffffff10;
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border: 1px solid #ffffff50;
+            border-radius: 8px;
+            width: 100%;
+        }
+
+        .forecast-widget .today-forecast {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        .forecast-widget .today-forecast .today {
+            font-size: 18px;
+            font-weight: bold;
+            padding: 4px 10px;
+            margin-bottom: 10px;
+        }
+
+        .forecast-widget .today-forecast .forecast-params {
+            display: flex;
+            width: 100%;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .forecast-widget .today-forecast .forecast-params .forecast-condition {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .forecast-widget .today-forecast .forecast-params .forecast-condition .condition-img {
+            height: 100px;
+            width: 130px;
+        }
+
+        .condition-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .forecast-widget .today-forecast .forecast-params .forecast-condition .condition-label {
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+
+        .today-forecast .data-params {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .today-forecast .forecast-param {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        .today-forecast .forecast-param.has-icon {
+            flex-direction: row;
+            align-items: center;
+        }
+
+        .today-forecast.forecast-param-label {
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .today-forecast .forecast-parameter-icon {
+            margin-right: 10px;
+        }
+
+        .today-forecast .forecast-parameter-icon svg {
+            height: 14px;
+            width: 14px;
+            fill: #fff;
+        }
+
+        .forecast-widget .forecast-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            min-height: 250px;
+            background-color: #ffffff15;
+            border-radius: 8px;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .forecast-item .forecast-time {
+            font-weight: bold;
+            padding: 10px;
+            background-color: #ffffff40;
+            width: 100%;
+            text-align: center;
+            font-size: 14px;
+        }
+
+
+        .forecast-item .forecast-params {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 0 10px 20px;
+        }
+
+        .forecast-item .forecast-condition {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .forecast-item .forecast-condition .condition-img {
+            width: 70px;
+            height: 70px;
+        }
+
+        .forecast-item .forecast-condition .condition-label {
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .forecast-item .forecast-param {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+
+        .forecast-item .forecast-param.has-icon {
+            flex-direction: row;
+            align-items: center;
+        }
+
+        .forecast-item .forecast-param-label {
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .forecast-item .forecast-parameter-icon {
+            margin-right: 10px;
+        }
+
+        .forecast-item .forecast-parameter-icon svg {
+            height: 14px;
+            width: 14px;
+            fill: #fff;
+        }
+
+
+        .slider-arrow {
+            height: 30px;
+            width: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border-radius: 50%;
+        }
+
+        .slider-arrow svg {
+            height: 100%;
+            width: 100%;
+            fill: #fff;
+        }
+
+        /*768px and lower*/
+        @media screen and (max-width: 768px) {
+            .forecast-widget .city-name {
+                margin-left: 0;
+            }
+        }
+
+        .forecast-attribution {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+
+        .forecast-attribution .icon {
+            margin-right: 4px;
+        }
+
+        .forecast-attribution a {
+            color: #fff;
+        }
+
+
+    </style>
+
+    <div class="forecast-widget">
+        <div class="loader-wrapper" id="weather-widget-loader">
+            <div class="loader is-loading"></div>
+        </div>
+        <div class="columns is-multiline is-mobile">
+            <div class="column is-half-desktop is-full-mobile">
+                <div class="city-name">
+                    <span class="icon is-small is-left">
+                        {% svg_icon "location" %}
+                    </span>
+                    {% if city_detail_page_url %}
+                        <a class="detail-link" href="{{ city_detail_page_url }}">
+                            {{ city.name }}
+                        </a>
+                    {% else %}
+                        {{ city.name }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="column is-half-desktop is-full-mobile">
+                <div class="dropdown city-search">
+                    <div class="dropdown-trigger">
+                        <div class="control has-icons-left">
+                            <input id="city-search" class="input is-fullwidth" type="text"
+                                   placeholder="{% translate 'Search location' %}"
+                                   aria-haspopup="true"
+                                   aria-controls="prova-menu"
+                                   autocomplete="off"
+                            >
+                            <span class="icon is-small is-left search-icon">
+                                {% svg_icon "search" %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="dropdown-menu" id="city-search-menu" role="menu">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="forecast-content">
+            {% for date, forecasts in city_forecasts_by_date.items %}
+                {% if date|date_is_today %}
+                    {% with forecasts.0 as forecast %}
+                        <div class="today-forecast">
+                            <div class="today">
+                                {% translate "Today" %}
+                            </div>
+                            <div class="forecast-params">
+                                <div class="forecast-condition">
+                                    <div class="condition-img">
+                                        <img src="{{ forecast.condition.icon_url }}"
+                                             alt="{{ forecast.condition.label }}"
+                                             title="{{ forecast.condition.label }}"
+                                        >
+                                    </div>
+                                    {% if show_condition_label %}
+                                        <div class="condition-label">
+                                            {{ forecast.condition.label }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="data-params">
+                                    {% for param in weather_parameters %}
+                                        <div class="forecast-param {% if param.parameter_info and param.parameter_info.icon %} has-icon{% endif %}">
+                                            <div class="forecast-param-label">
+                                                {% if param.parameter_info and param.parameter_info.icon %}
+                                                    <div class="forecast-parameter-icon">
+                                                        {% svg_icon param.parameter_info.icon %}
+                                                    </div>
+                                                {% else %}
+                                                    <span style="margin-right: 10px">
+                                                        {{ param.name }}:
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                            {% if forecast.data_values_dict|get_dict_item:param.parameter %}
+                                                {% with forecast.data_values_dict|get_dict_item:param.parameter as data_value %}
+                                                    <div class="forecast-param-value">
+                                                        {% if data_value.value_with_units %}
+                                                            {{ data_value.value_with_units }}
+                                                        {% else %}
+                                                            -
+                                                        {% endif %}
+                                                    </div>
+                                                {% endwith %}
+                                            {% else %}
+                                                <div class="forecast-param-value">
+                                                    -
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endwith %}
+                {% endif %}
+            {% endfor %}
+
+            <div style="display: flex;justify-content: center;padding: 10px 0 20px">
+                <a class="button is-small is-outlined"
+                   style="background-color: transparent;color: #fff"
+                   href="{{ city_detail_page_url }}">
+                    <span>
+                        {% translate "Detail" %}
+                    </span>
+                    <span class="icon is-small">
+                        {% svg_icon "arrow-right-full" %}
+                    </span>
+                </a>
+            </div>
+
+            <div class="glide" id="single-forecast-slider">
+                <div class="glide__track" data-glide-el="track">
+                    <div class="glide__slides">
+                        {% for date, forecasts in city_forecasts_by_date.items %}
+                            {% if not date|date_is_today %}
+                                <div class="glide__slide" style="height: unset">
+                                    <div class="forecast-item">
+                                        <div class="forecast-time">
+                                            <div>
+                                                {% if date|date_is_today %}
+                                                    {% translate "Today" %}
+                                                {% else %}
+                                                    {{ date|date:"D" }}
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                {{ date|date:"d F" }}
+                                            </div>
+                                        </div>
+                                        <div class="forecast-params">
+                                            {% with forecasts.0 as forecast %}
+                                                <div class="forecast-condition">
+                                                    <div class="condition-img">
+                                                        <img src="{{ forecast.condition.icon_url }}"
+                                                             alt="{{ forecast.condition.label }}"
+                                                             title="{{ forecast.condition.label }}"
+                                                        >
+                                                    </div>
+                                                    {% if show_condition_label %}
+                                                        <div class="condition-label">
+                                                            {{ forecast.condition.label }}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                {% for param in weather_parameters %}
+                                                    <div class="forecast-param {% if param.parameter_info and param.parameter_info.icon %} has-icon{% endif %}">
+                                                        <div class="forecast-param-label">
+                                                            {% if param.parameter_info and param.parameter_info.icon %}
+                                                                <div class="forecast-parameter-icon">
+                                                                    {% svg_icon param.parameter_info.icon %}
+                                                                </div>
+                                                            {% else %}
+                                                                <span style="margin-right: 10px">
+                                                        {{ param.name }}:
+                                                    </span>
+                                                            {% endif %}
+                                                        </div>
+                                                        {% if forecast.data_values_dict|get_dict_item:param.parameter %}
+                                                            {% with forecast.data_values_dict|get_dict_item:param.parameter as data_value %}
+                                                                <div class="forecast-param-value">
+                                                                    {% if data_value.value_with_units %}
+                                                                        {{ data_value.value_with_units }}
+                                                                    {% else %}
+                                                                        -
+                                                                    {% endif %}
+                                                                </div>
+                                                            {% endwith %}
+                                                        {% else %}
+                                                            <div class="forecast-param-value">
+                                                                -
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endfor %}
+                                            {% endwith %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="glide__arrows" data-glide-el="controls">
+                    <button class="slider-arrow glide__arrow glide__arrow--left" data-glide-dir="<">
+                        {% svg_icon "arrow-left" %}
+                    </button>
+                    <button class="slider-arrow glide__arrow glide__arrow--right" data-glide-dir=">">
+                        {% svg_icon "arrow-right" %}
+                    </button>
+                </div>
+            </div>
+
+            {% if external_source_attribution and external_source_url %}
+                <div class="forecast-attribution">
+                    <span class="icon is-small">
+                        {% svg_icon "info-circle" %}
+                    </span>
+                    <a href="{{ external_source_url }}" target="_blank" rel="noopener noreferrer">
+                        {{ external_source_attribution }}
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}

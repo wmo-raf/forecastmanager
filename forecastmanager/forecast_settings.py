@@ -69,9 +69,9 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
     @property
     def effective_periods(self):
         return [
-            {"label": period.label, "time": period.forecast_effective_time}
+            {"id": period.id,"label": period.label, "time": period.forecast_effective_time}
             for period in self.periods.all()]
-    
+
     @property
     def weather_conditions_list(self):
         weather_conditions = self.weather_conditions.all()

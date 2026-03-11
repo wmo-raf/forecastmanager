@@ -1,5 +1,4 @@
 .weather-widget {
-    max-width: 600px;
     padding: 20px;
 }
 
@@ -10,6 +9,7 @@
     backdrop-filter: blur(10px);
     width: 100%
 }
+
 
 .weather-widget .card-content {
     padding-top: 0;
@@ -46,13 +46,18 @@
     padding: 10px 20px;
 }
 
+.weather-widget .city-search .dropdown-content {
+    max-height: 300px;
+    overflow: auto;
+}
+
 .weather-widget .city-search .dropdown-menu .dropdown-item {
     text-align: left;
 }
 
 
 .weather-widget .widget-header {
-    padding-top: 10px;
+    padding-top: 20px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -68,6 +73,7 @@
     justify-content: center;
     padding-bottom: 4px;
 }
+
 
 .weather-widget .widget-header .city-name .icon {
     padding-right: 10px;
@@ -89,7 +95,7 @@
 }
 
 .weather-widget .min-temp {
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .weather-temperature {
@@ -106,13 +112,13 @@
 }
 
 .focused-temp .max-temp {
-    font-size: 40px;
+    font-size: 34px;
     font-weight: 400;
 }
 
 
 .focused-temp .min-temp {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 400;
 }
 
@@ -125,8 +131,31 @@
 }
 
 
+.weather-widget .other-parameters {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.weather-widget .other-parameters .parameter-item {
+    display: flex;
+    align-items: center;
+    padding: 4px 0;
+}
+
+.weather-widget .other-parameters .parameter-item .parameter-icon {
+    margin-right: 10px;
+}
+
+.weather-widget .other-parameters .parameter-item .parameter-icon svg {
+    height: 24px;
+    width: 24px;
+    fill: #fff;
+}
+
+
 .weather-widget .card-footer {
-    padding: 20px;
+    padding: 20px 20px 40px;
     border: none;
     width: 100%;
     overflow: hidden
@@ -137,8 +166,10 @@
     background-color: #ffffff20;
     display: flex;
     flex-direction: column;
-    margin: 0 10px;
+    margin: 0 5px;
     border: none;
+    max-height: 120px;
+    max-width: 220px;
 }
 
 .weather-widget .card-footer-item img {
@@ -146,8 +177,28 @@
     width: 50px
 }
 
+.weather-widget .more-links {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 20px 0;
+}
+
+.weather-widget .more-links .button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    margin: 10px;
+}
+
 
 @media screen and (max-width: 768px) {
+    .weather-widget {
+        padding: 0;
+    }
 
     .weather-widget .card-content {
         padding: 0;
@@ -167,4 +218,32 @@
         height: 90px;
         width: 90px;
     }
+}
+
+@media screen and (max-width: 480px) {
+    .weather-widget-column {
+        padding: 0;
+    }
+
+    .city-name {
+        font-size: 20px;
+    }
+
+    .weather-temperature {
+        justify-content: flex-end;
+    }
+
+    .focused-temp .max-temp {
+        font-size: 24px;
+    }
+
+    .focused-temp .min-temp {
+        font-size: 20px;
+    }
+
+    .weather-condition img {
+        height: 74px;
+        width: 74px;
+    }
+
 }

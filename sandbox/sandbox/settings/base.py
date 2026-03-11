@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import dj_database_url
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.dirname(PROJECT_DIR)
@@ -28,6 +29,7 @@ INSTALLED_APPS = [
 
     "forecastmanager",
     "wagtailgeowidget",
+    "wagtailiconchooser",
 
     "wagtail.contrib.settings",
     "wagtail.contrib.styleguide",
@@ -52,6 +54,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.gis",
     "rest_framework",
+    "rest_framework.authtoken",
     "django_filters",
     "django_deep_translator",
     "background_task",
@@ -72,6 +75,16 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
 ]
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+}
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOCALE_PATHS = [
@@ -103,16 +116,14 @@ WSGI_APPLICATION = "sandbox.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+DB_ENGINE = 'sandbox.db_engine'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'sandbox',
-        'HOST': 'localhost',
-        'PORT': 5432,
-        'USER': 'postgres',
-        'PASSWORD': 'postgres'
-    }
+    "default": dj_database_url.config(
+        engine=DB_ENGINE,
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

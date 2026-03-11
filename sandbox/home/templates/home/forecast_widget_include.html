@@ -1,105 +1,156 @@
-{% load i18n %}
+<style>
+    .forecast-widget-skeleton {
+        color: #fff;
+        position: relative;
+    }
 
-<div class="weather-widget">
-    <div class="card elevation-0">
-        {% with default_city_forecasts|first as earliest %}
-            <div class="dropdown city-search">
-                <div class="dropdown-trigger">
-                    <p class="control has-icons-left">
-                        <input id="prova" class="input is-small" type="text"
-                               placeholder="Search City"
-                               aria-haspopup="true"
-                               aria-controls="prova-menu"
-                               autocomplete="off"
-                        >
-                        <span class="icon is-small is-left">
-                            <i class="fas fa-search"></i>
-                        </span>
-                    </p>
+    .forecast-widget-skeleton .loader-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        position: absolute;
+        opacity: 0;
+        z-index: -1;
+    }
 
-                </div>
-                <div class="dropdown-menu" id="prova-menu" role="menu">
-                </div>
+    .forecast-widget-skeleton .loader {
+        width: 50px;
+        height: 50px;
+    }
+
+
+    .forecast-widget-skeleton .loader-wrapper.is-active {
+        opacity: 1;
+        z-index: 9999;
+    }
+
+    .forecast-widget-skeleton .loader.is-loading {
+        position: absolute;
+    }
+
+    .forecast-widget-skeleton .tabs ul {
+        align-items: flex-end;
+    }
+
+    .forecast-widget-skeleton .tabs li {
+        background-color: #ffffff40;
+        backdrop-filter: blur(10px);
+        width: 130px;
+        height: 60px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        border-bottom: 1px solid #ffffff50;
+    }
+
+    .forecast-widget-skeleton .tabs.is-boxed li.is-active {
+        height: 90px;
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+        border: 1px solid #ffffff50;
+        border-bottom: none;
+        background-color: #ffffff10;
+    }
+
+
+    .forecast-widget-skeleton .tabs:not(:last-child) {
+        margin-bottom: 0;
+    }
+
+
+    .forecast-widget-skeleton .tabs-content {
+        background-color: #ffffff10;
+        backdrop-filter: blur(10px);
+        padding: 20px;
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        border: 1px solid #ffffff50;
+        border-top: none;
+    }
+
+    .forecast-widget-skeleton .forecast-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100%;
+        min-height: 300px;
+        background-color: #ffffff20;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    /* Width and height of the scrollbar */
+    .forecast-widget-skeleton .tabs::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+    }
+
+    /* Track */
+    .forecast-widget-skeleton.tabs::-webkit-scrollbar-track {
+        background: #f1f1f110;
+    }
+
+    /* Handle */
+    .forecast-widget-skeleton .tabs::-webkit-scrollbar-thumb {
+        background: #ffffff;
+        border-radius: 10px;
+    }
+
+    /* Handle on hover */
+    .forecast-widget-skeleton .tabs::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-color);
+    }
+
+    /* Firefox */
+    .forecast-widget-skeleton .tabs {
+        scrollbar-width: thin;
+        scrollbar-color: #ffffff #f1f1f110;
+    }
+
+
+</style>
+
+<div class="forecast-widget-skeleton">
+    <div class="loader-wrapper is-active">
+        <div class="loader is-loading"></div>
+    </div>
+    <div class="columns is-multiline is-mobile mx-1 mb-5" style="background: #ffffff20; backdrop-filter: blur(10px);">
+        <div class="column is-half-desktop is-full-mobile my-2">
+        </div>
+
+    </div>
+    <div class="tabs is-boxed is-fullwidth">
+        <ul>
+            <li class="is-active" data-target="tab-forecast-1" style="border: 1px solid #ffffff50; border-bottom: none">
+            </li>
+            <li class="" data-target="tab-forecast-2"></li>
+            <li class="" data-target="tab-forecast-3"></li>
+            <li class="" data-target="tab-forecast-4"></li>
+            <li class="" data-target="tab-forecast-5"></li>
+        </ul>
+    </div>
+    <div class="tabs-content elevation-1" style="border: 1px solid #ffffff50; border-top: none">
+        <div class="tab-content" id="tab-forecast-1" style="display: flex">
+            <div class="forecast-item mr-4" style="width: 100%">
+                <div class="forecast-time" style="height: 2.5em"></div>
+                <div class="forecast-condition"></div>
             </div>
-            <div class="card-content">
-                <div class="widget-header">
-                    <div class="city-name">
-                        <span class="icon is-small is-left">
-                            <i class="fas fa-location-dot"></i>
-                        </span>
-                        <p>
-                            {{ earliest.city.name }}
-                        </p>
-                    </div>
-                    <p class="date">
-                        {{ earliest.forecast_date|date:"l, j M Y" }}
-                    </p>
-                </div>
-                <div class="columns is-multiline is-mobile">
-                    <div class="column weather-temperature is-one-third-desktop is-full-mobile">
-                        {% if earliest.data_values_dict.temperature %}
-                            <div class="focused-temp">
-                                {% if earliest.data_values_dict.temperature.temp %}
-                                    {{ earliest.data_values_dict.temperature.temp.value_with_units }}
-                                {% else %}
-                                    {% if earliest.data_values_dict.temperature.max_temp %}
-                                        <div class="max-temp">
-                                            {{ earliest.data_values_dict.temperature.max_temp.value_with_units }}
-                                        </div>
-                                    {% endif %}
-                                    {% if earliest.data_values_dict.temperature.min_temp %}
-                                        <div class="min-temp">
-                                            {{ earliest.data_values_dict.temperature.min_temp.value_with_units }}
-                                        </div>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="column weather-condition is-one-third-desktop is-full-mobile">
-                        <img src="{{ earliest.condition.icon_url }}" alt="{{ earliest.condition.label }}">
-                        <p class="condition-label">{{ earliest.condition.label }}</p>
-                    </div>
-                </div>
+            <div class="forecast-item mr-4" style="width: 100%">
+                <div class="forecast-time" style="height: 2.5em"></div>
+                <div class="forecast-condition"></div>
             </div>
-        {% endwith %}
-        {% if default_city_forecasts|length > 2 %}
-            <footer class="card-footer" id="forecast-carousel">
-                {% for forecast in default_city_forecasts %}
-                    {% if not forloop.first %}
-                        <div class="card-footer-item">
-                            <div>
-                                {{ forecast.forecast_date|date:"D, j M" }}
-                            </div>
-                            <img src="{{ forecast.condition.icon_url }}"
-                                 alt="{{ forecast.condition.label }}"
-                                 title="{{ item.condition.label }}">
-                            <div>
-                                {% if forecast.data_values_dict.temperature %}
-                                    {% if forecast.data_values_dict.temperature.temp %}
-                                        {{ forecast.data_values_dict.temperature.temp.value_with_units }}
-                                    {% else %}
-                                        {% if forecast.data_values_dict.temperature.max_temp %}
-                                            <span class="max-temp">
-                                                {{ forecast.data_values_dict.temperature.max_temp.value_with_units }}
-                                            </span>
-                                        {% endif %}
-                                        {% if forecast.data_values_dict.temperature.min_temp %}
-                                            <span class="min-temp">
-                                                {{ forecast.data_values_dict.temperature.min_temp.value_with_units }}
-                                            </span>
-                                        {% endif %}
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            </footer>
-        {% endif %}
+            <div class="forecast-item mr-4" style="width: 100%">
+                <div class="forecast-time" style="height: 2.5em"></div>
+                <div class="forecast-condition"></div>
+            </div>
+            <div class="forecast-item" style="width: 100%">
+                <div class="forecast-time" style="height: 2.5em"></div>
+                <div class="forecast-condition"></div>
+            </div>
+        </div>
     </div>
 </div>
-
-
-
-

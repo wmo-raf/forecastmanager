@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
+from home.views import get_home_forecast_widget
 from search import views as search_views
 from wagtail import urls as wagtail_urls
 from wagtail.admin import urls as wagtailadmin_urls
@@ -14,7 +15,7 @@ urlpatterns = [
     path("documents/", include(wagtaildocs_urls)),
     path("search/", search_views.search, name="search"),
     path("", include(forecastmanager_urls)),
-
+    path('home-weather-widget/', get_home_forecast_widget, name="home-weather-widget"),
 ]
 
 if settings.DEBUG:
