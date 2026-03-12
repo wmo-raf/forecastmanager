@@ -45,7 +45,7 @@ This guide explains three ways to add city forecast data to ClimWeb:
 ### Example Python Script
 ```python
 import requests
-API_URL = "http://localhost:8001/api/forecasts/post"
+API_URL = "http://<domain_name>/api/forecasts/post"
 TOKEN = "your_token_here"
 payload = { ... }
 headers = {"Authorization": f"Token {TOKEN}", "Content-Type": "application/json"}
