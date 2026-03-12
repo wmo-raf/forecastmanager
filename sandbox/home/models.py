@@ -20,39 +20,18 @@ class HomePage(Page):
     ]
 
     def get_context(self, request, *args, **kwargs):
-        context = super().get_context(request, *args, **kwargs)
-        fm_settings = ForecastSetting.for_request(request)
-        city_detail_page = fm_settings.weather_detail_page
-        city_detail_page_url = None
-
-        if city_detail_page:
-            city_detail_page = city_detail_page.specific
-            city_detail_page_url = city_detail_page.get_full_url(request)
-            city_detail_page_url = city_detail_page_url + city_detail_page.reverse_subpage("forecast_for_city")
-            context.update({
-                "city_detail_page_url": city_detail_page_url,
-            })
-
+        context = super(HomePage, self).get_context(request, *args, **kwargs)        
+        
         city_search_url = get_full_url(request, reverse("cities-list"))
         context.update({
             "city_search_url": city_search_url,
-            "city_detail_page_url": city_detail_page_url
         })
-
-        default_city = fm_settings.default_city
-        if not default_city:
-            default_city = City.objects.first()
-
-        if default_city:
-            default_city_forecasts = CityForecast.objects.filter(
-                city=default_city,
-                parent__forecast_date__gte=timezone.localtime()
-            ).order_by("parent__forecast_date")
-
-            context.update({
-                "default_city_forecasts": default_city_forecasts
-            })
-
+        
+        context.update({
+            "home_weather_widget_url": get_full_url(request, reverse("home-weather-widget")),
+        })
+        
+        
         return context
 
 

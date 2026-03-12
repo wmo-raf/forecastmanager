@@ -5,6 +5,8 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/bulma-carousel.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/glide.core.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/glide.theme.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/forecast_widget.css' %}">
 {% endblock extra_css %}
 
@@ -13,9 +15,10 @@
     {% image page.banner_image original as banner_image %}
     <div style="background-image: url('{{ banner_image.url }}');background-position: center center; background-repeat: no-repeat;background-size: cover;padding: 120px 0">
         <div class="container">
-            {% if default_city_forecasts %}
+            <div class="weather-widget-column"
+                         id="weather-widget-wrapper">
                 {% include "home/forecast_widget_include.html" %}
-            {% endif %}
+                </div>
         </div>
     </div>
 
@@ -24,34 +27,12 @@
 {% block extra_js %}
     <script type="text/javascript" src="{% static 'js/bulma-carousel.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/bulmahead.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/glide.min.js' %}"></script>
+
     <script>
-
-
-        bulmaCarousel.attach("#forecast-carousel", {
-            slidesToScroll: 1,
-            slidesToShow: 3,
-            navigation: true,
-            loop: true
-        })
-
+        const homeWeatherWidgetUrl = "{{ home_weather_widget_url|default_if_none:"" }}"
         const citySearchUrl = "{{ city_search_url }}"
         const cityDetailUrl = "{{ city_detail_page_url|default_if_none:"" }}"
-
-        const onSelect = ({label, value}) => {
-            if (cityDetailUrl) {
-                let url
-                // Check if the URL ends with a slash
-                if (cityDetailUrl.charAt(cityDetailUrl.length - 1) === '/') {
-                    // If it does, append the path without an extra slash
-                    url = cityDetailUrl + value;
-                } else {
-                    // If it doesn't, append the path with a leading slash
-                    url = cityDetailUrl + '/' + value;
-                }
-
-                window.location.href = url;
-            }
-        }
 
 
         const getMatchingCity = (name) => {
@@ -61,13 +42,174 @@
                     return data.map(city => {
                         return {
                             label: city.name,
-                            value: city.clean_name
+                            value: city.slug
                         }
                     })
                 })
         }
 
-        bulmaHead('prova', 'prova-menu', getMatchingCity, onSelect, 200, 0);
+
+        const initMultiForecastSlider = (sliderElId) => {
+            return new Glide(`#${sliderElId}`, {
+                perView: 4,
+                bound: true,
+                gap: 20,
+                peek: {
+                    before: 40,
+                    after: 40
+                },
+                breakpoints: {
+                    1440: {
+                        perView: 5
+                    },
+                    800: {
+                        perView: 5
+                    },
+                    480: {
+                        perView: 1
+                    }
+                }
+            }).mount()
+        }
+        const weatherWidgetWrapper = $("#weather-widget-wrapper")
+        let singleForecastSlider
+        let activeMultiForecastSlider
+
+
+        const onSelectCity = ({label, value}) => {
+            renderWeatherWidgetForCity(value)
+        }
+
+        const renderWeatherWidgetForCity = (citySlug) => {
+            let url = `${homeWeatherWidgetUrl}`
+            if (citySlug) {
+                url = `${url}?city=${citySlug}`
+            }
+
+            const loader = $('#weather-widget-loader')
+            if (loader.length) {
+                loader.addClass('is-active')
+            }
+
+            const forecastSkeleton = $(".forecast-widget-skeleton")
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error fetching weather widget data');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    weatherWidgetWrapper.html(data)
+
+                    const citySearch = $('#city-search')
+                    if (citySearch.length) {
+                        bulmaHead('city-search', 'city-search-menu', getMatchingCity, onSelectCity, 200, 0);
+                    }
+
+                    if (singleForecastSlider) {
+                        singleForecastSlider.destroy()
+                    }
+
+                    const $singlerForecastSlider = $("#single-forecast-slider")
+                    if ($singlerForecastSlider.length) {
+                        singleForecastSlider = new Glide('#single-forecast-slider', {
+                            perView: 3,
+                            bound: true,
+                            gap: 20,
+                            peek: {
+                                before: 50,
+                                after: 50
+                            },
+                            breakpoints: {
+                                1440: {
+                                    perView: 2
+                                },
+                                800: {
+                                    perView: 2
+                                },
+                                480: {
+                                    perView: 1
+                                }
+                            }
+                        })
+                        singleForecastSlider.mount()
+                    }
+
+                    const $activeMultiForecastSlider = $(".day-forecast-slider.initial-active")
+                    if ($activeMultiForecastSlider.length) {
+                        const sliderId = $activeMultiForecastSlider.attr('id')
+                        activeMultiForecastSlider = initMultiForecastSlider(sliderId).mount()
+                    }
+
+                    const tabs = document.querySelectorAll('.forecast-widget .tabs li')
+                    const tabContentBoxes = document.querySelectorAll('.forecast-widget .tab-content')
+
+                    tabs.forEach((tab) => {
+                        tab.addEventListener('click', () => {
+                            tabs.forEach(item => item.classList.remove('is-active'))
+                            tab.classList.add('is-active')
+
+                            const target = tab.dataset.target;
+                            tabContentBoxes.forEach(box => {
+                                const boxId = box.getAttribute('id')
+
+                                if (boxId === target) {
+                                    const sliderId = box.dataset.slider;
+
+                                    // Destroy the active slider if it exists
+                                    if (activeMultiForecastSlider) {
+                                        activeMultiForecastSlider.destroy()
+                                    }
+                                    box.classList.remove('is-hidden')
+
+                                    // Initialize the new slider
+                                    activeMultiForecastSlider = initMultiForecastSlider(sliderId).mount()
+
+                                } else {
+                                    box.classList.add('is-hidden')
+                                }
+                            })
+                        })
+                    })
+
+                    if (loader.length) {
+                        loader.removeClass('is-active')
+                    }
+
+                    if (forecastSkeleton.length) {
+                        forecastSkeleton.hide()
+                    }
+                })
+                .catch(error => {
+                    console.error('HOME_WEATHER_WIDGET_ERROR:', error);
+
+                    if (loader.length) {
+                        loader.removeClass('is-active')
+                    }
+
+                    if (forecastSkeleton.length) {
+                        forecastSkeleton.hide()
+                    }
+                });
+        }
+
+
+        $(document).ready(function () {
+
+            if (weatherWidgetWrapper.length && homeWeatherWidgetUrl) {
+                renderWeatherWidgetForCity()
+            } else {
+                const forecastSkeleton = $(".forecast-widget-skeleton")
+                if (forecastSkeleton.length) {
+                    forecastSkeleton.hide()
+                }
+            }
+
+            
+            
+        });
 
     </script>
 {% endblock %}

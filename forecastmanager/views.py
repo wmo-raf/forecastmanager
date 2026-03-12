@@ -7,6 +7,9 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import BasePermission, IsAuthenticated, SAFE_METHODS
 from wagtail.api.v2.utils import get_full_url
@@ -14,7 +17,7 @@ from wagtail.api.v2.utils import get_full_url
 from forecastmanager.models import City, Forecast
 from .forecast_settings import ForecastSetting
 from .forms import CityLoaderForm
-from .serializers import CitySerializer, ForecastSerializer
+from .serializers import CitySerializer, ForecastSerializer, ForecastPostSerializer
 from .utils import get_weather_condition_icons
 
 
@@ -47,6 +50,21 @@ class ForecastListView(ListAPIView):
         queryset = super().get_queryset()
         queryset.filter(forecast_date__gte=timezone.localtime().date())
         return queryset
+
+
+class ForecastPostView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = ForecastPostSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        forecast = serializer.save()
+
+        response_data = {
+            "message": "Forecast data pushed successfully.",
+            "forecast": ForecastSerializer(forecast, context={"request": request}).data,
+        }
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 def download_forecast_template(request):
