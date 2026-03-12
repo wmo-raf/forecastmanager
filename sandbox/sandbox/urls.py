@@ -8,6 +8,8 @@ from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
 
 from forecastmanager import urls as forecastmanager_urls
+from rest_framework.authtoken.views import obtain_auth_token
+
 
 urlpatterns = [
     path("django-admin/", admin.site.urls),
@@ -16,6 +18,7 @@ urlpatterns = [
     path("search/", search_views.search, name="search"),
     path("", include(forecastmanager_urls)),
     path('home-weather-widget/', get_home_forecast_widget, name="home-weather-widget"),
+    path("api/token/", obtain_auth_token),
 ]
 
 if settings.DEBUG:
