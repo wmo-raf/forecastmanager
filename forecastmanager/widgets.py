@@ -2,8 +2,8 @@ import json
 
 from django.forms import widgets, TextInput, Media
 from django.templatetags.static import static
-from wagtail.telepath import register
-from wagtail.widget_adapters import WidgetAdapter
+from wagtail.admin.telepath import register
+from wagtail.admin.telepath.widgets import WidgetAdapter
 
 from .constants import WEATHER_PARAMETER_CHOICES
 from .utils import get_weather_condition_icons
