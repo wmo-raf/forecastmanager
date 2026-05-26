@@ -3,6 +3,7 @@ import logging
 import requests
 from dateutil.parser import parse
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from django.utils import timezone
 from wagtail import hooks
 from wagtail.models import Site
@@ -195,22 +196,26 @@ class Command(BaseCommand):
         for forecast_date, city_forecasts in cities_data.items():
             effective_time = f"{forecast_date.hour}:00"
 
-            forecast_period = ForecastPeriod.objects.filter(forecast_effective_time=effective_time).first()
-            if forecast_period is None:
-                forecast_period = ForecastPeriod.objects.create(parent=forecast_setting,
-                                                                forecast_effective_time=effective_time,
-                                                                label=effective_time)
+            # Wrap each date's delete+save in a single atomic transaction so that
+            # if the process is killed mid-write, PostgreSQL rolls back cleanly
+            # instead of leaving a partial open transaction or a missing forecast.
+            with transaction.atomic():
+                forecast_period = ForecastPeriod.objects.filter(forecast_effective_time=effective_time).first()
+                if forecast_period is None:
+                    forecast_period = ForecastPeriod.objects.create(parent=forecast_setting,
+                                                                    forecast_effective_time=effective_time,
+                                                                    label=effective_time)
 
-            forecast = Forecast.objects.filter(forecast_date=forecast_date, effective_period=forecast_period)
-            if forecast.exists():
-                forecast.delete()
+                forecast = Forecast.objects.filter(forecast_date=forecast_date, effective_period=forecast_period)
+                if forecast.exists():
+                    forecast.delete()
 
-            forecast = Forecast(forecast_date=forecast_date, effective_period=forecast_period, source="yr")
+                forecast = Forecast(forecast_date=forecast_date, effective_period=forecast_period, source="yr")
 
-            for city_forecast in city_forecasts:
-                forecast.city_forecasts.add(city_forecast)
+                for city_forecast in city_forecasts:
+                    forecast.city_forecasts.add(city_forecast)
 
-            forecast.save()
+                forecast.save()
 
             # Add the forecast to the list of created forecasts
             created_forecast_pks.append(forecast.pk)
