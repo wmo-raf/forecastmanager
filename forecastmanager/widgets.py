@@ -24,7 +24,7 @@ class WeatherSymbolChooserWidget(widgets.TextInput):
         attrs = super().build_attrs(*args, **kwargs)
         attrs['data-controller'] = 'weather-symbol-chooser-widget'
         
-        options = get_weather_condition_icons()
+        options = get_weather_condition_icons(ext="svg")
         
         attrs['data-options'] = json.dumps(options)
         
@@ -33,7 +33,7 @@ class WeatherSymbolChooserWidget(widgets.TextInput):
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
         if value:
-            context["widget"]["icon_url"] = static("forecastmanager/weathericons/{0}.png".format(value))
+            context["widget"]["icon_url"] = static("forecastmanager/weathericons/{0}.svg".format(value))
         return context
     
     @property
