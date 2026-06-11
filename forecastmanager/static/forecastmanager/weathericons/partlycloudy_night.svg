@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="partlycloudy_night">
+<style>
+  .spin{transform-box:fill-box;transform-origin:center;animation:spin 26s linear infinite}
+  .pulse{transform-box:fill-box;transform-origin:center;animation:pulse 4s ease-in-out infinite}
+  .glow{animation:glow 4s ease-in-out infinite}
+  .drift{transform-box:fill-box;transform-origin:center;animation:drift 7s ease-in-out infinite}
+  .drift2{transform-box:fill-box;transform-origin:center;animation:drift 9s ease-in-out infinite}
+  .rain{animation:fall 1.5s linear infinite}
+  .snow{animation:snowfall 3.2s linear infinite}
+  .bolt{transform-box:fill-box;transform-origin:center;animation:flash 3.6s ease-in-out infinite}
+  .fog{transform-box:fill-box;transform-origin:center;animation:fogdrift 5s ease-in-out infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+  @keyframes glow{0%,100%{opacity:.85}50%{opacity:1}}
+  @keyframes drift{0%,100%{transform:translateX(-2px)}50%{transform:translateX(2px)}}
+  @keyframes fall{0%{transform:translateY(-3px);opacity:0}20%{opacity:1}80%{opacity:1}100%{transform:translateY(13px);opacity:0}}
+  @keyframes snowfall{0%{transform:translateY(-3px) translateX(0);opacity:0}20%{opacity:1}100%{transform:translateY(14px) translateX(3px);opacity:0}}
+  @keyframes flash{0%,90%,100%{opacity:.25}92%{opacity:1}94%{opacity:.35}96%{opacity:1}}
+  @keyframes fogdrift{0%,100%{transform:translateX(-3px)}50%{transform:translateX(3px)}}
+</style>
+<defs>
+  <filter id="ds" x="-40%" y="-40%" width="180%" height="180%">
+    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#21425f" flood-opacity="0.30"/>
+  </filter>
+  <filter id="dsSoft" x="-50%" y="-50%" width="200%" height="200%">
+    <feDropShadow dx="0" dy="1.4" stdDeviation="1.2" flood-color="#1c3a55" flood-opacity="0.35"/>
+  </filter>
+  <radialGradient id="sunG" cx="38%" cy="32%" r="72%">
+    <stop offset="0%" stop-color="#FFEC93"/>
+    <stop offset="55%" stop-color="#FFC831"/>
+    <stop offset="100%" stop-color="#F2A012"/>
+  </radialGradient>
+  <radialGradient id="twiG" cx="38%" cy="32%" r="72%">
+    <stop offset="0%" stop-color="#FFC585"/>
+    <stop offset="55%" stop-color="#FF8A3D"/>
+    <stop offset="100%" stop-color="#E85C2A"/>
+  </radialGradient>
+  <radialGradient id="moonG" cx="35%" cy="30%" r="80%">
+    <stop offset="0%" stop-color="#FBEFA0"/>
+    <stop offset="100%" stop-color="#E7C440"/>
+  </radialGradient>
+  <linearGradient id="rainG" x1="0" y1="0" x2="0.4" y2="1">
+    <stop offset="0%" stop-color="#7FC0F3"/>
+    <stop offset="100%" stop-color="#2C73C4"/>
+  </linearGradient>
+  <radialGradient id="snowG" cx="35%" cy="30%" r="75%">
+    <stop offset="0%" stop-color="#FFFFFF"/>
+    <stop offset="100%" stop-color="#CADEF2"/>
+  </radialGradient>
+  <linearGradient id="boltG" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#FFD740"/>
+    <stop offset="100%" stop-color="#F08A00"/>
+  </linearGradient>
+</defs>
+<g class="glow" filter="url(#ds)"><path d="M43.9,28.0 A13.0,13.0 0 1 0 43.9,52.0 A10.7,10.7 0 1 1 43.9,28.0 Z" fill="url(#moonG)"/><ellipse cx="37.7" cy="36.1" rx="2.9" ry="4.2" fill="#FFFFFF" opacity="0.30"/></g><defs><clipPath id="cl1"><rect x="34.7" y="59.3" width="42.6" height="12.3" rx="6.6"/><circle cx="43.7" cy="59.3" r="9.8"/><circle cx="57.6" cy="53.6" r="13.1"/><circle cx="70.8" cy="60.2" r="9.0"/></clipPath><linearGradient id="cg2" x1="0" y1="40.5" x2="0" y2="70.0" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#FCFEFF"/><stop offset="100%" stop-color="#C3D3E3"/></linearGradient></defs><g class="drift" filter="url(#ds)"><g clip-path="url(#cl1)"><rect x="23.2" y="40.5" width="65.6" height="41.0" fill="url(#cg2)"/><ellipse cx="54.4" cy="47.9" rx="10.7" ry="5.7" fill="#FFFFFF" opacity="0.55"/></g></g>
+</svg>

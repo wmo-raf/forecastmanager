@@ -160,4 +160,4 @@ class WeatherCondition(Orderable):
     
     @property
     def icon_url(self):
-        return static('forecastmanager/weathericons/{}.png'.format(self.symbol))
+        return static('forecastmanager/weathericons/{}.svg'.format(self.symbol))

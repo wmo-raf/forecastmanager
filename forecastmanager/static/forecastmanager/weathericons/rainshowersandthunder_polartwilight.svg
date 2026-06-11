@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="rainshowersandthunder_polartwilight">
+<style>
+  .spin{transform-box:fill-box;transform-origin:center;animation:spin 26s linear infinite}
+  .pulse{transform-box:fill-box;transform-origin:center;animation:pulse 4s ease-in-out infinite}
+  .glow{animation:glow 4s ease-in-out infinite}
+  .drift{transform-box:fill-box;transform-origin:center;animation:drift 7s ease-in-out infinite}
+  .drift2{transform-box:fill-box;transform-origin:center;animation:drift 9s ease-in-out infinite}
+  .rain{animation:fall 1.5s linear infinite}
+  .snow{animation:snowfall 3.2s linear infinite}
+  .bolt{transform-box:fill-box;transform-origin:center;animation:flash 3.6s ease-in-out infinite}
+  .fog{transform-box:fill-box;transform-origin:center;animation:fogdrift 5s ease-in-out infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+  @keyframes glow{0%,100%{opacity:.85}50%{opacity:1}}
+  @keyframes drift{0%,100%{transform:translateX(-2px)}50%{transform:translateX(2px)}}
+  @keyframes fall{0%{transform:translateY(-3px);opacity:0}20%{opacity:1}80%{opacity:1}100%{transform:translateY(13px);opacity:0}}
+  @keyframes snowfall{0%{transform:translateY(-3px) translateX(0);opacity:0}20%{opacity:1}100%{transform:translateY(14px) translateX(3px);opacity:0}}
+  @keyframes flash{0%,90%,100%{opacity:.25}92%{opacity:1}94%{opacity:.35}96%{opacity:1}}
+  @keyframes fogdrift{0%,100%{transform:translateX(-3px)}50%{transform:translateX(3px)}}
+</style>
+<defs>
+  <filter id="ds" x="-40%" y="-40%" width="180%" height="180%">
+    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#21425f" flood-opacity="0.30"/>
+  </filter>
+  <filter id="dsSoft" x="-50%" y="-50%" width="200%" height="200%">
+    <feDropShadow dx="0" dy="1.4" stdDeviation="1.2" flood-color="#1c3a55" flood-opacity="0.35"/>
+  </filter>
+  <radialGradient id="sunG" cx="38%" cy="32%" r="72%">
+    <stop offset="0%" stop-color="#FFEC93"/>
+    <stop offset="55%" stop-color="#FFC831"/>
+    <stop offset="100%" stop-color="#F2A012"/>
+  </radialGradient>
+  <radialGradient id="twiG" cx="38%" cy="32%" r="72%">
+    <stop offset="0%" stop-color="#FFC585"/>
+    <stop offset="55%" stop-color="#FF8A3D"/>
+    <stop offset="100%" stop-color="#E85C2A"/>
+  </radialGradient>
+  <radialGradient id="moonG" cx="35%" cy="30%" r="80%">
+    <stop offset="0%" stop-color="#FBEFA0"/>
+    <stop offset="100%" stop-color="#E7C440"/>
+  </radialGradient>
+  <linearGradient id="rainG" x1="0" y1="0" x2="0.4" y2="1">
+    <stop offset="0%" stop-color="#7FC0F3"/>
+    <stop offset="100%" stop-color="#2C73C4"/>
+  </linearGradient>
+  <radialGradient id="snowG" cx="35%" cy="30%" r="75%">
+    <stop offset="0%" stop-color="#FFFFFF"/>
+    <stop offset="100%" stop-color="#CADEF2"/>
+  </radialGradient>
+  <linearGradient id="boltG" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#FFD740"/>
+    <stop offset="100%" stop-color="#F08A00"/>
+  </linearGradient>
+</defs>
+<g class="spin" stroke="#FF8A3D" stroke-width="3.4" stroke-linecap="round"><line x1="53.0" y1="38.0" x2="60.0" y2="38.0"/><line x1="48.0" y1="50.0" x2="53.0" y2="55.0"/><line x1="36.0" y1="55.0" x2="36.0" y2="62.0"/><line x1="24.0" y1="50.0" x2="19.0" y2="55.0"/><line x1="19.0" y1="38.0" x2="12.0" y2="38.0"/><line x1="24.0" y1="26.0" x2="19.0" y2="21.0"/><line x1="36.0" y1="21.0" x2="36.0" y2="14.0"/><line x1="48.0" y1="26.0" x2="53.0" y2="21.0"/></g><g class="pulse" filter="url(#ds)"><circle cx="36" cy="38" r="13" fill="url(#twiG)"/><ellipse cx="31.7" cy="33.3" rx="5.5" ry="3.9" fill="#FFFFFF" opacity="0.35"/></g><defs><clipPath id="cl1"><rect x="33.6" y="44.8" width="44.7" height="12.9" rx="6.9"/><circle cx="43.1" cy="44.8" r="10.3"/><circle cx="57.7" cy="38.8" r="13.8"/><circle cx="71.5" cy="45.7" r="9.5"/></clipPath><linearGradient id="cg2" x1="0" y1="25.0" x2="0" y2="56.0" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#FCFEFF"/><stop offset="100%" stop-color="#C3D3E3"/></linearGradient></defs><g class="drift" filter="url(#ds)"><g clip-path="url(#cl1)"><rect x="21.6" y="25.0" width="68.8" height="43.0" fill="url(#cg2)"/><ellipse cx="54.3" cy="32.8" rx="11.2" ry="6.0" fill="#FFFFFF" opacity="0.55"/></g></g><g class="bolt" filter="url(#dsSoft)"><path d="M56.0,60.0 l -7,12 l 5,0 l -4,11 l 12,-15 l -5,0 l 6,-8 Z" fill="url(#boltG)"/></g><g class="rain" style="animation-delay:0.00s" filter="url(#dsSoft)"><path d="M41.0,62.0 c 3,5 3,8 0,9 c -3,-1 -3,-4 0,-9 Z" fill="url(#rainG)"/><circle cx="40.0" cy="66.5" r="0.9" fill="#FFFFFF" opacity="0.6"/></g><g class="rain" style="animation-delay:0.50s" filter="url(#dsSoft)"><path d="M56.0,62.0 c 3,5 3,8 0,9 c -3,-1 -3,-4 0,-9 Z" fill="url(#rainG)"/><circle cx="55.0" cy="66.5" r="0.9" fill="#FFFFFF" opacity="0.6"/></g><g class="rain" style="animation-delay:1.00s" filter="url(#dsSoft)"><path d="M71.0,62.0 c 3,5 3,8 0,9 c -3,-1 -3,-4 0,-9 Z" fill="url(#rainG)"/><circle cx="70.0" cy="66.5" r="0.9" fill="#FFFFFF" opacity="0.6"/></g>
+</svg>
