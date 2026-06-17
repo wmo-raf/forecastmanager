@@ -1,6 +1,6 @@
 # Developer Guide: Adding City Forecasts to ClimWeb
 
-This guide explains three ways to add city forecast data to ClimWeb:
+This guide explains three ways to add city forecast data to ClimWeb. For more handson guide visit the [Forecast Manager Guide](https://climweb.readthedocs.io/en/latest/_docs/Manage-City-Forecasts.html):
 
 ---
 
