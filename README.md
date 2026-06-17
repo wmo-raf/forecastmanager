@@ -81,6 +81,7 @@ To read more about Meteorological Norway location forecast visit:
 - All methods require valid city and parameter references.
 - For API and automated methods, ensure authentication is set up.
 - For manual upload, follow the template format and check for errors after upload.
+- All weather symbols used are from [yr.no](https://nrkno.github.io/yr-weather-symbols/)
 
 ---
 
