@@ -38,7 +38,13 @@ class OpenMeteoClient:
         self.api_url = api_url
         self.timeout = timeout
 
-    def fetch(self, lat: float, lon: float, city_name: str = "") -> Optional[dict]:
+    def fetch(
+        self,
+        lat: float,
+        lon: float,
+        city_name: str = "",
+        hourly_vars: Optional[list[str]] = None,
+    ) -> Optional[dict]:
         """
         Fetch a 7-day hourly forecast for the given coordinates.
 
@@ -46,14 +52,16 @@ class OpenMeteoClient:
             lat: Latitude of the location.
             lon: Longitude of the location.
             city_name: Used only for log messages.
+            hourly_vars: Hourly variables to request. Defaults to HOURLY_VARS.
 
         Returns:
             Parsed JSON response dict, or None if the request fails.
         """
+        hourly_vars = hourly_vars or HOURLY_VARS
         params = {
             "latitude": lat,
             "longitude": lon,
-            "hourly": ",".join(HOURLY_VARS),
+            "hourly": ",".join(hourly_vars),
             "forecast_days": 7,
             "timezone": "auto",
         }
@@ -73,20 +81,28 @@ class OpenMeteoClient:
             )
             return None
 
-    def parse_hourly(self, data: dict, target_hours: list[int]) -> list[dict]:
+    def parse_hourly(
+        self,
+        data: dict,
+        target_hours: list[int],
+        hourly_vars: Optional[list[str]] = None,
+    ) -> list[dict]:
         """
         Extract hourly entries for the specified target hours only.
-        
+
         Args:
             data: Raw JSON response from Open-Meteo.
             target_hours: Hours of day (0-23) to include. All other hours
                 are discarded.
-                
+            hourly_vars: Variables to read from the response. Defaults to
+                HOURLY_VARS.
+
         Returns:
             List of dicts, one per matching (date, hour) slot. Each dict
             contains ``date``, ``hour``, ``datetime``, and one key per
-            variable in HOURLY_VARS with its value at that time index.
+            requested variable with its value at that time index.
         """
+        hourly_vars = hourly_vars or HOURLY_VARS
         hourly = data.get("hourly", {})
         times = hourly.get("time", [])
         results = []
@@ -101,7 +117,7 @@ class OpenMeteoClient:
                 "date": dt.date(),
                 "hour": dt.hour,
             }
-            for var in HOURLY_VARS:
+            for var in hourly_vars:
                 values = hourly.get(var, [])
                 entry[var] = values[i] if i < len(values) else None
 
