@@ -6,6 +6,7 @@ from wagtail.admin.telepath import register
 from wagtail.admin.telepath.widgets import WidgetAdapter
 
 from .constants import WEATHER_PARAMETER_CHOICES
+from .providers import get_all_field_options
 from .utils import get_weather_condition_icons
 
 
@@ -103,5 +104,37 @@ class DataParameterWidget(TextInput):
             "forecastmanager/js/data-parameter-widget.js",
             "forecastmanager/js/data-parameter-widget-controller.js",
         ]
-        
+
+        return Media(js=js)
+
+
+class ProviderFieldWidget(TextInput):
+    """
+    Source-field chooser for the provider parameter mapping inline.
+
+    Renders a hidden text input holding the stored value, plus a visible
+    ``<select>`` listing every provider's fields (each option tagged with its
+    provider). A Stimulus controller filters the visible options to match the
+    provider chosen in the same inline row.
+    """
+    template_name = "forecastmanager/provider_field_widget.html"
+
+    def build_attrs(self, *args, **kwargs):
+        attrs = super().build_attrs(*args, **kwargs)
+        attrs['data-controller'] = 'provider-field-widget'
+        return attrs
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        context["widget"].update({
+            "field_options": get_all_field_options(),
+        })
+        return context
+
+    @property
+    def media(self):
+        js = [
+            "forecastmanager/js/provider-field-widget.js",
+            "forecastmanager/js/provider-field-widget-controller.js",
+        ]
         return Media(js=js)

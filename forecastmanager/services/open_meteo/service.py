@@ -61,6 +61,7 @@ class OpenMeteoForecastService:
         forecast_hours: Optional[list[int]] = None,
         api_url: str = OPEN_METEO_URL,
         request_timeout: int = 15,
+        field_map: Optional[dict[str, str]] = None,
     ) -> None:
         """
         Initialise the service.
@@ -71,10 +72,19 @@ class OpenMeteoForecastService:
             api_url: Open-Meteo base URL. Override in tests or to point at a
                 self-hosted instance.
             request_timeout: HTTP request timeout in seconds.
+            field_map: Optional admin-configured mapping of Open-Meteo source
+                field -> ForecastDataParameter key. When provided, it overrides
+                the built-in FIELD_MAP and the service assumes the referenced
+                parameters already exist (no defaults are auto-created).
         """
         self.forecast_hours = forecast_hours or DEFAULT_FORECAST_HOURS
+        self._custom_field_map = bool(field_map)
+        self.field_map = field_map or FIELD_MAP
+        # Always include weathercode so weather conditions can be resolved.
+        self._hourly_vars = list(dict.fromkeys(list(self.field_map.keys()) + ["weathercode"]))
         self._client = OpenMeteoClient(api_url=api_url, timeout=request_timeout)
         self._conditions_cache: dict[int, WeatherCondition] = {}
+        self._status = Forecast.STATUS_DRAFT
 
     def run(
         self,
@@ -103,6 +113,11 @@ class OpenMeteoForecastService:
         logger.info("=" * 60)
 
         forecast_setting = self._get_forecast_setting()
+        self._status = (
+            Forecast.STATUS_PUBLISHED
+            if getattr(forecast_setting, "auto_publish_forecasts", False)
+            else Forecast.STATUS_DRAFT
+        )
         parameters_dict = self._ensure_parameters(forecast_setting)
         cities = self._resolve_cities(city_filter)
 
@@ -159,6 +174,12 @@ class OpenMeteoForecastService:
         # data_parameters is a reverse relation (ParentalKey), so Pylance knows it's a Manager and can call .all() on it.
         data_parameters = cast(Manager, forecast_setting.data_parameters)
         existing = {p.parameter: p for p in data_parameters.all()}
+
+        # When an admin-configured field map drives the run, the mapping
+        # references parameters the admin already created — don't auto-create
+        # the built-in defaults.
+        if self._custom_field_map:
+            return existing
 
         for param_def in DEFAULT_PARAMETERS:
             key = param_def["parameter"]
@@ -227,13 +248,17 @@ class OpenMeteoForecastService:
         # city.name is nullable in the model, fall back to empty string for the log message so we don't pass str | None to client.fetch().
         city_name: str = city.name or ""
 
-        data = self._client.fetch(lat=city.y, lon=city.x, city_name=city_name)
+        data = self._client.fetch(
+            lat=city.y, lon=city.x, city_name=city_name, hourly_vars=self._hourly_vars
+        )
         if data is None:
             result.skipped += 1
             result.errors.append(f"API request failed for {city_name}")
             return
 
-        entries = self._client.parse_hourly(data, target_hours=self.forecast_hours)
+        entries = self._client.parse_hourly(
+            data, target_hours=self.forecast_hours, hourly_vars=self._hourly_vars
+        )
         if not entries:
             logger.warning("No hourly data for target hours %s", self.forecast_hours)
             result.skipped += 1
@@ -276,12 +301,26 @@ class OpenMeteoForecastService:
         condition = self._get_or_create_condition(forecast_setting, int(wmo_code))
         period = self._get_or_create_period(forecast_setting, hour)
 
+        # Never overwrite a forecaster-authored (manual) city forecast.
+        existing_cf = CityForecast.objects.filter(
+            parent__forecast_date=date,
+            parent__effective_period=period,
+            city=city,
+        ).first()
+        if existing_cf and existing_cf.data_source == CityForecast.DATA_SOURCE_MANUAL:
+            logger.info(
+                "  Skipping %s %s %02d:00 (forecaster-authored, protected)",
+                city.name, date, hour,
+            )
+            result.skipped += 1
+            return
+
         if dry_run:
             logger.info(
                 "  [DRY RUN] Would save: %s %02d:00 | %s | %s",
                 date, hour, city.name, condition.label,
             )
-            for om_key, internal_key in FIELD_MAP.items():
+            for om_key, internal_key in self.field_map.items():
                 val = entry.get(om_key)
                 if val is not None and internal_key in parameters_dict:
                     logger.info("    %s = %s", internal_key, val)
@@ -291,12 +330,16 @@ class OpenMeteoForecastService:
         with transaction.atomic():
             forecast_obj = self._get_or_replace_forecast(date, period, city)
 
-            city_forecast = CityForecast(city=city, condition=condition)
+            city_forecast = CityForecast(
+                city=city,
+                condition=condition,
+                data_source=CityForecast.DATA_SOURCE_AUTO,
+            )
 
             # data_values is a reverse relation, so Pylance knows it's a Manager with an .add() method.
             data_values_mgr = cast(Manager, city_forecast.data_values)
 
-            for om_key, internal_key in FIELD_MAP.items():
+            for om_key, internal_key in self.field_map.items():
                 val = entry.get(om_key)
                 if val is None:
                     continue
@@ -353,7 +396,12 @@ class OpenMeteoForecastService:
                 )
             return forecast_obj
 
-        return Forecast(forecast_date=date, effective_period=period, source="local")
+        return Forecast(
+            forecast_date=date,
+            effective_period=period,
+            source="open_meteo",
+            status=self._status,
+        )
 
     def _get_or_create_period(
         self, forecast_setting: ForecastSetting, hour: int

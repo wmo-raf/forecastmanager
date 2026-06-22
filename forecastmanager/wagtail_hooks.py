@@ -10,18 +10,21 @@ from wagtail.snippets.views.snippets import (
     SnippetViewSetGroup,
     CreateView, EditView, IndexView,
 )
+from wagtail.snippets.bulk_actions.snippet_bulk_action import SnippetBulkAction
+from wagtail.snippets.widgets import SnippetListingButton
 
 from forecastmanager.constants import WEATHER_PARAMETERS_ICON_LIST
 from forecastmanager.forecast_settings import ForecastSetting
 from forecastmanager.forms import ForecastCreateForm, ForecastEditForm
 from forecastmanager.models import City, Forecast
-from forecastmanager.views import load_cities
+from forecastmanager.views import load_cities, edit_forecast_values
 
 
 @hooks.register('register_admin_urls')
 def urlconf_forecastmanager():
     return [
         path('load-cities/', load_cities, name='load_cities'),
+        path('forecast/<int:forecast_id>/edit-values/', edit_forecast_values, name='forecast_edit_values'),
     ]
 
 
@@ -106,14 +109,15 @@ class ForecastEditView(EditView):
 
 class ForecastViewSet(SnippetViewSet):
     model = Forecast
-    
-    list_filter = ["forecast_date", "effective_period"]
-    
+
+    list_display = ["forecast_date", "effective_period", "status", "source"]
+    list_filter = ["forecast_date", "effective_period", "status", "source"]
+
     add_view_class = ForecastCreateView
     edit_view_class = ForecastEditView
     create_template_name = "forecastmanager/create_forecast.html"
     edit_template_name = "forecastmanager/edit_forecast.html"
-    
+
     icon = 'table'
     menu_label = _('Forecasts')
 
@@ -142,6 +146,54 @@ class ForecastViewSetGroup(SnippetViewSetGroup):
 
 
 register_snippet(ForecastViewSetGroup)
+
+
+@hooks.register("register_snippet_listing_buttons")
+def forecast_listing_buttons(snippet, user, next_url=None):
+    # Add an "Edit values" shortcut to each Forecast row in the snippet listing.
+    if isinstance(snippet, Forecast):
+        yield SnippetListingButton(
+            _("Edit values"),
+            reverse("forecast_edit_values", args=[snippet.pk]),
+            priority=10,
+            icon_name="table"
+        )
+
+
+@hooks.register("register_bulk_action")
+class PublishForecastBulkAction(SnippetBulkAction):
+    display_name = _("Publish")
+    aria_label = _("Publish selected forecasts")
+    action_type = "publish_forecast"
+    models = [Forecast]
+
+    @classmethod
+    def execute_action(cls, objects, **kwargs):
+        num_published = 0
+        for forecast in objects:
+            if forecast.status != Forecast.STATUS_PUBLISHED:
+                forecast.status = Forecast.STATUS_PUBLISHED
+                forecast.save()
+                num_published += 1
+        return num_published, num_published
+
+
+@hooks.register("register_bulk_action")
+class UnpublishForecastBulkAction(SnippetBulkAction):
+    display_name = _("Unpublish (make draft)")
+    aria_label = _("Unpublish selected forecasts")
+    action_type = "unpublish_forecast"
+    models = [Forecast]
+
+    @classmethod
+    def execute_action(cls, objects, **kwargs):
+        num_unpublished = 0
+        for forecast in objects:
+            if forecast.status != Forecast.STATUS_DRAFT:
+                forecast.status = Forecast.STATUS_DRAFT
+                forecast.save()
+                num_unpublished += 1
+        return num_unpublished, num_unpublished
 
 
 #

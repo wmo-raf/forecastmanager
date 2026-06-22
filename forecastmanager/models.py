@@ -66,11 +66,26 @@ class Forecast(ClusterableModel):
     FORECAST_SOURCE_CHOICES = [
         ("local", _("NMHSs Forecast")),
         ("yr", _("yr.no")),
+        ("open_meteo", _("Open-Meteo")),
+    ]
+
+    STATUS_DRAFT = "draft"
+    STATUS_PUBLISHED = "published"
+    FORECAST_STATUS_CHOICES = [
+        (STATUS_DRAFT, _("Draft")),
+        (STATUS_PUBLISHED, _("Published")),
     ]
 
     forecast_date = models.DateField(auto_now=False, auto_now_add=False, verbose_name=_("Forecasts Date"))
     effective_period = models.ForeignKey(ForecastPeriod, on_delete=models.PROTECT, null=True)
     source = models.CharField(max_length=100, choices=FORECAST_SOURCE_CHOICES, default="local")
+    status = models.CharField(
+        max_length=20,
+        choices=FORECAST_STATUS_CHOICES,
+        default=STATUS_PUBLISHED,
+        verbose_name=_("Status"),
+        help_text=_("Only published forecasts are served on the public API/website."),
+    )
 
     class Meta:
         unique_together = ("forecast_date", "effective_period")
@@ -105,9 +120,26 @@ class Forecast(ClusterableModel):
 
 
 class CityForecast(ClusterableModel, Orderable):
+    DATA_SOURCE_AUTO = "auto"
+    DATA_SOURCE_MANUAL = "manual"
+    DATA_SOURCE_CHOICES = [
+        (DATA_SOURCE_AUTO, _("Automated")),
+        (DATA_SOURCE_MANUAL, _("Manual / Forecaster")),
+    ]
+
     parent = ParentalKey(Forecast, on_delete=models.CASCADE, related_name="city_forecasts")
     city = models.ForeignKey(City, on_delete=models.CASCADE, verbose_name=_("City"))
     condition = models.ForeignKey(WeatherCondition, blank=True, null=True, on_delete=models.CASCADE)
+    data_source = models.CharField(
+        max_length=20,
+        choices=DATA_SOURCE_CHOICES,
+        default=DATA_SOURCE_MANUAL,
+        verbose_name=_("Data source"),
+        help_text=_(
+            "Whether this city's values were entered by a forecaster or generated "
+            "automatically. Automated runs never overwrite forecaster-authored data."
+        ),
+    )
 
     class Meta:
         unique_together = ("parent", "city")

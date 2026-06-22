@@ -1,0 +1,139 @@
+{% extends "wagtailadmin/base.html" %}
+{% load i18n wagtailadmin_tags static %}
+{% block titletag %}{% trans "Edit forecast values" %}{% endblock %}
+{% block content %}
+    {% include 'wagtailadmin/shared/headers/slim_header.html' %}
+
+    {% trans "Edit forecast values" as title_str %}
+    {% include "wagtailadmin/shared/header.html" with title=title_str icon="table" merged=1 only %}
+
+    <div class="nice-padding">
+        <h2 class="title" style="margin-bottom: 8px;">
+            {{ forecast.forecast_date|date:"l j F" }} - {{ forecast.effective_period.label }}
+            <span class="status-tag {% if forecast.status == 'published' %}primary{% endif %}">
+                {{ forecast.get_status_display }}
+            </span>
+        </h2>
+
+        <div class="help-block help-info">
+            <svg class="icon icon-info-circle icon" aria-hidden="true">
+                <use href="#icon-info-circle"></use>
+            </svg>
+            <div>
+                {% trans "Edit values in the table below. Any city you change is marked as forecaster-authored and will not be overwritten by automated forecasts. Untouched cities keep refreshing automatically." %}
+            </div>
+        </div>
+
+        {% if error %}
+            <div class="help-block help-critical">
+                <svg class="icon icon-warning icon" aria-hidden="true">
+                    <use href="#icon-warning"></use>
+                </svg>
+                <div>{{ error }}</div>
+            </div>
+        {% endif %}
+
+        <form method="POST" id="forecast-values-form" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="data" id="id_data">
+
+            <div id="table-container" class="hot handsontable" style="margin: 20px 0;"></div>
+
+            <div class="w-field__input" style="margin-bottom: 20px;">
+                <label>
+                    <input type="checkbox" name="publish" id="id_publish"
+                           {% if forecast.status == 'published' %}checked{% endif %}>
+                    {% trans "Publish after saving" %}
+                </label>
+            </div>
+
+            <footer class="footer">
+                <nav aria-label="{% trans 'Actions' %}">
+                    <ul>
+                        <li class="actions actions--primary footer__container">
+                            <button type="submit" class="button" id="save-btn">
+                                {% trans "Save" %}
+                            </button>
+                            <a href="{{ index_url }}" class="button button-secondary no">
+                                {% trans "Cancel" %}
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </footer>
+        </form>
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'forecastmanager/css/handsontable.full.min.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script src="{% static 'forecastmanager/js/handsontable.full.min.js' %}"></script>
+    <script>
+        const parameters = {{ parameters|safe }};
+        const weatherConditions = {{ weather_conditions|safe }};
+        const cities = {{ cities|safe }};
+        const initialRows = {{ initial_rows|safe }};
+
+        $(document).ready(function () {
+            const tableContainer = document.getElementById('table-container');
+            const dataInput = document.getElementById('id_data');
+            const saveBtn = document.getElementById('save-btn');
+
+            const hot = new Handsontable(tableContainer, {
+                data: initialRows && initialRows.length ? initialRows : [[]],
+                autoWrapRow: true,
+                autoWrapCol: true,
+                rowHeaders: true,
+                colHeaders: ['City', ...parameters.map(p => p.name), 'Condition'],
+                columns: [
+                    {
+                        type: 'dropdown',
+                        source: cities.map(city => city.name),
+                        allowEmpty: false,
+                        allowInvalid: false,
+                    },
+                    ...parameters.map((p) => ({
+                        type: p.parameter_type,
+                        allowEmpty: true,
+                        allowInvalid: false,
+                    })),
+                    {
+                        type: 'dropdown',
+                        source: weatherConditions,
+                        allowEmpty: false,
+                        allowInvalid: false,
+                    },
+                ],
+                contextMenu: true,
+                licenseKey: 'non-commercial-and-evaluation',
+                height: 500,
+                startRows: 1,
+                afterChange: () => syncData(),
+                afterRemoveRow: () => syncData(),
+            });
+
+            function syncData() {
+                hot.validateCells(function (isValid) {
+                    const data = hot.getData();
+                    if (!isValid || !data || data.length === 0) {
+                        saveBtn.disabled = true;
+                        return;
+                    }
+                    dataInput.value = JSON.stringify({
+                        fields: hot.getColHeader(),
+                        rows: data,
+                    });
+                    saveBtn.disabled = false;
+                });
+            }
+
+            // Populate hidden input on initial load so an unchanged save still works.
+            syncData();
+        });
+    </script>
+{% endblock %}

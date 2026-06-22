@@ -14,12 +14,32 @@ from wagtail.contrib.settings.registry import register_setting
 from wagtail.models import Orderable
 
 from forecastmanager.constants import WEATHER_PARAMETERS_AS_DICT
-from forecastmanager.widgets import WeatherSymbolChooserWidget, DataParameterWidget
+from forecastmanager.providers import PROVIDER_YR, get_provider_choices
+from forecastmanager.widgets import (
+    WeatherSymbolChooserWidget,
+    DataParameterWidget,
+    ProviderFieldWidget,
+)
 
 
 @register_setting
 class ForecastSetting(ClusterableModel, BaseSiteSetting):
     enable_auto_forecast = models.BooleanField(default=False, verbose_name=_('Enable automated forecasts'))
+    forecast_provider = models.CharField(
+        max_length=50,
+        choices=get_provider_choices(),
+        default=PROVIDER_YR,
+        verbose_name=_("Automated forecast provider"),
+        help_text=_("Which weather API to fetch automated forecasts from."),
+    )
+    auto_publish_forecasts = models.BooleanField(
+        default=True,
+        verbose_name=_("Auto-publish automated forecasts"),
+        help_text=_(
+            "When off, automated forecasts are saved as drafts for a forecaster to "
+            "review and publish. When on, they are published immediately."
+        ),
+    )
     default_city = models.ForeignKey("City", blank=True, null=True, on_delete=models.SET_NULL,
                                      verbose_name=_("Default City"))
     weather_detail_page = models.ForeignKey("wagtailcore.Page", blank=True, null=True, on_delete=models.SET_NULL, )
@@ -43,6 +63,18 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
         ], heading=_("Forecast Weather Conditions")),
         ObjectList([
             FieldPanel('enable_auto_forecast'),
+            FieldPanel('forecast_provider'),
+            FieldPanel('auto_publish_forecasts'),
+            InlinePanel(
+                'provider_parameter_mappings',
+                heading=_("Provider Parameter Mapping"),
+                label=_("Parameter Mapping"),
+                help_text=_(
+                    "Map a source field from the selected provider to one of your "
+                    "forecast data parameters. Add a row for each parameter you want "
+                    "the automated forecast to populate."
+                ),
+            ),
         ], heading=_("Forecast Source")),
         ObjectList([
             FieldPanel('default_city'),
@@ -76,6 +108,27 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
     def weather_conditions_list(self):
         weather_conditions = self.weather_conditions.all()
         return [c.alias if c.alias else c.label for c in weather_conditions]
+
+    def get_provider_field_map(self, provider=None):
+        """
+        Return the admin-configured field map for a provider.
+
+        Args:
+            provider: Provider key (e.g. "open_meteo"). Defaults to the
+                currently selected ``forecast_provider``.
+
+        Returns:
+            Dict mapping a provider source field to a ForecastDataParameter key,
+            e.g. ``{"temperature_2m": "air_temperature"}``. Empty when nothing
+            has been mapped, in which case callers should fall back to their
+            built-in defaults.
+        """
+        provider = provider or self.forecast_provider
+        field_map = {}
+        for mapping in self.provider_parameter_mappings.filter(provider=provider):
+            if mapping.source_field and mapping.parameter_id:
+                field_map[mapping.source_field] = mapping.parameter.parameter
+        return field_map
 
 
 class ForecastPeriod(Orderable):
@@ -161,3 +214,34 @@ class WeatherCondition(Orderable):
     @property
     def icon_url(self):
         return static('forecastmanager/weathericons/{}.svg'.format(self.symbol))
+
+
+class ForecastProviderParameterMapping(Orderable):
+    """
+    Maps a source field from an automated forecast provider (e.g. Open-Meteo)
+    to one of the locally configured ForecastDataParameters.
+
+    This replaces the previously hard-coded field maps so admins can decide,
+    per provider, which API value feeds which database parameter.
+    """
+    parent = ParentalKey(ForecastSetting, on_delete=models.CASCADE,
+                         related_name="provider_parameter_mappings")
+    provider = models.CharField(max_length=50, choices=get_provider_choices(),
+                                verbose_name=_("Provider"))
+    source_field = models.CharField(max_length=100, verbose_name=_("Provider source field"))
+    parameter = models.ForeignKey("ForecastDataParameters", on_delete=models.CASCADE,
+                                  related_name="provider_mappings",
+                                  verbose_name=_("Database parameter"))
+
+    class Meta:
+        ordering = ["sort_order"]
+        unique_together = ("parent", "provider", "source_field")
+
+    panels = [
+        FieldPanel('provider'),
+        FieldPanel('source_field', widget=ProviderFieldWidget),
+        FieldPanel('parameter'),
+    ]
+
+    def __str__(self):
+        return f"{self.provider}: {self.source_field} -> {self.parameter}"
