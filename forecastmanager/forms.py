@@ -10,6 +10,71 @@ from forecastmanager.forecast_settings import (
 )
 
 
+def parse_forecast_table(data):
+    """
+    Resolve a Handsontable ``{"fields": [...], "rows": [[...]]}`` payload into a
+    list of ``{"city", "condition", "data_values"}`` dicts.
+
+    Shared by the CSV/manual create flow and the grid editor. Raises
+    ``forms.ValidationError`` on any unknown city/condition/parameter, missing
+    required cell, or duplicate city.
+    """
+    from forecastmanager.models import City
+
+    fields = data.get("fields") if data else None
+    rows = data.get("rows") if data else None
+
+    if not fields or not rows:
+        raise forms.ValidationError(_("No data found in the table."))
+
+    forecast_data = []
+    added_cities = []
+
+    for row in rows:
+        data_dict = dict(zip(fields, row))
+
+        city_name = data_dict.get("City")
+        if not city_name:
+            raise forms.ValidationError(_("City data is required."))
+
+        city = City.objects.filter(name=city_name).first()
+        if not city:
+            raise forms.ValidationError(_("Unknown city found in table data: %(city)s") % {"city": city_name})
+
+        if city.id in added_cities:
+            raise forms.ValidationError(
+                _("Duplicate city found in table data: %(city)s. Please remove the duplicate entry.")
+                % {"city": city_name}
+            )
+
+        condition_name = data_dict.get("Condition")
+        if not condition_name:
+            raise forms.ValidationError(_("Condition data is required."))
+
+        condition = WeatherCondition.objects.filter(Q(alias=condition_name) | Q(label=condition_name)).first()
+        if not condition:
+            raise forms.ValidationError(
+                _("Unknown condition found in table data: %(condition)s") % {"condition": condition_name}
+            )
+
+        data_values = []
+        for key, value in data_dict.items():
+            if key in ("City", "Condition"):
+                continue
+            if value is not None and value != "":
+                param = ForecastDataParameters.objects.filter(name=key).first()
+                if not param:
+                    raise forms.ValidationError(
+                        _("Unknown parameter found in table data: %(param)s") % {"param": key}
+                    )
+                data_values.append({"parameter": param, "value": value})
+
+        forecast_data.append({"city": city, "condition": condition, "data_values": data_values})
+        added_cities.append(city.id)
+
+    return forecast_data
+
+
 class ForecastCreateForm(WagtailAdminModelForm):
     data = forms.JSONField(widget=forms.HiddenInput)
     replace_existing = forms.BooleanField(required=False, initial=True, label=_("Replace existing data if found"))
@@ -117,7 +182,10 @@ class ForecastCreateForm(WagtailAdminModelForm):
 
         forecast_data = self.cleaned_data.get("data")
 
-        from forecastmanager.models import CityForecast, DataValue
+        from forecastmanager.models import CityForecast, DataValue, Forecast
+
+        # Forecaster-authored forecasts are published immediately.
+        forecast.status = Forecast.STATUS_PUBLISHED
 
         if self.cleaned_data.get("existing_forecasts"):
             existing_forecasts = self.cleaned_data.get("existing_forecasts")
@@ -128,7 +196,11 @@ class ForecastCreateForm(WagtailAdminModelForm):
             condition = city_data.get("condition")
             data_values = city_data.get("data_values")
 
-            city_forecast = CityForecast(city=city, condition=condition)
+            city_forecast = CityForecast(
+                city=city,
+                condition=condition,
+                data_source=CityForecast.DATA_SOURCE_MANUAL,
+            )
             for data in data_values:
                 city_forecast.data_values.add(DataValue(parameter=data.get("parameter"), value=data.get("value")))
             forecast.city_forecasts.add(city_forecast)

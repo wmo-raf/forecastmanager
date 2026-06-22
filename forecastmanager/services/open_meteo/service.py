@@ -84,6 +84,7 @@ class OpenMeteoForecastService:
         self._hourly_vars = list(dict.fromkeys(list(self.field_map.keys()) + ["weathercode"]))
         self._client = OpenMeteoClient(api_url=api_url, timeout=request_timeout)
         self._conditions_cache: dict[int, WeatherCondition] = {}
+        self._status = Forecast.STATUS_DRAFT
 
     def run(
         self,
@@ -112,6 +113,11 @@ class OpenMeteoForecastService:
         logger.info("=" * 60)
 
         forecast_setting = self._get_forecast_setting()
+        self._status = (
+            Forecast.STATUS_PUBLISHED
+            if getattr(forecast_setting, "auto_publish_forecasts", False)
+            else Forecast.STATUS_DRAFT
+        )
         parameters_dict = self._ensure_parameters(forecast_setting)
         cities = self._resolve_cities(city_filter)
 
@@ -295,6 +301,20 @@ class OpenMeteoForecastService:
         condition = self._get_or_create_condition(forecast_setting, int(wmo_code))
         period = self._get_or_create_period(forecast_setting, hour)
 
+        # Never overwrite a forecaster-authored (manual) city forecast.
+        existing_cf = CityForecast.objects.filter(
+            parent__forecast_date=date,
+            parent__effective_period=period,
+            city=city,
+        ).first()
+        if existing_cf and existing_cf.data_source == CityForecast.DATA_SOURCE_MANUAL:
+            logger.info(
+                "  Skipping %s %s %02d:00 (forecaster-authored, protected)",
+                city.name, date, hour,
+            )
+            result.skipped += 1
+            return
+
         if dry_run:
             logger.info(
                 "  [DRY RUN] Would save: %s %02d:00 | %s | %s",
@@ -310,7 +330,11 @@ class OpenMeteoForecastService:
         with transaction.atomic():
             forecast_obj = self._get_or_replace_forecast(date, period, city)
 
-            city_forecast = CityForecast(city=city, condition=condition)
+            city_forecast = CityForecast(
+                city=city,
+                condition=condition,
+                data_source=CityForecast.DATA_SOURCE_AUTO,
+            )
 
             # data_values is a reverse relation, so Pylance knows it's a Manager with an .add() method.
             data_values_mgr = cast(Manager, city_forecast.data_values)
@@ -372,7 +396,12 @@ class OpenMeteoForecastService:
                 )
             return forecast_obj
 
-        return Forecast(forecast_date=date, effective_period=period, source="local")
+        return Forecast(
+            forecast_date=date,
+            effective_period=period,
+            source="open_meteo",
+            status=self._status,
+        )
 
     def _get_or_create_period(
         self, forecast_setting: ForecastSetting, hour: int

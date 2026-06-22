@@ -32,6 +32,14 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
         verbose_name=_("Automated forecast provider"),
         help_text=_("Which weather API to fetch automated forecasts from."),
     )
+    auto_publish_forecasts = models.BooleanField(
+        default=True,
+        verbose_name=_("Auto-publish automated forecasts"),
+        help_text=_(
+            "When off, automated forecasts are saved as drafts for a forecaster to "
+            "review and publish. When on, they are published immediately."
+        ),
+    )
     default_city = models.ForeignKey("City", blank=True, null=True, on_delete=models.SET_NULL,
                                      verbose_name=_("Default City"))
     weather_detail_page = models.ForeignKey("wagtailcore.Page", blank=True, null=True, on_delete=models.SET_NULL, )
@@ -56,6 +64,7 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
         ObjectList([
             FieldPanel('enable_auto_forecast'),
             FieldPanel('forecast_provider'),
+            FieldPanel('auto_publish_forecasts'),
             InlinePanel(
                 'provider_parameter_mappings',
                 heading=_("Provider Parameter Mapping"),

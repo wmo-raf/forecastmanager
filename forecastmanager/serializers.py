@@ -159,7 +159,8 @@ class ForecastPostSerializer(serializers.Serializer):
         forecast = Forecast.objects.create(
             forecast_date=validated_data["forecast_date"],
             effective_period=effective_period,
-            source=validated_data.get("source", "local")
+            source=validated_data.get("source", "local"),
+            status=Forecast.STATUS_PUBLISHED,
         )
 
         for city_forecast_data in city_forecasts:
@@ -167,6 +168,7 @@ class ForecastPostSerializer(serializers.Serializer):
                 parent=forecast,
                 city=city_forecast_data["city_obj"],
                 condition=city_forecast_data["condition_obj"],
+                data_source=CityForecast.DATA_SOURCE_MANUAL,
             )
 
             data_values = [

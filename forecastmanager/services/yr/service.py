@@ -128,6 +128,12 @@ def run_yr_forecast(
 
     parameters_dict = {parameter.parameter: parameter for parameter in parameters}
 
+    status = (
+        Forecast.STATUS_PUBLISHED
+        if getattr(forecast_setting, "auto_publish_forecasts", False)
+        else Forecast.STATUS_DRAFT
+    )
+
     # With no admin mapping, fall back to an identity map (field name == param key),
     # which reproduces the original command behaviour.
     effective_map = field_map or {key: key for key in parameters_dict.keys()}
@@ -184,7 +190,11 @@ def run_yr_forecast(
                 logger.warning(f"Cannot find or create condition for symbol code: {condition}")
                 continue
 
-            city_forecast = CityForecast(city=city, condition=condition_obj)
+            city_forecast = CityForecast(
+                city=city,
+                condition=condition_obj,
+                data_source=CityForecast.DATA_SOURCE_AUTO,
+            )
 
             flat_values = _flatten_entry_values(data_values)
             for source_field, param_key in effective_map.items():
@@ -221,21 +231,38 @@ def run_yr_forecast(
                     label=effective_time,
                 )
 
-            existing = Forecast.objects.filter(
+            # Reuse an existing Forecast for this slot so we don't clobber other
+            # cities or a forecaster's publish status. Only create a fresh draft
+            # when none exists yet.
+            forecast = Forecast.objects.filter(
                 forecast_date=forecast_date, effective_period=forecast_period
-            )
-            if existing.exists():
-                existing.delete()
+            ).first()
+            if forecast is None:
+                forecast = Forecast.objects.create(
+                    forecast_date=forecast_date,
+                    effective_period=forecast_period,
+                    source="yr",
+                    status=status,
+                )
 
-            forecast = Forecast(
-                forecast_date=forecast_date, effective_period=forecast_period, source="yr"
-            )
             for city_forecast in city_forecasts:
+                existing_cf = forecast.city_forecasts.filter(city=city_forecast.city).first()
+                if existing_cf:
+                    if existing_cf.data_source == CityForecast.DATA_SOURCE_MANUAL:
+                        # Forecaster-authored: protected, leave untouched.
+                        logger.info(
+                            "  Skipping %s %s (forecaster-authored, protected)",
+                            city_forecast.city.name, forecast_date,
+                        )
+                        result.skipped += 1
+                        continue
+                    existing_cf.delete()
                 forecast.city_forecasts.add(city_forecast)
+                result.saved += 1
+
             forecast.save()
 
         created_forecast_pks.append(forecast.pk)
-        result.saved += 1
 
     for fn in hooks.get_hooks("after_generate_forecast"):
         fn(created_forecast_pks)

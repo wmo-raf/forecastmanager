@@ -17,6 +17,12 @@
                 {{ object.forecast_date|date:"l j F" }} - {{ object.effective_period.label }}
             </h1>
 
+            <div style="margin-bottom: 24px;">
+                <a href="{% url 'forecast_edit_values' object.pk %}" class="button">
+                    {% trans "Edit values" %}
+                </a>
+            </div>
+
 
             <div class="w-field__input" data-field-input=""
                  style="padding: 40px 0;display: flex;flex-direction: column; justify-content: center">
@@ -76,6 +82,18 @@
         .forecast-day-table .listing thead th {
             font-size: 18px;
             font-weight: 600
+        }
+
+        .forecast-day-table .table-wrapper {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .forecast-day-table .table-wrapper > table {
+            width: max-content;
+            min-width: 100%;
         }
 
     </style>
