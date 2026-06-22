@@ -6,6 +6,7 @@ forecastmanager parameter keys, and how WMO weather codes map to
 yr.no condition symbols.
 """
 
+
 #: Base URL for the Open-Meteo forecast API.
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 
