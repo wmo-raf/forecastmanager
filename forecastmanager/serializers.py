@@ -1,3 +1,4 @@
+from datetime import timezone as dt_timezone
 from django.db import transaction
 from django.db.models import Q
 from uuid import UUID
@@ -28,6 +29,32 @@ class ForecastSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
 
         return instance.get_geojson(request)
+
+
+class MobileForecastTimeserieSerializer(serializers.Serializer):
+    """
+    Render a single :class:`CityForecast` as one Met Norway-style timeseries
+    step. Each step exposes only ``time``, the ``instant`` data values, and the
+    ``next_1_hours`` weather symbol, mirroring api.met.no/locationforecast.
+    """
+
+    def to_representation(self, city_forecast):
+        details = {
+            data_value.parameter.parameter: data_value.parsed_value
+            for data_value in city_forecast.data_values.all()
+        }
+
+        symbol_code = city_forecast.condition.symbol if city_forecast.condition else None
+
+        return {
+            "time": city_forecast.datetime.astimezone(dt_timezone.utc).strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            ),
+            "data": {
+                "instant": {"details": details},
+                "next_1_hours": {"summary": {"symbol_code": symbol_code}},
+            },
+        }
 
 
 class CityForecastPostSerializer(serializers.Serializer):

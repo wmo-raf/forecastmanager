@@ -2,10 +2,10 @@ import csv
 import json
 
 from django.contrib import messages
+from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
 from django.db import transaction
 from django.http import HttpResponse
-from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
@@ -18,10 +18,15 @@ from rest_framework.generics import ListAPIView
 from rest_framework.permissions import BasePermission, IsAuthenticated, SAFE_METHODS
 from wagtail.api.v2.utils import get_full_url
 
-from forecastmanager.models import City, Forecast
+from forecastmanager.models import City, CityForecast, Forecast
 from .forecast_settings import ForecastSetting
 from .forms import CityLoaderForm
-from .serializers import CitySerializer, ForecastSerializer, ForecastPostSerializer
+from .serializers import (
+    CitySerializer,
+    ForecastSerializer,
+    ForecastPostSerializer,
+    MobileForecastTimeserieSerializer,
+)
 from .utils import get_weather_condition_icons
 
 
@@ -56,6 +61,104 @@ class ForecastListView(ListAPIView):
         queryset = queryset.filter(status=Forecast.STATUS_PUBLISHED)
         queryset = queryset.filter(forecast_date__gte=timezone.localtime().date())
         return queryset
+
+
+class MobileForecastView(APIView):
+    """
+    GET /api/forecast_mobile?lat=<lat>&lon=<lon>
+
+    Returns a Met Norway-style (api.met.no/locationforecast) feature for the
+    city nearest to the supplied coordinates. Each timeseries step carries only
+    ``time``, the ``instant`` data values, and the ``next_1_hours`` weather
+    ``symbol_code``. Only published, current/future forecasts are served.
+    """
+
+    permission_classes = [IsAuthenticated | ReadOnly]
+
+    def get(self, request, *args, **kwargs):
+        lat = request.query_params.get("lat")
+        lon = request.query_params.get("lon")
+
+        if lat is None or lon is None:
+            return Response(
+                {"detail": "lat and lon query parameters are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            lat = float(lat)
+            lon = float(lon)
+        except (TypeError, ValueError):
+            return Response(
+                {"detail": "lat and lon must be valid numbers."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Match the request to the nearest stored city (PostGIS distance sort).
+        point = Point(x=lon, y=lat, srid=4326)
+        city = (
+            City.objects.annotate(distance=Distance("location", point))
+            .order_by("distance")
+            .first()
+        )
+
+        if city is None:
+            return Response(
+                {"detail": "No cities available to match."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        city_forecasts = (
+            CityForecast.objects.filter(
+                city=city,
+                parent__status=Forecast.STATUS_PUBLISHED,
+                parent__forecast_date__gte=timezone.localtime().date(),
+            )
+            .select_related("parent", "parent__effective_period", "condition")
+            .prefetch_related("data_values__parameter")
+            .order_by(
+                "parent__forecast_date",
+                "parent__effective_period__forecast_effective_time",
+            )
+        )
+
+        # Units for each parameter present in the served timeseries.
+        units = {}
+        for city_forecast in city_forecasts:
+            for data_value in city_forecast.data_values.all():
+                parameter = data_value.parameter
+                units.setdefault(parameter.parameter, parameter.units)
+
+        # Did the request land exactly on the city, or is this the nearest one?
+        city_lon, city_lat = city.coordinates
+        is_exact = abs(city_lon - lon) < 1e-4 and abs(city_lat - lat) < 1e-4
+        location_source = "exact" if is_exact else "nearest"
+
+        timeseries = MobileForecastTimeserieSerializer(city_forecasts, many=True).data
+
+        return Response(
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": city.coordinates,
+                },
+                "properties": {
+                    "meta": {
+                        "updated_at": timezone.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                        "city": city.name,
+                        "location_source": location_source,
+                        "location_description": (
+                            f"Forecast for the exact city ({city.name})."
+                            if is_exact
+                            else f"Forecast for the nearest city ({city.name})."
+                        ),
+                        "units": units,
+                    },
+                    "timeseries": timeseries,
+                },
+            }
+        )
 
 
 class ForecastPostView(APIView):
@@ -265,20 +368,29 @@ def load_cities(request):
     return render(request, template_name=template, context=context)
 
 
-def forecast_settings(request):
-    context = {}
+class ForecastSettingsView(APIView):
+    permission_classes = [IsAuthenticated | ReadOnly]
 
-    fm_settings = ForecastSetting.for_request(request)
-    data_parameters = fm_settings.data_parameter_values
-    effective_periods = fm_settings.effective_periods
+    def get(self, request, *args, **kwargs):
+        fm_settings = ForecastSetting.for_request(request)
+        data = {
+            "parameters": fm_settings.data_parameter_values,
+            "periods": fm_settings.effective_periods,
+        }
+        return Response(data)
 
-    context.update({"parameters": data_parameters, "periods": effective_periods})
 
-    return JsonResponse(context)
+class WeatherIconsView(APIView):
+    permission_classes = [IsAuthenticated | ReadOnly]
 
-
-def weather_icons(request):
-    options = get_weather_condition_icons()
-    icons = [{"id": icon["id"], "name": icon["name"], "url": get_full_url(request, icon["icon_url"])} for icon in
-             options]
-    return JsonResponse(icons, safe=False)
+    def get(self, request, *args, **kwargs):
+        options = get_weather_condition_icons()
+        icons = [
+            {
+                "id": icon["id"],
+                "name": icon["name"],
+                "url": get_full_url(request, icon["icon_url"]),
+            }
+            for icon in options
+        ]
+        return Response(icons)
