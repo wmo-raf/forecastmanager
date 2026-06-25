@@ -5,9 +5,9 @@ from .views import (
     ForecastListView,
     ForecastPostView,
     MobileForecastView,
+    ForecastSettingsView,
+    WeatherIconsView,
     download_forecast_template,
-    weather_icons,
-    forecast_settings
 )
 
 urlpatterns = [
@@ -15,7 +15,7 @@ urlpatterns = [
     path('api/forecasts', ForecastListView.as_view(), name='forecast-list'),
     path('api/forecast_mobile', MobileForecastView.as_view(), name='forecast-mobile'),
     path('api/forecasts/post', ForecastPostView.as_view(), name='forecast-post'),
-    path('api/forecast-settings', forecast_settings, name='forecast-settings'),
-    path('api/weather-icons', weather_icons, name='weather-icons'),
+    path('api/forecast-settings', ForecastSettingsView.as_view(), name='forecast-settings'),
+    path('api/weather-icons', WeatherIconsView.as_view(), name='weather-icons'),
     path('api/forecast_template.csv', download_forecast_template, name='download-forecast-template'),
 ]

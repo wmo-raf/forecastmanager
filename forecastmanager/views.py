@@ -6,7 +6,6 @@ from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
 from django.db import transaction
 from django.http import HttpResponse
-from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
@@ -369,20 +368,29 @@ def load_cities(request):
     return render(request, template_name=template, context=context)
 
 
-def forecast_settings(request):
-    context = {}
+class ForecastSettingsView(APIView):
+    permission_classes = [IsAuthenticated | ReadOnly]
 
-    fm_settings = ForecastSetting.for_request(request)
-    data_parameters = fm_settings.data_parameter_values
-    effective_periods = fm_settings.effective_periods
+    def get(self, request, *args, **kwargs):
+        fm_settings = ForecastSetting.for_request(request)
+        data = {
+            "parameters": fm_settings.data_parameter_values,
+            "periods": fm_settings.effective_periods,
+        }
+        return Response(data)
 
-    context.update({"parameters": data_parameters, "periods": effective_periods})
 
-    return JsonResponse(context)
+class WeatherIconsView(APIView):
+    permission_classes = [IsAuthenticated | ReadOnly]
 
-
-def weather_icons(request):
-    options = get_weather_condition_icons()
-    icons = [{"id": icon["id"], "name": icon["name"], "url": get_full_url(request, icon["icon_url"])} for icon in
-             options]
-    return JsonResponse(icons, safe=False)
+    def get(self, request, *args, **kwargs):
+        options = get_weather_condition_icons()
+        icons = [
+            {
+                "id": icon["id"],
+                "name": icon["name"],
+                "url": get_full_url(request, icon["icon_url"]),
+            }
+            for icon in options
+        ]
+        return Response(icons)
