@@ -259,5 +259,29 @@ class CityLoaderForm(forms.Form):
         return cleaned_data
 
 
+class GeoNamesImportForm(forms.Form):
+    country = forms.CharField(
+        label=_("Country code"),
+        max_length=2,
+        min_length=2,
+        help_text=_("ISO 3166 alpha-2 country code, e.g. MW for Malawi, KE for Kenya."),
+    )
+    max_cities = forms.IntegerField(
+        label=_("Maximum cities"),
+        min_value=1,
+        max_value=1000,
+        initial=200,
+        help_text=_("Upper limit on how many cities to import (default 200)."),
+    )
+    overwrite_existing = forms.BooleanField(
+        label=_("Update existing cities"),
+        required=False,
+        help_text=_("If a city with the same name exists, update its location instead of skipping it."),
+    )
+
+    def clean_country(self):
+        return self.cleaned_data["country"].strip().upper()
+
+
 class ForecastEditForm(WagtailAdminModelForm):
     pass

@@ -82,6 +82,85 @@ To read more about the providers visit:
 
 ---
 
+## Adding Cities
+
+Cities (the locations forecasts are attached to) can be added in three ways:
+
+1. **Manually** via the Cities snippet in the Wagtail admin.
+2. **CSV upload** — Cities listing > *Import Cities*, then upload a CSV with city name, latitude, and longitude columns.
+3. **Import from GeoNames** — Cities listing > *Import from GeoNames* (see below).
+
+### Importing from GeoNames
+
+This pulls cities from the free [GeoNames](https://www.geonames.org/) web service for a given country, so you don't have to assemble a CSV by hand. It is available both from the Wagtail admin and as a management command.
+
+#### One-time setup
+
+1. Create a free account at [geonames.org](https://www.geonames.org/login).
+2. **Enable web services on the account.** This is the step that is easy to miss: after registering, log in, open your [account page](https://www.geonames.org/manageaccount), and click **"Click here to enable"** under *Free Web Services*. Until this is done, every request is rejected (see Troubleshooting). Activation can take up to an hour.
+3. In the Wagtail admin, go to **Forecast Settings > Other Settings > GeoNames username** and save your account **username** (not the email address).
+
+#### How the list is kept small
+
+A single country can have tens of thousands of GeoNames entries, but most are not cities — they are rivers, mountains, roads, parks, and farms. The import reduces this in two layers:
+
+1. **Filter by feature class.** Only GeoNames feature class **P** (populated places) is considered, which removes the non-settlement records.
+2. **Select with an *admin seats + fill by population* strategy**, capped at a maximum:
+   - Always include administrative seats — `PPLC` (national capital), `PPLA` (regional/first-order capitals), and `PPLA2` (district/second-order seats) — ordered by rank, so every administrative centre is covered even if it has a small population.
+   - Fill the remaining slots with the highest-population populated places not already chosen, up to the configured maximum.
+
+This guarantees both administrative coverage and a manageable list. The default cap is **200** and is adjustable per import.
+
+Relevant GeoNames feature codes (full list at [geonames.org/export/codes.html](https://www.geonames.org/export/codes.html)):
+
+| Code | Meaning |
+| --- | --- |
+| `PPLC` | National capital |
+| `PPLA` | Seat of a first-order admin division (regional/provincial capital) |
+| `PPLA2`–`PPLA5` | Seats of second- to fifth-order admin divisions (district/ward seats) |
+| `PPL` | Generic populated place (towns, villages — selected by population) |
+
+#### From the admin
+
+1. Go to the **Cities** listing and click **Import from GeoNames**.
+2. Enter the **ISO 3166 alpha-2 country code** (e.g. `MW` for Malawi, `KE` for Kenya).
+3. Set the **maximum cities** (default 200).
+4. Optionally tick **Update existing cities** to refresh the coordinates of cities that already exist (otherwise duplicates are skipped).
+5. Click **Preview** to see exactly which cities will be imported (name, type, region, population, coordinates), then **Import** to save them.
+
+#### From the command line
+
+```bash
+# Import (uses the username saved in Forecast Settings; default max 200)
+python manage.py import_geonames_cities --country MW
+
+# Preview only — list what would be imported, write nothing
+python manage.py import_geonames_cities --country KE --max 150 --dry-run
+
+# Update the locations of cities that already exist instead of skipping them
+python manage.py import_geonames_cities --country MW --overwrite
+
+# Override the configured username for a single run
+python manage.py import_geonames_cities --country MW --username my_geonames_user
+```
+
+| Option | Description |
+| --- | --- |
+| `--country` | ISO 3166 alpha-2 country code (required). |
+| `--max` | Maximum number of cities to import (default 200). |
+| `--username` | GeoNames username; defaults to the one saved in Forecast Settings. |
+| `--overwrite` | Update existing cities' locations instead of skipping them. |
+| `--dry-run` | List the selected cities without writing to the database. |
+
+#### Notes & troubleshooting
+
+- City **names are unique**. An existing city is skipped unless you pass `--overwrite` (CLI) or tick *Update existing cities* (admin), in which case its location is updated.
+- **`GeoNames error: user account not enabled to use the free webservice`** or a **401** response means web services have not been enabled on the account — complete step 2 of the setup above and wait for activation.
+- **`GeoNames error: the daily limit ... has been exceeded`** means the account's free request quota is used up; it resets the next day.
+- A GeoNames username must be set (in settings or via `--username`) or the import will refuse to run.
+
+---
+
 ## Retrieving Forecast Data (Read API)
 
 All read endpoints serve **published** forecasts only (drafts are withheld until reviewed) and are publicly accessible — no token required.
