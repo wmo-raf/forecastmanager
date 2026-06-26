@@ -40,6 +40,16 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
             "review and publish. When on, they are published immediately."
         ),
     )
+    geonames_username = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name=_("GeoNames username"),
+        help_text=_(
+            "Username for the free GeoNames web service (https://www.geonames.org/login), "
+            "used to import cities. Web services must be enabled for the account."
+        ),
+    )
     default_city = models.ForeignKey("City", blank=True, null=True, on_delete=models.SET_NULL,
                                      verbose_name=_("Default City"))
     weather_detail_page = models.ForeignKey("wagtailcore.Page", blank=True, null=True, on_delete=models.SET_NULL, )
@@ -77,6 +87,7 @@ class ForecastSetting(ClusterableModel, BaseSiteSetting):
             ),
         ], heading=_("Forecast Source")),
         ObjectList([
+            FieldPanel('geonames_username'),
             FieldPanel('default_city'),
             FieldPanel('weather_detail_page'),
             FieldPanel('weather_reports_page'),

@@ -20,7 +20,12 @@ from wagtail.api.v2.utils import get_full_url
 
 from forecastmanager.models import City, CityForecast, Forecast
 from .forecast_settings import ForecastSetting
-from .forms import CityLoaderForm
+from .forms import CityLoaderForm, GeoNamesImportForm
+from .services.geonames import (
+    GeoNamesClient,
+    GeoNamesError,
+    GeoNamesImportService,
+)
 from .serializers import (
     CitySerializer,
     ForecastSerializer,
@@ -366,6 +371,80 @@ def load_cities(request):
     context.update({"form": form})
 
     return render(request, template_name=template, context=context)
+
+
+def import_geonames_cities(request):
+    """
+    Admin page to import cities from the GeoNames web service.
+
+    Submitting with action=preview fetches and lists the cities that would be
+    imported (admin seats + highest-population places, capped at the chosen
+    maximum). Submitting with action=import persists them. A GeoNames username
+    must be configured under Forecast Settings > Other Settings.
+    """
+    template = "forecastmanager/import_geonames_cities.html"
+    index_url = reverse(City.snippet_viewset.get_url_name("list"))
+    fm_settings = ForecastSetting.for_request(request)
+    username = fm_settings.geonames_username
+
+    context = {"index_url": index_url}
+
+    if request.method != "POST":
+        context["form"] = GeoNamesImportForm()
+        return render(request, template, context)
+
+    form = GeoNamesImportForm(request.POST)
+    if not form.is_valid():
+        context["form"] = form
+        return render(request, template, context)
+
+    if not username:
+        form.add_error(
+            None,
+            _("Set a GeoNames username under Forecast Settings > Other Settings before importing."),
+        )
+        context["form"] = form
+        return render(request, template, context)
+
+    country = form.cleaned_data["country"]
+    max_cities = form.cleaned_data["max_cities"]
+    overwrite = form.cleaned_data["overwrite_existing"]
+    action = request.POST.get("action", "preview")
+
+    service = GeoNamesImportService(
+        GeoNamesClient(username=username),
+        max_cities=max_cities,
+    )
+
+    try:
+        places, result = service.run(
+            country=country,
+            overwrite=overwrite,
+            dry_run=(action != "import"),
+        )
+    except GeoNamesError as exc:
+        form.add_error(None, str(exc))
+        context["form"] = form
+        return render(request, template, context)
+
+    if action == "import":
+        messages.success(
+            request,
+            _("Imported %(created)d new and updated %(updated)d cities (%(skipped)d skipped).")
+            % {
+                "created": result.created,
+                "updated": result.updated,
+                "skipped": result.skipped,
+            },
+        )
+        return redirect(index_url)
+
+    context.update({
+        "form": form,
+        "places": places,
+        "preview": True,
+    })
+    return render(request, template, context)
 
 
 class ForecastSettingsView(APIView):

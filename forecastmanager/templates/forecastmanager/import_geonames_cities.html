@@ -1,0 +1,82 @@
+{% extends "wagtailadmin/base.html" %}
+{% load i18n %}
+{% load wagtailadmin_tags %}
+
+{% block titletag %}{% trans "Import Cities from GeoNames" %}{% endblock %}
+
+{% block content %}
+    {% trans "Import Cities from GeoNames" as header_str %}
+    {% include "wagtailadmin/shared/header.html" with title=header_str icon="globe" %}
+
+    <div class="nice-padding">
+        <div class="row row-flush" style="padding-top:1rem">
+            <div class="col5">
+                <form action="{% url 'import_geonames_cities' %}" method="POST">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                        <div class="non-field_errors" style="margin-bottom: 20px">
+                            {% include "wagtailadmin/shared/non_field_errors.html" with form=form %}
+                        </div>
+                    {% endif %}
+                    <ul class="fields">
+                        {% for field in form %}
+                            {% include "wagtailadmin/shared/field.html" %}
+                        {% endfor %}
+                        <li>
+                            <button type="submit" name="action" value="preview" class="button button-secondary">
+                                {% trans 'Preview' %}
+                            </button>
+                            {% if preview %}
+                                <button type="submit" name="action" value="import" class="button">
+                                    {% blocktrans count counter=places|length %}Import {{ counter }} city{% plural %}Import {{ counter }} cities{% endblocktrans %}
+                                </button>
+                            {% endif %}
+                        </li>
+                    </ul>
+                </form>
+            </div>
+            <div class="col7">
+                {% if preview %}
+                    <div class="help-block help-info">
+                        <svg class="icon icon-info-circle icon" aria-hidden="true">
+                            <use href="#icon-info-circle"></use>
+                        </svg>
+                        <div>
+                            {% blocktrans count counter=places|length %}
+                                {{ counter }} city will be imported. Review the list, then click "Import".
+                            {% plural %}
+                                {{ counter }} cities will be imported. Review the list, then click "Import".
+                            {% endblocktrans %}
+                        </div>
+                    </div>
+                    <table class="listing">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Name" %}</th>
+                                <th>{% trans "Type" %}</th>
+                                <th>{% trans "Region" %}</th>
+                                <th>{% trans "Population" %}</th>
+                                <th>{% trans "Latitude" %}</th>
+                                <th>{% trans "Longitude" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for place in places %}
+                                <tr>
+                                    <td>{{ place.name }}</td>
+                                    <td>{{ place.feature_code }}</td>
+                                    <td>{{ place.admin_name }}</td>
+                                    <td>{{ place.population }}</td>
+                                    <td>{{ place.lat }}</td>
+                                    <td>{{ place.lon }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="6">{% trans "No cities found for this country." %}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

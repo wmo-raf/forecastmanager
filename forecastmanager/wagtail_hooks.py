@@ -17,13 +17,14 @@ from forecastmanager.constants import WEATHER_PARAMETERS_ICON_LIST
 from forecastmanager.forecast_settings import ForecastSetting
 from forecastmanager.forms import ForecastCreateForm, ForecastEditForm
 from forecastmanager.models import City, Forecast
-from forecastmanager.views import load_cities, edit_forecast_values
+from forecastmanager.views import load_cities, edit_forecast_values, import_geonames_cities
 
 
 @hooks.register('register_admin_urls')
 def urlconf_forecastmanager():
     return [
         path('load-cities/', load_cities, name='load_cities'),
+        path('import-geonames-cities/', import_geonames_cities, name='import_geonames_cities'),
         path('forecast/<int:forecast_id>/edit-values/', edit_forecast_values, name='forecast_edit_values'),
     ]
 
@@ -48,6 +49,11 @@ class CityIndexView(IndexView):
                 label=_('Import Cities'),
                 url=reverse("load_cities"),
                 icon_name="plus",
+            ),
+            HeaderButton(
+                label=_('Import from GeoNames'),
+                url=reverse("import_geonames_cities"),
+                icon_name="globe",
             ),
         ])
         
