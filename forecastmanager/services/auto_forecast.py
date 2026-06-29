@@ -17,6 +17,7 @@ from forecastmanager.services.yr import run_yr_forecast
 
 logger = logging.getLogger(__name__)
 
+
 #: Default forecast hours (Open-Meteo only) — standard 3-hourly slots.
 DEFAULT_HOURS = list(FORECAST_HOURS)
 

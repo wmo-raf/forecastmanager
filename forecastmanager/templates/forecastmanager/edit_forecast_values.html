@@ -32,6 +32,7 @@
                 <div>{{ error }}</div>
             </div>
         {% endif %}
+        
 
         <form method="POST" id="forecast-values-form" novalidate>
             {% csrf_token %}
@@ -79,12 +80,44 @@
         const cities = {{ cities|safe }};
         const initialRows = {{ initial_rows|safe }};
 
-        $(document).ready(function () {
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof Handsontable === 'undefined') {
+                console.error('Handsontable failed to load; cannot render the forecast grid.');
+                return;
+            }
+
             const tableContainer = document.getElementById('table-container');
             const dataInput = document.getElementById('id_data');
             const saveBtn = document.getElementById('save-btn');
+            const form = document.getElementById('forecast-values-form');
 
-            const hot = new Handsontable(tableContainer, {
+            let hot;
+            // Handsontable fires afterChange while it is still constructing (on
+            // initial data load), before `hot` is assigned. This guard makes the
+            // hooks no-op until construction has finished.
+            let ready = false;
+
+            // Always write the current table into the hidden field, independent
+            // of validation, so a valid save is never sent with an empty payload
+            // (which the server rejects as "No data found").
+            function serialize() {
+                if (!ready) return;
+                dataInput.value = JSON.stringify({
+                    fields: hot.getColHeader(),
+                    rows: hot.getData(),
+                });
+            }
+
+            // Validation only controls the button state, not the payload.
+            function updateButtonState() {
+                if (!ready) return;
+                hot.validateCells(function (isValid) {
+                    const data = hot.getData();
+                    saveBtn.disabled = !isValid || !data || data.length === 0;
+                });
+            }
+
+            hot = new Handsontable(tableContainer, {
                 data: initialRows && initialRows.length ? initialRows : [[]],
                 autoWrapRow: true,
                 autoWrapCol: true,
@@ -113,27 +146,22 @@
                 licenseKey: 'non-commercial-and-evaluation',
                 height: 500,
                 startRows: 1,
-                afterChange: () => syncData(),
-                afterRemoveRow: () => syncData(),
+                afterChange: function () { serialize(); updateButtonState(); },
+                afterRemoveRow: function () { serialize(); updateButtonState(); },
             });
 
-            function syncData() {
-                hot.validateCells(function (isValid) {
-                    const data = hot.getData();
-                    if (!isValid || !data || data.length === 0) {
-                        saveBtn.disabled = true;
-                        return;
-                    }
-                    dataInput.value = JSON.stringify({
-                        fields: hot.getColHeader(),
-                        rows: data,
-                    });
-                    saveBtn.disabled = false;
-                });
-            }
+            // Construction finished: enable the hooks and do an initial sync so
+            // an unchanged save still carries the table data.
+            ready = true;
+            serialize();
+            updateButtonState();
 
-            // Populate hidden input on initial load so an unchanged save still works.
-            syncData();
+            // Guarantee the latest table state is serialized at submit time
+            // (an in-progress cell edit may not have fired afterChange yet).
+            form.addEventListener('submit', function () {
+                hot.deselectCell();
+                serialize();
+            });
         });
     </script>
 {% endblock %}
