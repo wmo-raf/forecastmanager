@@ -22,8 +22,8 @@ HOURLY_VARS: list[str] = [
 ]
 
 #: Default hours-of-day to create ForecastPeriods for.
-#: Open-Meteo returns hourly data; these represent Morning, Afternoon, Evening.
-DEFAULT_FORECAST_HOURS: list[int] = [6, 12, 18]
+#: Open-Meteo returns hourly data; we keep the standard 3-hourly slots.
+DEFAULT_FORECAST_HOURS: list[int] = [0, 3, 6, 9, 12, 15, 18, 21]
 
 #: Maps Open-Meteo hourly field names to forecastmanager parameter keys.
 #: Left  = Open-Meteo field name (what the API returns).

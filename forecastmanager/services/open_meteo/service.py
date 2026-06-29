@@ -14,19 +14,22 @@ Usage:
 """
 
 import logging
-from datetime import date as DateType
-from datetime import time
-from typing import TYPE_CHECKING, Optional, cast
-from django.db import transaction
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Optional, cast
 from django.db.models import Manager
+from django.utils import timezone
 from wagtail.models import Site
 from forecastmanager.forecast_settings import (
     ForecastDataParameters,
-    ForecastPeriod,
     ForecastSetting,
     WeatherCondition,
 )
-from forecastmanager.models import City, CityForecast, DataValue, Forecast
+from forecastmanager.models import City, Forecast
+from forecastmanager.services.ingest import (
+    CityForecastRecord,
+    commit_records,
+    is_wanted_slot,
+)
 from .client import OpenMeteoClient
 from .constants import (
     DEFAULT_FORECAST_HOURS,
@@ -39,6 +42,11 @@ from .constants import (
 from .types import IngestResult
 
 logger = logging.getLogger(__name__)
+
+# Number of cities fetched in parallel. Open-Meteo is generous, but keep this
+# modest to stay well within fair-use limits.
+MAX_FETCH_WORKERS = 8
+
 
 class OpenMeteoForecastService:
     """
@@ -125,8 +133,51 @@ class OpenMeteoForecastService:
         logger.info("Forecast hours: %s", self.forecast_hours)
 
         result = IngestResult()
-        for city in cities:
-            self._ingest_city(city, forecast_setting, parameters_dict, dry_run, result)
+
+        # Phase 1: fetch all cities concurrently (I/O-bound). The client does
+        # only network work, so it is safe to call from worker threads.
+        logger.info(
+            "Fetching %d cities (up to %d in parallel)...",
+            len(cities), MAX_FETCH_WORKERS,
+        )
+        fetched: list[tuple[City, Optional[dict]]] = []
+        with ThreadPoolExecutor(max_workers=min(MAX_FETCH_WORKERS, len(cities))) as executor:
+            future_to_city = {
+                executor.submit(
+                    self._client.fetch,
+                    lat=city.y,
+                    lon=city.x,
+                    city_name=city.name or "",
+                    hourly_vars=self._hourly_vars,
+                ): city
+                for city in cities
+            }
+            for future in as_completed(future_to_city):
+                city = future_to_city[future]
+                try:
+                    data = future.result()
+                except Exception as exc:  # network/parse failure for one city
+                    logger.error("Fetch failed for %s: %s", city.name, exc)
+                    data = None
+                fetched.append((city, data))
+
+        # Phase 2: parse responses into normalised records, keyed by
+        # (date, hour, city) so duplicates collapse (main thread).
+        records_by_key: dict[tuple, CityForecastRecord] = {}
+        for city, data in fetched:
+            self._collect_records(
+                city, data, forecast_setting, parameters_dict, records_by_key, result
+            )
+
+        # Phase 3: bulk write everything in a handful of queries.
+        commit_records(
+            list(records_by_key.values()),
+            source="open_meteo",
+            status=self._status,
+            forecast_setting=forecast_setting,
+            result=result,
+            dry_run=dry_run,
+        )
 
         logger.info("=" * 60)
         logger.info(
@@ -225,120 +276,65 @@ class OpenMeteoForecastService:
 
         return list(cities)
 
-    def _ingest_city(
+    def _collect_records(
         self,
         city: City,
+        data: Optional[dict],
         forecast_setting: ForecastSetting,
         parameters_dict: dict,
-        dry_run: bool,
+        records_by_key: dict,
         result: IngestResult,
     ) -> None:
         """
-        Fetch and ingest forecast data for a single city.
+        Parse one city's response into normalised records.
+
+        Records are written into ``records_by_key`` keyed by
+        ``(date, hour, city_id)`` so duplicate timestamps collapse. No database
+        writes happen here — :func:`commit_records` does the bulk write.
 
         Args:
-            city: The City record to process.
+            city: The City record being processed.
+            data: Raw Open-Meteo response (or None if the fetch failed).
             forecast_setting: Active ForecastSetting instance.
             parameters_dict: Mapping of parameter key -> ForecastDataParameters.
-            dry_run: When True, log without writing to the database.
+            records_by_key: Accumulator dict updated in place.
             result: Mutable IngestResult updated in place.
         """
         logger.info("Processing city: %s", city.name)
 
-        # city.name is nullable in the model, fall back to empty string for the log message so we don't pass str | None to client.fetch().
-        city_name: str = city.name or ""
-
-        data = self._client.fetch(
-            lat=city.y, lon=city.x, city_name=city_name, hourly_vars=self._hourly_vars
-        )
         if data is None:
             result.skipped += 1
-            result.errors.append(f"API request failed for {city_name}")
+            result.errors.append(f"API request failed for {city.name or ''}")
             return
 
+        # Pull every hour, then keep the current day hourly and later days
+        # 3-hourly (self.forecast_hours is the sparse set for later days).
+        today = timezone.localdate()
         entries = self._client.parse_hourly(
-            data, target_hours=self.forecast_hours, hourly_vars=self._hourly_vars
+            data, target_hours=list(range(24)), hourly_vars=self._hourly_vars
         )
         if not entries:
-            logger.warning("No hourly data for target hours %s", self.forecast_hours)
+            logger.warning("No hourly data returned")
             result.skipped += 1
             return
 
         for entry in entries:
-            self._save_entry(
-                entry, city, forecast_setting, parameters_dict, dry_run, result
-            )
+            date = entry["date"]
+            hour = entry["hour"]
 
-    def _save_entry(
-        self,
-        entry: dict,
-        city: City,
-        forecast_setting: ForecastSetting,
-        parameters_dict: dict,
-        dry_run: bool,
-        result: IngestResult,
-    ) -> None:
-        """
-        Persist (or dry-run log) a single hourly forecast entry.
+            if not is_wanted_slot(date, hour, today, self.forecast_hours):
+                continue
 
-        Args:
-            entry: Parsed hourly dict from ``OpenMeteoClient.parse_hourly``.
-            city: City this entry belongs to.
-            forecast_setting: Active ForecastSetting instance.
-            parameters_dict: Mapping of parameter key -> ForecastDataParameters.
-            dry_run: When True, log without writing.
-            result: Mutable IngestResult updated in place.
-        """
-        date = entry["date"]
-        hour = entry["hour"]
-        wmo_code = entry.get("weathercode")
+            wmo_code = entry.get("weathercode")
 
-        if wmo_code is None:
-            logger.warning("  No weathercode for %s %02d:00, skipping", date, hour)
-            result.skipped += 1
-            return
+            if wmo_code is None:
+                logger.warning("  No weathercode for %s %02d:00, skipping", date, hour)
+                result.skipped += 1
+                continue
 
-        condition = self._get_or_create_condition(forecast_setting, int(wmo_code))
-        period = self._get_or_create_period(forecast_setting, hour)
+            condition = self._get_or_create_condition(forecast_setting, int(wmo_code))
 
-        # Never overwrite a forecaster-authored (manual) city forecast.
-        existing_cf = CityForecast.objects.filter(
-            parent__forecast_date=date,
-            parent__effective_period=period,
-            city=city,
-        ).first()
-        if existing_cf and existing_cf.data_source == CityForecast.DATA_SOURCE_MANUAL:
-            logger.info(
-                "  Skipping %s %s %02d:00 (forecaster-authored, protected)",
-                city.name, date, hour,
-            )
-            result.skipped += 1
-            return
-
-        if dry_run:
-            logger.info(
-                "  [DRY RUN] Would save: %s %02d:00 | %s | %s",
-                date, hour, city.name, condition.label,
-            )
-            for om_key, internal_key in self.field_map.items():
-                val = entry.get(om_key)
-                if val is not None and internal_key in parameters_dict:
-                    logger.info("    %s = %s", internal_key, val)
-            result.saved += 1
-            return
-
-        with transaction.atomic():
-            forecast_obj = self._get_or_replace_forecast(date, period, city)
-
-            city_forecast = CityForecast(
-                city=city,
-                condition=condition,
-                data_source=CityForecast.DATA_SOURCE_AUTO,
-            )
-
-            # data_values is a reverse relation, so Pylance knows it's a Manager with an .add() method.
-            data_values_mgr = cast(Manager, city_forecast.data_values)
-
+            values = {}
             for om_key, internal_key in self.field_map.items():
                 val = entry.get(om_key)
                 if val is None:
@@ -349,87 +345,15 @@ class OpenMeteoForecastService:
                         "  Parameter '%s' not in settings, skipping", internal_key
                     )
                     continue
-                data_values_mgr.add(DataValue(parameter=param, value=str(val)))
+                values[param.id] = str(val)
 
-            # city_forecasts is a reverse relation, so Pylance knows it's a Manager with an .add() method.
-            city_forecasts_mgr = cast(Manager, forecast_obj.city_forecasts)
-            city_forecasts_mgr.add(city_forecast)
-            forecast_obj.save()
-
-        result.saved += 1
-        logger.info(
-            "  Saved %s %02d:00 | %s | %s", date, hour, city.name, condition.label
-        )
-
-    def _get_or_replace_forecast(
-        self, date: DateType, period: ForecastPeriod, city: City
-    ) -> Forecast:
-        """
-        Return an existing Forecast for date + period, replacing city data.
-
-        If a Forecast already exists, the CityForecast for this city is
-        deleted and the parent Forecast reused (preserving other cities).
-        If none exists, a new unsaved Forecast instance is returned.
-
-        Args:
-            date: The forecast date.
-            period: The ForecastPeriod for this time slot.
-            city: The city whose data is being replaced.
-
-        Returns:
-            A Forecast instance (existing or new, not yet saved).
-        """
-        existing_qs = Forecast.objects.filter(
-            forecast_date=date, effective_period=period
-        )
-        if existing_qs.exists():
-            forecast_obj = existing_qs.first()
-            # first() returns Forecast | None; existence is guaranteed by the .exists() check above, so assert to narrow the type for Pylance.
-            assert forecast_obj is not None
-
-            city_forecasts_mgr = cast(Manager, forecast_obj.city_forecasts)
-            city_qs = city_forecasts_mgr.filter(city=city)
-            if city_qs.exists():
-                city_qs.delete()
-                logger.info(
-                    "  Replaced existing CityForecast for %s %s", city.name, date
-                )
-            return forecast_obj
-
-        return Forecast(
-            forecast_date=date,
-            effective_period=period,
-            source="open_meteo",
-            status=self._status,
-        )
-
-    def _get_or_create_period(
-        self, forecast_setting: ForecastSetting, hour: int
-    ) -> ForecastPeriod:
-        """
-        Return (or create) a ForecastPeriod for the given hour.
-
-        Args:
-            forecast_setting: Parent ForecastSetting instance.
-            hour: Hour of day (0-23).
-
-        Returns:
-            A ForecastPeriod instance.
-        """
-        effective_time = time(hour, 0)
-        period = ForecastPeriod.objects.filter(
-            parent=forecast_setting,
-            forecast_effective_time=effective_time,
-        ).first()
-        if period is None:
-            label = f"{hour:02d}:00"
-            period = ForecastPeriod.objects.create(
-                parent=forecast_setting,
-                forecast_effective_time=effective_time,
-                label=label,
+            records_by_key[(date, hour, city.id)] = CityForecastRecord(
+                date=date,
+                hour=hour,
+                city_id=city.id,
+                condition_id=condition.id,
+                values=values,
             )
-            logger.info("  Created ForecastPeriod: %s", label)
-        return period
 
     def _get_or_create_condition(
         self, forecast_setting: ForecastSetting, wmo_code: int

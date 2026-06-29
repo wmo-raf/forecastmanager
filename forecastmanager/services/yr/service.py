@@ -9,11 +9,11 @@ ForecastDataParameters.
 """
 
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 
 import requests
 from dateutil.parser import parse
-from django.db import transaction
 from django.utils import timezone
 from wagtail import hooks
 from wagtail.models import Site
@@ -22,16 +22,26 @@ from forecastmanager.constants import WEATHER_CONDITIONS_AS_DICT
 from forecastmanager.forecast_settings import (
     ForecastSetting,
     WeatherCondition,
-    ForecastPeriod,
     ForecastDataParameters,
 )
-from forecastmanager.models import City, CityForecast, DataValue, Forecast
+from forecastmanager.models import City, Forecast
+from forecastmanager.services.ingest import (
+    CityForecastRecord,
+    commit_records,
+    is_wanted_slot,
+)
 from forecastmanager.services.types import IngestResult
 
 logger = logging.getLogger(__name__)
 
 # Met Norway locationforecast API.
 BASE_URL = "https://api.met.no/weatherapi/locationforecast/2.0/complete"
+
+# Per-request timeout (seconds) so a slow/hung response can't stall the whole run.
+REQUEST_TIMEOUT = 30
+
+# Number of cities fetched in parallel. Kept modest to respect met.no rate limits.
+MAX_FETCH_WORKERS = 8
 
 DEFAULT_INSTANT_DATA_PARAMETERS = [
     {"parameter": "air_pressure_at_sea_level", "name": "Air Pressure (Sea level)", "parameter_unit": "hPa"},
@@ -67,6 +77,33 @@ def _flatten_entry_values(data_values: dict) -> dict:
     flat.update(next_1)
 
     return flat
+
+
+def _fetch_city(city, user_agent: str):
+    """
+    Fetch the yr.no forecast for one city. Network only — no ORM access, so it
+    is safe to call from worker threads.
+
+    Returns a ``(city, data, error)`` tuple where exactly one of ``data`` /
+    ``error`` is set.
+    """
+    url = f"{BASE_URL}?lat={city.y}&lon={city.x}"
+    try:
+        response = requests.get(
+            url, headers={"User-Agent": user_agent}, timeout=REQUEST_TIMEOUT
+        )
+    except requests.RequestException as exc:
+        return city, None, f"Failed to get forecast for {city.name}: {exc}"
+
+    if response.status_code >= 400:
+        return city, None, (
+            f"Failed to get forecast for {city.name}. Status code: {response.status_code}"
+        )
+
+    try:
+        return city, response.json(), None
+    except ValueError as exc:
+        return city, None, f"Invalid JSON for {city.name}: {exc}"
 
 
 def run_yr_forecast(
@@ -138,35 +175,49 @@ def run_yr_forecast(
     # which reproduces the original command behaviour.
     effective_map = field_map or {key: key for key in parameters_dict.keys()}
 
-    cities_data = {}
+    # Phase 1: fetch every city's forecast concurrently (I/O-bound network work).
+    # Materialise the queryset first so worker threads don't touch the ORM.
+    cities_list = list(cities)
+    logger.info("Fetching forecasts for %d cities (up to %d in parallel)...",
+                len(cities_list), MAX_FETCH_WORKERS)
 
-    for city in cities:
-        logger.info(f"Getting forecast for {city.name}...")
+    fetched = []
+    with ThreadPoolExecutor(max_workers=min(MAX_FETCH_WORKERS, len(cities_list))) as executor:
+        for city, data, error in executor.map(lambda c: _fetch_city(c, user_agent), cities_list):
+            if error:
+                logger.error(error)
+                result.errors.append(error)
+                result.skipped += 1
+                continue
+            fetched.append((city, data))
 
-        url = f"{BASE_URL}?lat={city.y}&lon={city.x}"
-        response = requests.get(url, headers={"User-Agent": user_agent})
+    # Phase 2: parse each response into normalised records, keyed by
+    # (date, hour, city) so duplicate timestamps collapse. Only the 3-hourly
+    # forecast periods are kept. WeatherCondition lookups/creates happen here
+    # (main thread).
+    first_datetime = timezone.localtime().replace(hour=0, minute=0, second=0, microsecond=0)
+    today = first_datetime.date()
+    max_days = 6
+    last_datetime = (first_datetime + timezone.timedelta(days=max_days)).replace(
+        hour=23, minute=59, second=59
+    )
 
-        if response.status_code >= 400:
-            msg = f"Failed to get forecast for {city.name}. Status code: {response.status_code}"
-            logger.error(msg)
-            result.errors.append(msg)
-            result.skipped += 1
-            continue
+    records_by_key: dict[tuple, CityForecastRecord] = {}
 
-        data = response.json()
+    for city, data in fetched:
         timeseries = data.get('properties', {}).get('timeseries')
-
-        first_datetime = timezone.localtime().replace(hour=0, minute=0, second=0, microsecond=0)
-        max_days = 6
-        last_datetime = (first_datetime + timezone.timedelta(days=max_days)).replace(
-            hour=23, minute=59, second=59
-        )
+        if not timeseries:
+            continue
 
         for time_data in timeseries:
             utc_date = parse(time_data.get("time"))
             timezone_date = timezone.localtime(utc_date)
 
             if timezone_date < first_datetime or timezone_date > last_datetime:
+                continue
+
+            # Hourly for the current day, 3-hourly for later days.
+            if not is_wanted_slot(timezone_date.date(), timezone_date.hour, today):
                 continue
 
             data_values = time_data.get("data", {})
@@ -190,81 +241,35 @@ def run_yr_forecast(
                 logger.warning(f"Cannot find or create condition for symbol code: {condition}")
                 continue
 
-            city_forecast = CityForecast(
-                city=city,
-                condition=condition_obj,
-                data_source=CityForecast.DATA_SOURCE_AUTO,
-            )
-
             flat_values = _flatten_entry_values(data_values)
+            values = {}
             for source_field, param_key in effective_map.items():
                 if param_key not in parameters_dict:
                     continue
                 if source_field not in flat_values:
                     continue
-                city_forecast.data_values.add(
-                    DataValue(parameter=parameters_dict[param_key], value=flat_values[source_field])
-                )
+                values[parameters_dict[param_key].id] = str(flat_values[source_field])
 
-            cities_data.setdefault(timezone_date, []).append(city_forecast)
+            records_by_key[(timezone_date.date(), timezone_date.hour, city.id)] = CityForecastRecord(
+                date=timezone_date.date(),
+                hour=timezone_date.hour,
+                city_id=city.id,
+                condition_id=condition_obj.id,
+                values=values,
+            )
 
-    if dry_run:
-        for forecast_date, city_forecasts in cities_data.items():
-            for cf in city_forecasts:
-                logger.info("  [DRY RUN] Would save: %s | %s", forecast_date, cf.city.name)
-                result.saved += 1
-        return result
+    # Phase 3: bulk write.
+    created_forecast_pks = commit_records(
+        list(records_by_key.values()),
+        source="yr",
+        status=status,
+        forecast_setting=forecast_setting,
+        result=result,
+        dry_run=dry_run,
+    )
 
-    created_forecast_pks = []
-
-    for forecast_date, city_forecasts in cities_data.items():
-        effective_time = f"{forecast_date.hour}:00"
-
-        with transaction.atomic():
-            forecast_period = ForecastPeriod.objects.filter(
-                forecast_effective_time=effective_time
-            ).first()
-            if forecast_period is None:
-                forecast_period = ForecastPeriod.objects.create(
-                    parent=forecast_setting,
-                    forecast_effective_time=effective_time,
-                    label=effective_time,
-                )
-
-            # Reuse an existing Forecast for this slot so we don't clobber other
-            # cities or a forecaster's publish status. Only create a fresh draft
-            # when none exists yet.
-            forecast = Forecast.objects.filter(
-                forecast_date=forecast_date, effective_period=forecast_period
-            ).first()
-            if forecast is None:
-                forecast = Forecast.objects.create(
-                    forecast_date=forecast_date,
-                    effective_period=forecast_period,
-                    source="yr",
-                    status=status,
-                )
-
-            for city_forecast in city_forecasts:
-                existing_cf = forecast.city_forecasts.filter(city=city_forecast.city).first()
-                if existing_cf:
-                    if existing_cf.data_source == CityForecast.DATA_SOURCE_MANUAL:
-                        # Forecaster-authored: protected, leave untouched.
-                        logger.info(
-                            "  Skipping %s %s (forecaster-authored, protected)",
-                            city_forecast.city.name, forecast_date,
-                        )
-                        result.skipped += 1
-                        continue
-                    existing_cf.delete()
-                forecast.city_forecasts.add(city_forecast)
-                result.saved += 1
-
-            forecast.save()
-
-        created_forecast_pks.append(forecast.pk)
-
-    for fn in hooks.get_hooks("after_generate_forecast"):
-        fn(created_forecast_pks)
+    if not dry_run:
+        for fn in hooks.get_hooks("after_generate_forecast"):
+            fn(created_forecast_pks)
 
     return result
