@@ -17,7 +17,12 @@ from forecastmanager.constants import WEATHER_PARAMETERS_ICON_LIST
 from forecastmanager.forecast_settings import ForecastSetting
 from forecastmanager.forms import ForecastCreateForm, ForecastEditForm
 from forecastmanager.models import City, Forecast
-from forecastmanager.views import load_cities, edit_forecast_values, import_geonames_cities
+from forecastmanager.views import (
+    load_cities,
+    edit_forecast_values,
+    import_geonames_cities,
+    pull_auto_forecast,
+)
 
 
 @hooks.register('register_admin_urls')
@@ -25,6 +30,7 @@ def urlconf_forecastmanager():
     return [
         path('load-cities/', load_cities, name='load_cities'),
         path('import-geonames-cities/', import_geonames_cities, name='import_geonames_cities'),
+        path('pull-auto-forecast/', pull_auto_forecast, name='pull_auto_forecast'),
         path('forecast/<int:forecast_id>/edit-values/', edit_forecast_values, name='forecast_edit_values'),
     ]
 
@@ -113,9 +119,29 @@ class ForecastEditView(EditView):
         return context
 
 
+class ForecastIndexView(IndexView):
+    @cached_property
+    def header_buttons(self):
+        buttons = super().header_buttons
+
+        # Only offer the manual pull when automated forecasts are enabled.
+        fm_settings = ForecastSetting.for_request(self.request)
+        if fm_settings and fm_settings.enable_auto_forecast:
+            buttons.append(
+                HeaderButton(
+                    label=_('Pull forecasts now'),
+                    url=reverse("pull_auto_forecast"),
+                    icon_name="download",
+                )
+            )
+
+        return buttons
+
+
 class ForecastViewSet(SnippetViewSet):
     model = Forecast
 
+    index_view_class = ForecastIndexView
     list_display = ["forecast_date", "effective_period", "status", "source"]
     list_filter = ["forecast_date", "effective_period", "status", "source"]
 

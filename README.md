@@ -58,11 +58,19 @@ print(response.json())
 
 ## 2. Automated City Forecast from Meteorological Providers
 
-- This is simply implemented by enabling the automated forecasts checkbox under Forecast Settings > Forecast Source, then choosing a forecast provider. The forecast is updated automatically every three hours and has a 1 hour time interval (24 readings in a day).
+- This is simply implemented by enabling the automated forecasts checkbox under Forecast Settings > Forecast Source, then choosing a forecast provider. Forecasts are refreshed automatically on a schedule. For each city they are stored hourly for the current day and at 3-hourly periods (00, 03, 06, 09, 12, 15, 18, 21) for the following days.
 - Two providers are supported:
   - **yr.no (Meteorological Norway)** — `source` value `yr`.
   - **Open-Meteo** — `source` value `open_meteo`.
 - Each provider exposes its own set of source fields (e.g. air temperature, humidity, wind speed, precipitation) which an admin maps onto local forecast parameters under the parameter-mapping settings.
+
+**Manual pull:** automated forecasts refresh on a schedule, but you can trigger an extra pull on demand. When automation is enabled, a **Pull forecasts now** button appears on the Forecasts listing. The pull runs as a **background task** (it does not block the web request), so the button returns immediately and the forecasts appear on the listing once the worker finishes. If a pull is already queued or running, clicking again won't start a second one. (If auto-publish is off, the pulled forecasts are saved as drafts for review.) The same run is available from the command line via `python manage.py generate_auto_forecast`.
+
+> **Background worker required.** The manual pull (and any other background task) is executed by django-background-tasks, which needs a worker process running alongside the web server:
+> ```bash
+> python manage.py process_tasks
+> ```
+> Without this worker, clicking *Pull forecasts now* will queue the job but it will not execute until the worker runs. Run it as a long-lived process (e.g. a separate container, systemd service, or supervisor program) in production.
 
 To read more about the providers visit:
 - [YR Location data forecast model](https://developer.yr.no/doc/locationforecast/datamodel/)

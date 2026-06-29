@@ -26,6 +26,7 @@ from .services.geonames import (
     GeoNamesError,
     GeoNamesImportService,
 )
+from .tasks import pull_auto_forecast_task, PULL_TASK_NAME
 from .serializers import (
     CitySerializer,
     ForecastSerializer,
@@ -445,6 +446,62 @@ def import_geonames_cities(request):
         "preview": True,
     })
     return render(request, template, context)
+
+
+def _auto_pull_pending():
+    """True if a forecast-pull task is currently queued or running."""
+    from background_task.models import Task
+    return Task.objects.filter(task_name=PULL_TASK_NAME).exists()
+
+
+def pull_auto_forecast(request):
+    """
+    Admin action to manually pull forecasts from the configured external
+    provider (yr.no / Open-Meteo). Only available when automated forecasts are
+    enabled in Forecast Settings.
+
+    The pull runs in a background ``process_tasks`` worker, not in the request,
+    so it never blocks the site. POST enqueues the task and returns immediately;
+    if a pull is already queued or running, it is not enqueued again.
+    """
+    template = "forecastmanager/pull_auto_forecast.html"
+    index_url = reverse(Forecast.snippet_viewset.get_url_name("list"))
+    fm_settings = ForecastSetting.for_request(request)
+
+    context = {
+        "index_url": index_url,
+        "enabled": fm_settings.enable_auto_forecast,
+        "provider": fm_settings.get_forecast_provider_display(),
+        "auto_publish": fm_settings.auto_publish_forecasts,
+        "running": _auto_pull_pending(),
+    }
+
+    if request.method != "POST":
+        return render(request, template, context)
+
+    if not fm_settings.enable_auto_forecast:
+        messages.error(
+            request,
+            _("Automated forecasts are disabled. Enable them under Forecast Settings > Forecast Source first."),
+        )
+        return redirect(index_url)
+
+    # Don't enqueue a second pull while one is already queued or running.
+    if _auto_pull_pending():
+        messages.info(
+            request,
+            _("A forecast pull is already queued or running. Please wait for it to finish before starting another."),
+        )
+        return redirect(index_url)
+
+    pull_auto_forecast_task(fm_settings.pk)
+    messages.success(
+        request,
+        _("Forecast pull from %(provider)s started in the background. "
+          "New forecasts will appear here shortly — refresh to check progress.")
+        % {"provider": context["provider"]},
+    )
+    return redirect(index_url)
 
 
 class ForecastSettingsView(APIView):
