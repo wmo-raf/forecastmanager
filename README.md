@@ -64,13 +64,15 @@ print(response.json())
   - **Open-Meteo** — `source` value `open_meteo`.
 - Each provider exposes its own set of source fields (e.g. air temperature, humidity, wind speed, precipitation) which an admin maps onto local forecast parameters under the parameter-mapping settings.
 
-**Manual pull:** automated forecasts refresh on a schedule, but you can trigger an extra pull on demand. When automation is enabled, a **Pull forecasts now** button appears on the Forecasts listing. The pull runs as a **background task** (it does not block the web request), so the button returns immediately and the forecasts appear on the listing once the worker finishes. If a pull is already queued or running, clicking again won't start a second one. (If auto-publish is off, the pulled forecasts are saved as drafts for review.) The same run is available from the command line via `python manage.py generate_auto_forecast`.
+**Manual pull:** automated forecasts refresh on a schedule, but you can trigger an extra pull on demand. When automation is enabled, a **Pull forecasts now** button appears on the Forecasts listing. The pull runs as a **Celery task** (it does not block the web request), so the button returns immediately and the forecasts appear on the listing once the worker finishes. If a pull is already queued or running, clicking again won't start a second one. (If auto-publish is off, the pulled forecasts are saved as drafts for review.) The same run is available from the command line via `python manage.py generate_auto_forecast`.
 
-> **Background worker required.** The manual pull (and any other background task) is executed by django-background-tasks, which needs a worker process running alongside the web server:
+> **Celery worker required.** The manual pull runs as a Celery task, so the host project needs a worker consuming the queue:
 > ```bash
-> python manage.py process_tasks
+> celery -A <your_project> worker -l INFO
 > ```
-> Without this worker, clicking *Pull forecasts now* will queue the job but it will not execute until the worker runs. Run it as a long-lived process (e.g. a separate container, systemd service, or supervisor program) in production.
+> Without a worker the button reports that it could not start the pull, rather than silently queueing work nobody will run. Concurrent pulls are prevented by a cache key with a 30-minute TTL, so a worker that dies mid-pull releases the guard by itself.
+>
+> *Changed in 0.6.7:* this previously used django-background-tasks and its separate `manage.py process_tasks` worker. Projects that never ran that worker queued rows which were never consumed — the pull never happened, and the button disabled itself permanently because it treated the leftover row as "still running".
 
 To read more about the providers visit:
 - [YR Location data forecast model](https://developer.yr.no/doc/locationforecast/datamodel/)

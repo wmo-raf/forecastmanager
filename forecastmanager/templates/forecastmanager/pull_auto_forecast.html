@@ -34,6 +34,7 @@
                     </svg>
                     <div>
                         {% trans "A forecast pull is already queued or running in the background. Please wait for it to finish before starting another." %}
+                        {% trans "If the worker stopped part-way through, this clears itself within 30 minutes." %}
                     </div>
                 </div>
             {% endif %}
@@ -42,7 +43,10 @@
                 <button type="submit" class="button" id="pull-submit" {% if running %}disabled{% endif %}>
                     {% blocktrans %}Pull from {{ provider }} now{% endblocktrans %}
                 </button>
-                <a href="{{ index_url }}" class="button button-secondary button-nostroke">{% trans "Cancel" %}</a>
+                {# Navigation, not a way to stop a running pull — labelled
+                   "Cancel" this read as an abort button next to the
+                   "already running" banner. #}
+                <a href="{{ index_url }}" class="button button-secondary button-nostroke">{% trans "Back to forecasts" %}</a>
             </form>
 
             <script>

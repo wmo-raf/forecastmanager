@@ -1,5 +1,6 @@
 import csv
 import json
+import logging
 
 from django.contrib import messages
 from django.contrib.gis.db.models.functions import Distance
@@ -26,7 +27,13 @@ from .services.geonames import (
     GeoNamesError,
     GeoNamesImportService,
 )
-from .tasks import pull_auto_forecast_task, PULL_TASK_NAME
+from .tasks import (
+    acquire_pull_lock,
+    pull_auto_forecast_task,
+    pull_is_pending,
+    release_pull_lock,
+    PULL_TASK_NAME,
+)
 from .serializers import (
     CitySerializer,
     ForecastSerializer,
@@ -34,6 +41,8 @@ from .serializers import (
     MobileForecastTimeserieSerializer,
 )
 from .utils import get_weather_condition_icons
+
+logger = logging.getLogger(__name__)
 
 
 class ReadOnly(BasePermission):
@@ -450,8 +459,7 @@ def import_geonames_cities(request):
 
 def _auto_pull_pending():
     """True if a forecast-pull task is currently queued or running."""
-    from background_task.models import Task
-    return Task.objects.filter(task_name=PULL_TASK_NAME).exists()
+    return pull_is_pending()
 
 
 def pull_auto_forecast(request):
@@ -460,9 +468,9 @@ def pull_auto_forecast(request):
     provider (yr.no / Open-Meteo). Only available when automated forecasts are
     enabled in Forecast Settings.
 
-    The pull runs in a background ``process_tasks`` worker, not in the request,
-    so it never blocks the site. POST enqueues the task and returns immediately;
-    if a pull is already queued or running, it is not enqueued again.
+    The pull runs on a Celery worker, not in the request, so it never blocks the
+    site. POST enqueues the task and returns immediately; if a pull is already
+    queued or running, it is not enqueued again.
     """
     template = "forecastmanager/pull_auto_forecast.html"
     index_url = reverse(Forecast.snippet_viewset.get_url_name("list"))
@@ -486,15 +494,29 @@ def pull_auto_forecast(request):
         )
         return redirect(index_url)
 
-    # Don't enqueue a second pull while one is already queued or running.
-    if _auto_pull_pending():
+    # Claim the lock before queueing, so two quick clicks can't both enqueue.
+    if not acquire_pull_lock():
         messages.info(
             request,
             _("A forecast pull is already queued or running. Please wait for it to finish before starting another."),
         )
         return redirect(index_url)
 
-    pull_auto_forecast_task(fm_settings.pk)
+    try:
+        pull_auto_forecast_task.delay(fm_settings.pk)
+    except Exception as exc:
+        # Most likely the broker is unreachable or no worker is configured.
+        # Release immediately rather than leaving the button disabled until the
+        # lock expires, and say so instead of claiming a pull has started.
+        release_pull_lock()
+        logger.exception("Could not queue the forecast pull")
+        messages.error(
+            request,
+            _("Could not start the forecast pull: %(error)s. "
+              "Check that the background worker is running.") % {"error": exc},
+        )
+        return redirect(index_url)
+
     messages.success(
         request,
         _("Forecast pull from %(provider)s started in the background. "
