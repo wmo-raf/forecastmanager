@@ -32,7 +32,6 @@ from .tasks import (
     pull_auto_forecast_task,
     pull_is_pending,
     release_pull_lock,
-    PULL_TASK_NAME,
 )
 from .serializers import (
     CitySerializer,
@@ -539,10 +538,38 @@ class ForecastSettingsView(APIView):
 
 
 class WeatherIconsView(APIView):
+    """
+    GET /api/weather-icons[?symbols=a,b,c]
+
+    Icons for the weather conditions this site is configured to use.
+
+    Callers are map clients that preload every icon in the response up front
+    (MapLibre ``loadImage`` accepts raster only, hence PNG). Returning the whole
+    83-symbol yr.no catalogue therefore costs 83 requests on first paint, when
+    only the configured conditions can ever be rendered: ``CityForecast.condition``
+    is a FK to ``WeatherCondition``, which is a child of ``ForecastSetting``, so
+    nothing outside that list can reach the map.
+
+    Falls back to the full catalogue when a site has no conditions configured
+    yet, so a fresh install still shows something. ``?symbols=`` narrows further
+    for clients that know exactly what they need.
+    """
+
     permission_classes = [IsAuthenticated | ReadOnly]
 
     def get(self, request, *args, **kwargs):
         options = get_weather_condition_icons()
+
+        wanted = self.get_configured_symbols(request)
+
+        requested = request.query_params.get("symbols")
+        if requested:
+            asked_for = {s.strip() for s in requested.split(",") if s.strip()}
+            wanted = wanted & asked_for if wanted else asked_for
+
+        if wanted:
+            options = [icon for icon in options if icon["id"] in wanted]
+
         icons = [
             {
                 "id": icon["id"],
@@ -552,3 +579,24 @@ class WeatherIconsView(APIView):
             for icon in options
         ]
         return Response(icons)
+
+    @staticmethod
+    def get_configured_symbols(request):
+        """
+        Symbols configured on this site, or an empty set if that cannot be
+        determined - an empty set means "no filter", never "no icons".
+        """
+        try:
+            fm_settings = ForecastSetting.for_request(request)
+        except Exception:  # noqa: BLE001 - settings are optional, icons are not
+            logger.exception("Could not load forecast settings for weather icons")
+            return set()
+
+        if fm_settings is None:
+            return set()
+
+        return {
+            condition.symbol
+            for condition in fm_settings.weather_conditions.all()
+            if condition.symbol
+        }

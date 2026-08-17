@@ -43,9 +43,7 @@
                 <button type="submit" class="button" id="pull-submit" {% if running %}disabled{% endif %}>
                     {% blocktrans %}Pull from {{ provider }} now{% endblocktrans %}
                 </button>
-                {# Navigation, not a way to stop a running pull — labelled
-                   "Cancel" this read as an abort button next to the
-                   "already running" banner. #}
+                
                 <a href="{{ index_url }}" class="button button-secondary button-nostroke">{% trans "Back to forecasts" %}</a>
             </form>
 
