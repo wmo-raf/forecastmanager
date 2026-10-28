@@ -191,7 +191,10 @@ class CityForecast(ClusterableModel, Orderable):
         return data_values
 
     def get_geojson_feature(self, request=None):
-        condition_symbol_url = get_full_url(request, self.condition.icon_url)
+        # condition is optional, and one city without it must not take down
+        # the whole feed it is serialized into.
+        condition = self.condition
+        condition_symbol_url = get_full_url(request, condition.icon_url) if condition else None
 
         feature = {
             "type": "Feature",
@@ -205,8 +208,8 @@ class CityForecast(ClusterableModel, Orderable):
                 "effective_period_label": self.parent.effective_period.label,
                 "city": self.city.name,
                 "city_slug": self.city.slug,
-                "condition": self.condition.symbol,
-                "condition_label": self.condition.label,
+                "condition": condition.symbol if condition else None,
+                "condition_label": condition.label if condition else None,
                 "condition_symbol_url": condition_symbol_url
             },
         }

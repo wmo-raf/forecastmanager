@@ -219,3 +219,29 @@ class WeatherIconsViewTests(SimpleTestCase):
         self.configure("cloudy", "not_a_real_symbol")
 
         self.assertEqual(self.ids_returned(), ["cloudy"])
+
+
+class CityForecastGeojsonFeatureTests(SimpleTestCase):
+    """One city forecast without a condition used to raise AttributeError,
+    which took down the whole home map feed it was serialized into."""
+
+    def make_city_forecast(self, condition=None):
+        from datetime import date, time
+
+        from django.contrib.gis.geos import Point
+
+        from forecastmanager.forecast_settings import ForecastPeriod
+        from forecastmanager.models import City, CityForecast, Forecast
+
+        period = ForecastPeriod(forecast_effective_time=time(6, 0), label="Morning")
+        forecast = Forecast(forecast_date=date(2026, 10, 15), effective_period=period)
+        city = City(name="Nairobi", slug="nairobi", location=Point(36.8, -1.3))
+        return CityForecast(parent=forecast, city=city, condition=condition)
+
+    def test_missing_condition_serializes_with_empty_condition_fields(self):
+        feature = self.make_city_forecast().get_geojson_feature()
+
+        self.assertEqual(feature["properties"]["city"], "Nairobi")
+        self.assertIsNone(feature["properties"]["condition"])
+        self.assertIsNone(feature["properties"]["condition_label"])
+        self.assertIsNone(feature["properties"]["condition_symbol_url"])
